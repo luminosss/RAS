@@ -1,0 +1,14 @@
+<h1>Paiement réussi ✅</h1>
+
+<script>
+let users = JSON.parse(localStorage.getItem('users'));
+let currentUser = users[0]; // simplifié
+
+currentUser.premium = true;
+
+localStorage.setItem('users', JSON.stringify(users));
+
+alert('🎉 Tu es maintenant PREMIUM !');
+
+window.location.href = "/";
+</script>
