@@ -35,7 +35,6 @@ header button{
 <button onclick="showPage('register')">Inscription</button>
 <button onclick="goMyProfile()">👤 Mon profil</button>
 <button onclick="goProfiles()">🌍 Profils</button>
-<button onclick="showPage('register')">Inscription</button>
 </header>
 
 <!-- HOME -->
@@ -221,6 +220,7 @@ window.addEventListener("beforeunload", async () => {
    last_seen:new Date()
   }).eq('id', currentUser.id);
  }
+});
   updateAuthButton();
   loadProfiles();
 loadMyProfile();
@@ -241,11 +241,11 @@ window.createProfile = async function(){
   return alert("Connecte-toi");
  }
 
- const prenom = document.getElementById("prenom")?.value;
- const age = document.getElementById("age")?.value;
- const ville = document.getElementById("ville")?.value;
- const bio = document.getElementById("bio")?.value;
- const file = document.getElementById("photo")?.files[0];
+ const prenom = document.getElementById("prenomInput")?.value;
+ const age = document.getElementById("ageInput")?.value;
+ const ville = document.getElementById("villeInput")?.value;
+ const bio = document.getElementById("bioInput")?.value;
+ const file = document.getElementById("photoInput")?.files[0];
 
  if(!prenom || !age || !ville){
   return alert("Remplis tous les champs obligatoires");
@@ -270,7 +270,7 @@ window.createProfile = async function(){
    .from('avatars')
    .getPublicUrl(fileName).data.publicUrl;
  }
- document.getElementById("photo").addEventListener("change", function(e){
+ document.getElementById("photoInput").addEventListener("change", function(e){
 
  const file = e.target.files[0];
  if(!file) return;
@@ -316,10 +316,10 @@ async function loadMyProfile(){
 
  if(!data) return;
 
- document.getElementById("prenom").value = data.prenom || "";
- document.getElementById("age").value = data.age || "";
- document.getElementById("ville").value = data.ville || "";
- document.getElementById("bio").value = data.bio || "";
+ document.getElementById("prenomInput").value = data.prenom || "";
+ document.getElementById("ageInput").value = data.age || "";
+ document.getElementById("villeInput").value = data.ville || "";
+ document.getElementById("bioInput").value = data.bio || "";
 
  if(data.photo){
   const img = document.getElementById("preview");
@@ -524,11 +524,6 @@ function notify(text){
  }).eq('id', currentUser.id);
 
  alert("💎 Premium activé !");
-}
-//EXPIRATION AUTOMATIQUE
-if(event.type === "invoice.payment_failed"){
- const email = event.data.object.customer_email;
- await updatePremium(email, false);
 }
 async function loadStats(){
 
