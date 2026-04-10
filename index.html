@@ -291,7 +291,7 @@ if(photoInput){
 }
 
  reader.readAsDataURL(file);
-});
+
 
  const { error } = await supabase.from('profiles').upsert({
   id: currentUser.id,
@@ -606,7 +606,7 @@ window.openChatFromProfile = async function(){
   })
  });
 }
-});
+
 </script>
 
 </body>
