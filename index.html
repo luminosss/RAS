@@ -149,17 +149,17 @@ window.onerror = function(msg, url, line){
  let currentChatUser = null;
 
  // NAV
- window.showPage = function(id){
+ window.showPage =  async function(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
  };
 
  // AUTH BTN
- function updateAuthButton(){
+window.updateAuthButton =  async  function(){
   document.getElementById("authBtn").innerText = currentUser ? "Déconnexion" : "Connexion";
  }
 
- window.handleAuth = function(){
+ window.handleAuth =  async  function(){
   currentUser ? logout() : showPage("login");
  };
 
@@ -478,7 +478,7 @@ async function loadMessages(){
   .subscribe();
 }
 
- function displayMessage(m){
+ async function  displayMessage(m){
  const chatBox = document.getElementById("chatBox");
 
  let me = m.from_user === currentUser.id;
@@ -500,14 +500,14 @@ if(Notification.permission !== "granted"){
  Notification.requestPermission();
 }
 
-function notify(text){
+window.notify = function(text){
  if(document.hidden){
   new Notification("Nouveau message 💬", { body: text });
  }
 }
 
  // PREMIUM
- async function startPayment(){
+ window.startPayment = function (){
 
  if(!currentUser) return alert("Connecte-toi");
 
@@ -526,7 +526,7 @@ function notify(text){
 
  alert("💎 Premium activé !");
 }
-async function loadStats(){
+ window.loadStats = function (){
 
  const res = await fetch("http://localhost:3000/stats");
  const data = await res.json();
@@ -562,7 +562,7 @@ window.likeUser = async function(){
   alert("❤️ Like envoyé");
  }
 };
-async function checkMatch(id){
+window.checkMatch = function (id){
 
  const { data } = await supabase
   .from('likes')
