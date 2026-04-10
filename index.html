@@ -215,6 +215,7 @@ window.addEventListener("beforeunload", async () => {
   }).eq('id', currentUser.id);
  }
 });
+};
   updateAuthButton();
   loadProfiles();
 loadMyProfile();
@@ -284,7 +285,6 @@ if(photoInput){
  });
 }
 
- reader.readAsDataURL(file);
 
 
  const { error } = await supabase.from('profiles').upsert({
@@ -508,7 +508,7 @@ window.notify = function(text){
 }
 
  // PREMIUM
- window.startPayment = function (){
+window.startPayment = async function (){
 
  if(!currentUser) return alert("Connecte-toi");
 
@@ -563,7 +563,7 @@ window.likeUser = async function(){
   alert("❤️ Like envoyé");
  }
 };
-window.checkMatch = function (id){
+window.checkMatch = async function (id){
 
  const { data } = await supabase
   .from('likes')
@@ -602,6 +602,6 @@ window.openChatFromProfile = async function(){
 }
 
 </script>
-
 </body>
+
 </html>
