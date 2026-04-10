@@ -140,115 +140,105 @@ Rencontre des personnes sérieuses près de toi ❤️
 <script src="app.js"></script>
 
 <script>
-// 🔥 DEBUG TOTAL
+// DEBUG
 window.onerror = function(msg, url, line){
  alert("ERREUR JS:\n" + msg + "\nligne: " + line);
 };
 
+let currentUser = null;
+let currentChatUser = null;
 
- let currentUser = null;
- let currentChatUser = null;
-
- // NAV
- window.showPage =  async function(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
- };
-
- // AUTH BTN
-window.updateAuthButton =  async  function(){
-  document.getElementById("authBtn").innerText = currentUser ? "Déconnexion" : "Connexion";
- }
-
- window.handleAuth =  async  function(){
-  currentUser ? logout() : showPage("login");
- };
-
- // REGISTER
- window.register = async function(){
-
-  const email = document.getElementById("regEmail").value;
-  const pass = document.getElementById("regPass").value;
-
-  if(!email || !pass) return alert("Remplis tout");
-
-  const { data, error } = await supabase.auth.signUp({ email, password: pass });
-
-  if(error) return alert(error.message);
-
-  const user = data.user || data.session?.user;
-
-  if(!user) return alert("Vérifie ton email");
-
-  currentUser = user;
-
-await supabase.from('profiles').insert({
- id: user.id,
- email: email
-});
-  alert("Compte créé !");
-  showPage("profile");
-  updateAuthButton();
- };
-
- // LOGIN
- window.login = async function(){
-
-  const email = document.getElementById("logEmail").value;
-  const pass = document.getElementById("logPass").value;
-
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
-
-  if(error) return alert(error.message);
-
-  currentUser = data.user;
-
-  alert("Connecté !");
-  await supabase.from('profiles').update({
- online: true
-}).eq('id', currentUser.id);
-window.addEventListener("beforeunload", async () => {
- if(currentUser){
-  await supabase.from('profiles').update({
-   online:false,
-   last_seen:new Date()
-  }).eq('id', currentUser.id);
- }
-});
+// NAV
+window.showPage = function(id){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
 };
-  updateAuthButton();
-  loadProfiles();
-loadMyProfile();
 
- // LOGOUT
+// AUTH BTN
+window.updateAuthButton = function(){
+ document.getElementById("authBtn").innerText = currentUser ? "Déconnexion" : "Connexion";
+};
 
+window.handleAuth = function(){
+ currentUser ? logout() : showPage("login");
+};
+
+// REGISTER
+window.register = async function(){
+ const email = document.getElementById("regEmail").value;
+ const pass = document.getElementById("regPass").value;
+
+ if(!email || !pass) return alert("Remplis tout");
+
+ const { data, error } = await supabase.auth.signUp({ email, password: pass });
+ if(error) return alert(error.message);
+
+ const user = data.user || data.session?.user;
+ if(!user) return alert("Vérifie ton email");
+
+ currentUser = user;
+
+ await supabase.from('profiles').insert({
+  id: user.id,
+  email: email
+ });
+
+ alert("Compte créé !");
+ showPage("profile");
+ updateAuthButton();
+};
+
+// LOGIN
+window.login = async function(){
+ const email = document.getElementById("logEmail").value;
+ const pass = document.getElementById("logPass").value;
+
+ const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+ if(error) return alert(error.message);
+
+ currentUser = data.user;
+
+ alert("Connecté !");
+ updateAuthButton();
+ loadProfiles();
+ loadMyProfile();
+};
+
+// LOGOUT
 window.logout = async function(){
-  await supabase.auth.signOut();
-  currentUser=null;
-  updateAuthButton();
-  showPage("home");
- }
+ await supabase.auth.signOut();
+ currentUser = null;
+ updateAuthButton();
+ showPage("home");
+};
 
- // PROFILE
+// PROFILE
+window.createProfile = async function(){
+ if(!currentUser) return alert("Connecte-toi");
+
+ const prenom = document.getElementById("prenomInput").value;
+ const age = document.getElementById("ageInput").value;
+ const ville = document.getElementById("villeInput").value;
+ const bio = document.getElementById("bioInput").value;
 window.createProfile = async function(){
 
  if(!currentUser){
   return alert("Connecte-toi");
  }
 
- const prenom = document.getElementById("prenomInput")?.value;
- const age = document.getElementById("ageInput")?.value;
- const ville = document.getElementById("villeInput")?.value;
- const bio = document.getElementById("bioInput")?.value;
- const file = document.getElementById("photoInput")?.files[0];
+ const prenom = document.getElementById("prenomInput").value;
+ const age = document.getElementById("ageInput").value;
+ const ville = document.getElementById("villeInput").value;
+ const bio = document.getElementById("bioInput").value;
+ const file = document.getElementById("photoInput").files[0];
 
  if(!prenom || !age || !ville){
-  return alert("Remplis tous les champs obligatoires");
+  return alert("Remplis tous les champs");
  }
 
  let photoUrl = null;
 
- // 📸 upload image
+ // upload image
  if(file){
   const fileName = currentUser.id + "-" + Date.now();
 
@@ -257,7 +247,7 @@ window.createProfile = async function(){
    .upload(fileName, file);
 
   if(uploadError){
-   alert("Erreur upload: " + uploadError.message);
+   alert(uploadError.message);
    return;
   }
 
@@ -265,48 +255,44 @@ window.createProfile = async function(){
    .from('avatars')
    .getPublicUrl(fileName).data.publicUrl;
  }
-const photoInput = document.getElementById("photoInput");
-
-if(photoInput){
- photoInput.addEventListener("change", function(e){
-
-  const file = e.target.files[0];
-  if(!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = function(e){
-   const img = document.getElementById("preview");
-   img.src = e.target.result;
-   img.style.display = "block";
-  };
-
-  reader.readAsDataURL(file);
- });
-}
-
-
 
  const { error } = await supabase.from('profiles').upsert({
   id: currentUser.id,
-  prenom: prenom,
+  prenom,
   age: parseInt(age),
-  ville: ville,
-  bio: bio,
+  ville,
+  bio,
   photo: photoUrl
  });
 
  if(error){
-  alert("Erreur: " + error.message);
+  alert(error.message);
   return;
  }
 
  alert("✅ Profil enregistré !");
  loadProfiles();
 };
-//MODIFIER PROFIL
-async function loadMyProfile(){
+ if(!prenom || !age || !ville){
+  return alert("Remplis tous les champs");
+ }
 
+ const { error } = await supabase.from('profiles').upsert({
+  id: currentUser.id,
+  prenom,
+  age: parseInt(age),
+  ville,
+  bio
+ });
+
+ if(error) return alert(error.message);
+
+ alert("✅ Profil enregistré !");
+ loadProfiles();
+};
+
+// LOAD MY PROFILE
+async function loadMyProfile(){
  if(!currentUser) return;
 
  const { data } = await supabase
@@ -321,77 +307,45 @@ async function loadMyProfile(){
  document.getElementById("ageInput").value = data.age || "";
  document.getElementById("villeInput").value = data.ville || "";
  document.getElementById("bioInput").value = data.bio || "";
-
- if(data.photo){
- const img = document.getElementById("preview");
- if(img){
-  img.src = data.photo;
-  img.style.display = "block";
- }
 }
- async function loadProfiles(){
 
- if(!currentUser){
-  alert("Utilisateur non connecté");
-  return;
- }
+// LOAD PROFILES
+async function loadProfiles(){
+ if(!currentUser) return;
 
  showPage("profiles");
 
- const { data, error } = await supabase
+ const { data } = await supabase
   .from('profiles')
   .select('*');
 
- if(error){
-  alert("Erreur: " + error.message);
-  return;
- }
-
  const list = document.getElementById("list");
- list.innerHTML='';
-
- if(!data || data.length === 0){
-  list.innerHTML = "<p>Aucun profil trouvé</p>";
-  return;
- }
+ list.innerHTML = '';
 
  data.forEach(u=>{
   if(u.id === currentUser.id) return;
 
-  list.innerHTML+=`
-<div class="card" onclick="openProfile('${u.id}')">
- ${u.prenom} (${u.age||""})
- ${u.premium ? "👑" : ""}
- <br>
- ${u.online ? "🟢 En ligne" : "⚫ Hors ligne"}
-</div>`;
+  list.innerHTML += `
+  <div class="card" onclick="openProfile('${u.id}')">
+   ${u.prenom || "Sans nom"} (${u.age || ""})
+  </div>`;
  });
 }
- 
+
+// NAV PROFILE
 window.goMyProfile = function(){
-
- if(!currentUser){
-  alert("Connecte-toi");
-  return;
- }
-
+ if(!currentUser) return alert("Connecte-toi");
  showPage("profile");
  loadMyProfile();
 };
 
 window.goProfiles = function(){
-
- if(!currentUser){
-  alert("Connecte-toi");
-  return;
- }
-
+ if(!currentUser) return alert("Connecte-toi");
  loadProfiles();
 };
 
-// ouvrir profil :
+// OPEN PROFILE
 window.openProfile = async function(id){
-
  const { data } = await supabase
   .from('profiles')
   .select('*')
@@ -400,116 +354,29 @@ window.openProfile = async function(id){
 
  currentChatUser = id;
 
- document.getElementById("pvName").innerText =
- data.prenom + (data.premium ? " 👑" : "");
- document.getElementById("pvPhoto").src = data.photo || "";
- document.getElementById("pvInfo").innerText =
-  (data.age || "") + " ans - " + (data.ville || "");
- document.getElementById("pvbio").innerText =
-  data.bio || "";
+ document.getElementById("pvName").innerText = data.prenom;
+ document.getElementById("pvInfo").innerText = (data.age || "") + " ans - " + (data.ville || "");
+ document.getElementById("pvbio").innerText = data.bio || "";
 
  showPage("profileView");
 };
- // CHAT
- window.openChat = function(id){
-  currentChatUser = id;
-  showPage("chatPage");
-  loadMessages();
- };
 
- //BOUTON CHAT DEPUIS PROFIL
-window.openChatFromProfile = function(){
- if(!currentChatUser) return;
- showPage("chatPage");
- loadMessages();
+// CHAT
+window.sendMessage = async function(){
+ const msg = document.getElementById("msg");
+ if(!msg.value) return;
+
+ await supabase.from('messages').insert({
+  from_user: currentUser.id,
+  to_user: currentChatUser,
+  text: msg.value
+ });
+
+ msg.value = "";
 };
 
- window.sendMessage = async function(){
-
-  const msg = document.getElementById("msg");
-
-  if(!msg.value) return;
-
-  await supabase.from('messages').insert({
-   from_user: currentUser.id,
-   to_user: currentChatUser,
-   text: msg.value
-  });
-
-  msg.value="";
-  loadMessages();
- };
-
- let channel = null;
-
-async function loadMessages(){
-
- if(channel){
-  supabase.removeChannel(channel);
- }
-
- const chatBox = document.getElementById("chatBox");
- chatBox.innerHTML='';
-
- // anciens messages
- const { data } = await supabase.from('messages')
-  .select('*')
-  .or(`and(from_user.eq.${currentUser.id},to_user.eq.${currentChatUser}),and(from_user.eq.${currentChatUser},to_user.eq.${currentUser.id})`)
-  .order('created_at');
-
- data.forEach(displayMessage);
-
- // 🔥 TEMPS RÉEL
- channel = supabase.channel('chat')
-  .on('postgres_changes', {
-   event: 'INSERT',
-   schema: 'public',
-   table: 'messages'
-  }, payload => {
-
-   const m = payload.new;
-
-   if(
-    (m.from_user === currentUser.id && m.to_user === currentChatUser) ||
-    (m.from_user === currentChatUser && m.to_user === currentUser.id)
-   ){
-    displayMessage(m);
-   }
-  })
-  .subscribe();
-}
-
- async function  displayMessage(m){
- const chatBox = document.getElementById("chatBox");
-
- let me = m.from_user === currentUser.id;
-
- chatBox.innerHTML += `
-  <div class="message ${me?'me':'other'}">
-   ${m.text || ""}
-  </div>
- `;
-if(m.from_user !== currentUser.id){
- sound.play();
- 
-}
- chatBox.scrollTop = chatBox.scrollHeight;
-}
-// notification
-
-if(Notification.permission !== "granted"){
- Notification.requestPermission();
-}
-
-window.notify = function(text){
- if(document.hidden){
-  new Notification("Nouveau message 💬", { body: text });
- }
-}
-
- // PREMIUM
+// PAYMENT
 window.startPayment = async function (){
-
  if(!currentUser) return alert("Connecte-toi");
 
  const res = await fetch("http://localhost:3000/pay",{
@@ -517,90 +384,32 @@ window.startPayment = async function (){
  });
 
  const data = await res.json();
-
  window.location.href = data.url;
-}
- if(window.location.search.includes("success")){
- supabase.from('profiles').update({
-  premium:true
- }).eq('id', currentUser.id);
-
- alert("💎 Premium activé !");
-}
- window.loadStats = function (){
-
- const res = await fetch("http://localhost:3000/stats");
- const data = await res.json();
-
- alert(
-  "Clients: " + data.clients +
-  "\nAbonnements: " + data.abonnements
- );
-}
- // AUTO LOGIN
- supabase.auth.getSession().then(({data})=>{
-  if(data.session){
-   currentUser = data.session.user;
-   updateAuthButton();
-   loadProfiles();
-  }
- });
-
-window.likeUser = async function(){
-
- if(!currentUser) return alert("Connecte-toi");
-
- await supabase.from('likes').insert({
-  from_user: currentUser.id,
-  to_user: currentChatUser
- });
-
- const match = await checkMatch(currentChatUser);
-
- if(match){
-  document.getElementById("matchStatus").innerText = "🔥 MATCH !";
- }else{
-  alert("❤️ Like envoyé");
- }
 };
-window.checkMatch = async function (id){
 
- const { data } = await supabase
-  .from('likes')
-  .select('*')
-  .or(`and(from_user.eq.${currentUser.id},to_user.eq.${id}),and(from_user.eq.${id},to_user.eq.${currentUser.id})`);
-
- return data.length >= 2;
-}
-window.openChatFromProfile = async function(){
-
- const match = await checkMatch(currentChatUser);
-
- if(!match){
-  alert("❌ Match et abonnement requis pour discuter");
-  return;
+// AUTO LOGIN
+supabase.auth.getSession().then(({data})=>{
+ if(data.session){
+  currentUser = data.session.user;
+  updateAuthButton();
+  loadProfiles();
  }
+});
+document.getElementById("photoInput").addEventListener("change", function(e){
+ const file = e.target.files[0];
+ if(!file) return;
 
- showPage("chatPage");
- loadMessages();
-};
- updateAuthButton();
+ const reader = new FileReader();
 
- async function updatePremium(email, status){
- await fetch("https://ngxrsfntupkrpuzaffov.supabase.co/rest/v1/profiles?email=eq."+email,{
-  method:"PATCH",
-  headers:{
-   "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHJzZm50dXBrcnB1emFmZm92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3Mzk0MTEsImV4cCI6MjA5MTMxNTQxMX0.rferAxInyPefZ6e_gqlemLOlAkRowu_gmSazEQDH96w",
-   "Authorization":"Bearer TA_CLE_ANON",
-   "Content-Type":"application/json"
-  },
-  body: JSON.stringify({
-   premium: status,
-   subscription_status: status ? "active" : "inactive"
-  })
- });
-}
+ reader.onload = function(e){
+  const img = document.getElementById("preview");
+  img.src = e.target.result;
+  img.style.display = "block";
+ };
 
+ reader.readAsDataURL(file);
+});
+updateAuthButton();
 </script>
 </body>
 
