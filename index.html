@@ -270,18 +270,25 @@ window.createProfile = async function(){
    .from('avatars')
    .getPublicUrl(fileName).data.publicUrl;
  }
- document.getElementById("photoInput").addEventListener("change", function(e){
+const photoInput = document.getElementById("photoInput");
 
- const file = e.target.files[0];
- if(!file) return;
+if(photoInput){
+ photoInput.addEventListener("change", function(e){
 
- const reader = new FileReader();
+  const file = e.target.files[0];
+  if(!file) return;
 
- reader.onload = function(e){
-  const img = document.getElementById("preview");
-  img.src = e.target.result;
-  img.style.display = "block";
- };
+  const reader = new FileReader();
+
+  reader.onload = function(e){
+   const img = document.getElementById("preview");
+   img.src = e.target.result;
+   img.style.display = "block";
+  };
+
+  reader.readAsDataURL(file);
+ });
+}
 
  reader.readAsDataURL(file);
 });
@@ -322,7 +329,8 @@ async function loadMyProfile(){
  document.getElementById("bioInput").value = data.bio || "";
 
  if(data.photo){
-  const img = document.getElementById("preview");
+ const img = document.getElementById("preview");
+ if(img){
   img.src = data.photo;
   img.style.display = "block";
  }
