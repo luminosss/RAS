@@ -89,17 +89,16 @@ async function loadMyProfile(){
  else showProfiles();
 }
 
-async function createProfile(){
- await supabase.from('profiles').upsert({
-  id: currentUser.id,
-  prenom: prenom.value,
-  age: age.value,
-  ville: ville.value,
-  description: description.value
- });
+await supabase.from('profiles').upsert({
+ id: currentUser.id,
+ prenom: document.getElementById("prenomInput").value,
+ age: document.getElementById("ageInput").value,
+ ville: document.getElementById("villeInput").value,
+ bio: document.getElementById("bioInput").value
+});
 
  loadMyProfile();
-}
+
 
 // AFFICHAGE PROFILS
 async function showProfiles(){
@@ -109,14 +108,15 @@ async function showProfiles(){
   .from('profiles')
   .select('*')
   .neq('id', currentUser.id);
-
- list.innerHTML='';
+  
+const list = document.getElementById("list");
+list.innerHTML = '';
 
  data.forEach(u=>{
   list.innerHTML += `
   <div class="card" onclick="openProfile('${u.id}')">
-   <b>${u.prenom || 'Sans nom'}</b>
-   <p>${u.age || ''} ${u.ville || ''}</p>
+  <b>${u.prenom || 'Sans nom'}</b>
+<p>${u.age || ''} ${u.ville || ''}</p>
   </div>`;
  });
 }
@@ -129,13 +129,13 @@ async function openProfile(id){
   .eq('id', id)
   .single();
 
- currentProfileId = id;
+currentProfileId = id;
 
  showPage('profileView');
 
- pvName.innerText = data.prenom;
- pvInfo.innerText = data.age + " ans - " + data.ville;
- pvDesc.innerText = data.description;
+ pvName.innerText = data.prenomInput;
+ pvInfo.innerText = data.ageInput + " ans - " + data.villeInput;
+ pvDesc.innerText = data.bioInput;
 
  const match = await isMatch(id);
  pvMatch.innerText = match ? "🔥 MATCH !" : "";

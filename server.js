@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const stripe = new Stripe("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");
+const stripe = new Stripe(process.env.STRIPE_SECRET);
 
 // 🔥 créer session abonnement
 app.post("/create-checkout-session", async (req, res) => {

@@ -103,10 +103,10 @@ Rencontre des personnes sérieuses près de toi ❤️
 <!-- PROFILE -->
 <div id="profile" class="page">
 <h3>Créer profil</h3>
-<input id="prenomInput">
-<input id="ageInput">
-<input id="villeInput">
-<textarea id="bioInput"></textarea>
+<input id="prenomInput" placeholder="Prénom">
+<input id="ageInput" placeholder="Âge">
+<input id="villeInput" placeholder="Ville">
+<textarea id="bioInput" placeholder="Bio"></textarea>
 <input id="photoInput" type="file">
 <button onclick="createProfile()">Valider</button>
 </div>
@@ -136,6 +136,7 @@ Rencontre des personnes sérieuses près de toi ❤️
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="supabase.js"></script>
 
 <script>
 // 🔥 DEBUG TOTAL
@@ -143,14 +144,6 @@ window.onerror = function(msg, url, line){
  alert("ERREUR JS:\n" + msg + "\nligne: " + line);
 };
 
-// 🔥 ATTEND QUE LA PAGE SOIT CHARGÉE
-document.addEventListener("DOMContentLoaded", () => {
-
- // 🔥 CONFIG
- const supabase = window.supabase.createClient(
-  "https://ngxrsfntupkrpuzaffov.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHJzZm50dXBrcnB1emFmZm92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3Mzk0MTEsImV4cCI6MjA5MTMxNTQxMX0.rferAxInyPefZ6e_gqlemLOlAkRowu_gmSazEQDH96w"
- );
 
  let currentUser = null;
  let currentChatUser = null;
