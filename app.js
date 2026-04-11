@@ -23,48 +23,6 @@ function handleAuth(){
  currentUser ? logout() : showPage('login');
 }
 
-// AUTH
-async function register(){
-
- const email = document.getElementById("regEmail").value;
- const pass = document.getElementById("regPass").value;
-
- if(!email || !pass){
-  return alert("Remplis les champs");
- }
-
- const { data, error } = await supabase.auth.signUp({
-  email,
-  password: pass
- });
-
- if(error) return alert(error.message);
-
- alert("Compte créé !");
-}
-
-async function login(){
-
- const email = document.getElementById("logEmail").value;
- const pass = document.getElementById("logPass").value;
-
- const { data, error } = await supabase.auth.signInWithPassword({
-  email,
-  password: pass
- });
-
- if(error) return alert(error.message);
-
- alert("Connecté !");
-}
-
-async function logout(){
- await supabase.auth.signOut();
- currentUser = null;
- updateAuthButton();
- showPage('home');
- alert("👋 Déconnecté");
-}
 
 // AUTO LOGIN
 supabase.auth.getSession().then(({ data })=>{
