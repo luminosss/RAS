@@ -9,7 +9,7 @@ window.onerror = function(msg, url, line){
 
 let currentUser = null;
 let currentChatUser = null;
-
+const stripe = new Stripe(process.env.STRIPE_SECRET);
 // NAV
 window.showPage = function(id){
  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -53,8 +53,9 @@ window.register = async function(){
  await supabase.from('profiles').insert({
   id: user.id,
   email: email
+  
  });
-
+if(!email.includes("@"))
  alert("Compte créé !");
  showPage("profile");
  updateAuthButton();
@@ -86,23 +87,15 @@ window.logout = async function(){
 
 // PROFILE
 window.createProfile = async function(){
+
  if(!currentUser) return alert("Connecte-toi");
 
  const prenom = document.getElementById("prenomInput").value;
  const age = document.getElementById("ageInput").value;
  const ville = document.getElementById("villeInput").value;
  const bio = document.getElementById("bioInput").value;
-window.createProfile = async function(){
-
- if(!currentUser){
-  return alert("Connecte-toi");
- }
-
- const prenom = document.getElementById("prenomInput").value;
- const age = document.getElementById("ageInput").value;
- const ville = document.getElementById("villeInput").value;
- const bio = document.getElementById("bioInput").value;
  const file = document.getElementById("photoInput").files[0];
+ }
 
  if(!prenom || !age || !ville){
   return alert("Remplis tous les champs");
@@ -137,31 +130,13 @@ window.createProfile = async function(){
   photo: photoUrl
  });
 
- if(error){
-  alert(error.message);
-  return;
- }
-
- alert("✅ Profil enregistré !");
- loadProfiles();
-};
- if(!prenom || !age || !ville){
-  return alert("Remplis tous les champs");
- }
-
- const { error } = await supabase.from('profiles').upsert({
-  id: currentUser.id,
-  prenom,
-  age: parseInt(age),
-  ville,
-  bio
- });
 
  if(error) return alert(error.message);
 
  alert("✅ Profil enregistré !");
  loadProfiles();
-};
+
+ 
 
 // LOAD MY PROFILE
 async function loadMyProfile(){
@@ -229,9 +204,10 @@ window.openProfile = async function(id){
  document.getElementById("pvName").innerText = data.prenom;
  document.getElementById("pvInfo").innerText = (data.age || "") + " ans - " + (data.ville || "");
  document.getElementById("pvbio").innerText = data.bio || "";
-
+document.getElementById("pvPhoto").src = data.photo || "";
  showPage("profileView");
 };
+
 // LIKE
 async function like(id){
  if(!currentUser) return alert("Connecte-toi");
@@ -253,6 +229,7 @@ async function isMatch(id){
 
  return data.length >= 2;
 }
+
 // CHAT
 window.sendMessage = async function(){
  const msg = document.getElementById("msg");
@@ -271,9 +248,11 @@ window.sendMessage = async function(){
 window.startPayment = async function (){
  if(!currentUser) return alert("Connecte-toi");
 
- const res = await fetch("http://localhost:3000/pay",{
-  method:"POST"
- });
+fetch("http://localhost:3000/create-checkout-session", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email: currentUser.email })
+});
 
  const data = await res.json();
  window.location.href = data.url;
@@ -293,6 +272,7 @@ document.getElementById("photoInput").addEventListener("change", function(e){
 
  reader.readAsDataURL(file);
 });
+
 // AFFICHAGE PROFILS
 async function showProfiles(){
  showPage('profiles');
@@ -320,15 +300,16 @@ async function openProfile(id){
   .from('profiles')
   .select('*')
   .eq('id', id)
+  .eq('ville', ville)
   .single();
 
 currentProfileId = id;
 
  showPage('profileView');
 
- pvName.innerText = data.prenomInput;
- pvInfo.innerText = data.ageInput + " ans - " + data.villeInput;
- pvDesc.innerText = data.bioInput;
+pvName.innerText = data.prenom;
+pvInfo.innerText = data.age + " ans - " + data.ville;
+pvbio.innerText = data.bio;
   const match = await isMatch(id);
  pvMatch.innerText = match ? "🔥 MATCH !" : "";
 }
