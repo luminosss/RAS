@@ -175,10 +175,11 @@ window.register = async function(){
 
  currentUser = user;
 
- await supabaseClient.from('profiles').insert({
-  id: user.id,
-  email: email
- });
+await supabaseClient.from('profiles').insert({
+ id: currentUser.id,
+ prenom: "test"
+});
+
 if(error){
  console.error(error);
  alert(error.message);
@@ -257,6 +258,7 @@ await supabaseClient.from('profiles').update({
  if(error) return alert(error.message);
 
  alert("✅ Profil enregistré !");
+
  loadProfiles();
 };
 
