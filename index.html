@@ -292,13 +292,13 @@ async function loadProfiles(){
 }
 
 // NAV PROFILE
-window.goMyProfile = function(){
+window.goMyProfile = async function(){
  if(!currentUser) return alert("Connecte-toi");
  showPage("profile");
  loadMyProfile();
 };
 
-window.goProfiles = function(){
+window.goProfiles =  async  function(){
  if(!currentUser) return alert("Connecte-toi");
  loadProfiles();
 };
