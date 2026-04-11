@@ -144,7 +144,7 @@ window.updateAuthButton = function(){
 
 // AUTO LOGIN
 async function initAuth(){
- const { data: { session } } = await supabase.auth.getSession();
+ const { data: { session } } = await supabaseClient.auth.getSession();
 
  if(session){
   currentUser = session.user;
@@ -152,7 +152,7 @@ async function initAuth(){
   loadMyProfile();
  }
 
- supabase.auth.onAuthStateChange((event, session) => {
+ supabaseClient.auth.onAuthStateChange((event, session) => {
   currentUser = session?.user || null;
   updateAuthButton();
  });
@@ -170,7 +170,7 @@ window.register = async function(){
 
  if(!email || !pass) return alert("Remplis tout");
 
- const { data, error } = await supabase.auth.signUp({ email, password: pass });
+ const { data, error } = await supabaseClient.auth.signUp({ email, password: pass });
  if(error) return alert(error.message);
 
  const user = data.user ?? data.session?.user;
