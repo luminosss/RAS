@@ -178,7 +178,7 @@ window.register = async function(){
 
  currentUser = user;
 
- await supabase.from('profiles').insert({
+ await supabaseClient.from('profiles').insert({
   id: user.id,
   email: email
  });
@@ -193,7 +193,7 @@ if(error){
 
 // LOGIN
 window.login = async function(){
- const { data, error } = await supabase.auth.signInWithPassword({
+ const { data, error } = await supabaseClient.auth.signInWithPassword({
   email: logEmail.value,
   password: logPass.value
  });
@@ -213,7 +213,7 @@ if(error){
 
 // LOGOUT
 window.logout = async function(){
- await supabase.auth.signOut();
+ await supabaseClient.auth.signOut();
  currentUser = null;
  updateAuthButton();
  showPage("home");
@@ -238,18 +238,18 @@ window.createProfile = async function(){
  if(file){
   const fileName = currentUser.id + "-" + Date.now();
 
-  const { error } = await supabase.storage
+  const { error } = await supabaseClient.storage
    .from('avatars')
    .upload(fileName, file);
 
   if(error) return alert(error.message);
 
-  photoUrl = supabase.storage
+  photoUrl = supabaseClient.storage
    .from('avatars')
    .getPublicUrl(fileName).data.publicUrl;
  }
 
- const { error } = await supabase.from('profiles').upsert({
+ const { error } = await supabaseClient.from('profiles').upsert({
   id: currentUser.id,
   prenom,
   age: parseInt(age),
@@ -268,7 +268,7 @@ window.createProfile = async function(){
 async function loadMyProfile(){
  if(!currentUser) return;
 
- const { data } = await supabase
+ const { data } = await supabaseClient
   .from('profiles')
   .select('*')
   .eq('id', currentUser.id)
@@ -288,7 +288,7 @@ async function loadProfiles(){
 
  showPage("profiles");
 
- const { data } = await supabase.from('profiles').select('*');
+ const { data } = await supabaseClient.from('profiles').select('*');
 
  list.innerHTML = '';
 
@@ -316,7 +316,7 @@ window.goProfiles = function(){
 
 // OPEN PROFILE
 window.openProfile = async function(id){
- const { data } = await supabase
+ const { data } = await supabaseClient
   .from('profiles')
   .select('*')
   .eq('id', id)
@@ -343,7 +343,7 @@ showPage("chatPage");
 window.like = async function(id){
  if(!currentUser) return alert("Connecte-toi");
 
- await supabase.from('likes').insert({
+ await supabaseClient.from('likes').insert({
   from_user: currentUser.id,
   to_user: id
  });
@@ -353,7 +353,7 @@ window.like = async function(id){
 
 // MATCH
 async function isMatch(id){
- const { data } = await supabase
+ const { data } = await supabaseClient
   .from('likes')
   .select('*')
   .or(`and(from_user.eq.${currentUser.id},to_user.eq.${id}),and(from_user.eq.${id},to_user.eq.${currentUser.id})`);
@@ -365,7 +365,7 @@ async function isMatch(id){
 window.sendMessage = async function(){
  if(!msg.value) return;
 
- await supabase.from('messages').insert({
+ await supabaseClient.from('messages').insert({
   from_user: currentUser.id,
   to_user: currentChatUser,
   text: msg.value
@@ -420,9 +420,9 @@ photoInput.addEventListener("change", function(e){
 let channel = null;
 
 function subscribeToChat(userId){
- if(channel) supabase.removeChannel(channel);
+ if(channel) supabaseClient.removeChannel(channel);
 
- channel = supabase
+ channel = supabaseClient
   .channel('chat')
   .on(
    'postgres_changes',
@@ -467,7 +467,7 @@ function addMessage(msg){
 
 //Charger historique
 async function loadMessages(userId){
- const { data } = await supabase
+ const { data } = await supabaseClient
   .from('messages')
   .select('*')
   .or(`and(from_user.eq.${currentUser.id},to_user.eq.${userId}),and(from_user.eq.${userId},to_user.eq.${currentUser.id})`)
