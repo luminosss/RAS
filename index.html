@@ -246,14 +246,13 @@ window.createProfile = async function(){
    .getPublicUrl(fileName).data.publicUrl;
  }
 
- const { error } = await supabaseClient.from('profiles').upsert({
-  id: currentUser.id,
-  prenom,
-  age: parseInt(age),
-  ville,
-  bio,
-  photo: photoUrl
- });
+await supabaseClient.from('profiles').update({
+ prenom,
+ age,
+ ville,
+ bio,
+ photo: photoUrl
+}).eq('id', currentUser.id);
 
  if(error) return alert(error.message);
 
