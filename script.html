@@ -9,7 +9,6 @@ window.onerror = function(msg, url, line){
 
 let currentUser = null;
 let currentChatUser = null;
-const stripe = new Stripe(process.env.STRIPE_SECRET);
 // NAV
 window.showPage = function(id){
  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -95,7 +94,6 @@ window.createProfile = async function(){
  const ville = document.getElementById("villeInput").value;
  const bio = document.getElementById("bioInput").value;
  const file = document.getElementById("photoInput").files[0];
- }
 
  if(!prenom || !age || !ville){
   return alert("Remplis tous les champs");
@@ -103,7 +101,6 @@ window.createProfile = async function(){
 
  let photoUrl = null;
 
- // upload image
  if(file){
   const fileName = currentUser.id + "-" + Date.now();
 
@@ -130,12 +127,11 @@ window.createProfile = async function(){
   photo: photoUrl
  });
 
-
  if(error) return alert(error.message);
 
  alert("✅ Profil enregistré !");
  loadProfiles();
-
+};
  
 
 // LOAD MY PROFILE
@@ -199,7 +195,7 @@ window.openProfile = async function(id){
   .eq('id', id)
   .single();
 
- currentChatUser = id;
+    currentProfileId = id;
 
  document.getElementById("pvName").innerText = data.prenom;
  document.getElementById("pvInfo").innerText = (data.age || "") + " ans - " + (data.ville || "");
@@ -207,6 +203,13 @@ window.openProfile = async function(id){
 
  document.getElementById("pvPhoto").src = data.photo || "";
 
+ showPage('profileView');
+
+pvName.innerText = data.prenom;
+pvInfo.innerText = data.age + " ans - " + data.ville;
+pvbio.innerText = data.bio;
+  const match = await isMatch(id);
+ pvMatch.innerText = match ? "🔥 MATCH !" : "";
  showPage("profileView");
 };
 
@@ -299,26 +302,6 @@ list.innerHTML = '';
 <p>${u.age || ''} ${u.ville || ''}</p>
   </div>`;
  });
-}
-
-// VOIR PROFIL
-async function openProfile(id){
- const { data } = await supabase
-  .from('profiles')
-  .select('*')
-  .eq('id', id)
-  .eq('ville', ville)
-  .single();
-
-currentProfileId = id;
-
- showPage('profileView');
-
-pvName.innerText = data.prenom;
-pvInfo.innerText = data.age + " ans - " + data.ville;
-pvbio.innerText = data.bio;
-  const match = await isMatch(id);
- pvMatch.innerText = match ? "🔥 MATCH !" : "";
 }
 updateAuthButton();
 </script>
