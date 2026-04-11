@@ -2,13 +2,9 @@
 <script src="supabase.js"></script>
 
 <script>
-// DEBUG
-window.onerror = function(msg, url, line){
- alert("ERREUR JS:\n" + msg + "\nligne: " + line);
-};
-
 let currentUser = null;
 let currentChatUser = null;
+
 // NAV
 window.showPage = function(id){
  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
