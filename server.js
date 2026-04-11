@@ -42,11 +42,12 @@ app.post("/create-checkout-session", async (req, res) => {
    "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHJzZm50dXBrcnB1emFmZm92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3Mzk0MTEsImV4cCI6MjA5MTMxNTQxMX0.rferAxInyPefZ6e_gqlemLOlAkRowu_gmSazEQDH96w",
    "Authorization":"Bearer TA_CLE_ANON",
    "Content-Type":"application/json"
+   
   },
-  body: JSON.stringify({
-   premium: status,
-   subscription_status: status ? "active" : "inactive"
-  })
  });
+window.startPayment = function (){
+ if(!currentUser) return alert("Connecte-toi");
 
+ window.location.href = "https://buy.stripe.com/4gM5kCgQ6gRAgoz8LP5wI01";
+};
 }

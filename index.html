@@ -330,7 +330,6 @@ window.openProfile = async function(id){
  const match = await isMatch(id);
  matchStatus.innerText = match ? "🔥 MATCH !" : "";
 
- showPage("profileView");
  loadMessages(id);
 subscribeToChat(id);
 showPage("chatPage");
@@ -362,15 +361,15 @@ async function isMatch(id){
 window.sendMessage = async function(){
  if(!msg.value) return;
 
- await supabaseClient.from('messages').insert({
-  from_user: currentUser.id,
-  to_user: currentChatUser,
-  text: msg.value
- });
-if(!currentUser.premium){
- return alert("Passe Premium pour discuter 💎");
+ if(!currentUser.premium){
+ return alert("Passe Premium 💎");
 }
- msg.value = "";
+
+await supabaseClient.from('messages').insert({
+ from_user: currentUser.id,
+ to_user: currentChatUser,
+ text: msg.value
+});
 };
 
 // STRIPE
