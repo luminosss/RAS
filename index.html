@@ -299,10 +299,23 @@ async function loadProfiles(){
  data.forEach(u=>{
   if(u.id === currentUser.id) return;
 
-  list.innerHTML += `
-  <div class="card" onclick="openProfile('${u.id}')">
-   ${u.prenom || "Sans nom"} (${u.age || ""})
-  </div>`;
+list.innerHTML += `
+<div class="card" onclick="openProfile('${u.id}')">
+
+ <img src="${u.photo || 'https://via.placeholder.com/300'}" class="card-img">
+
+ <div class="card-body">
+  <h3>${u.prenom || "Sans nom"}, ${u.age || ""}</h3>
+  <p>📍 ${u.ville || "Inconnue"}</p>
+
+  <div class="card-actions">
+   <button onclick="event.stopPropagation(); like('${u.id}')">❤️</button>
+   <button onclick="event.stopPropagation(); openProfile('${u.id}')">👁️</button>
+  </div>
+ </div>
+
+</div>
+`;
  });
 }
 
