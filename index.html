@@ -266,11 +266,17 @@ await supabaseClient.from('profiles').update({
 async function loadMyProfile(){
  if(!currentUser) return;
 
- const { data } = await supabaseClient
-  .from('profiles')
-  .select('*')
-  .eq('id', currentUser.id)
-  .single();
+
+const { data, error } = await supabaseClient
+ .from('profiles')
+ .select('*')
+ .eq('id', currentUser.id)
+ .maybeSingle();
+
+if(error){
+ console.log(error);
+ return;
+}
 
  if(!data) return;
 
