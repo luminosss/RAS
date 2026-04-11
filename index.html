@@ -182,7 +182,11 @@ window.register = async function(){
   id: user.id,
   email: email
  });
-
+if(error){
+ console.error(error);
+ alert(error.message);
+ return;
+}
  showPage("profile");
  updateAuthButton();
 };
@@ -197,7 +201,11 @@ window.login = async function(){
  if(error) return alert(error.message);
 
  currentUser = data.session.user;
-
+if(error){
+ console.error(error);
+ alert(error.message);
+ return;
+}
  updateAuthButton();
  loadProfiles();
  loadMyProfile();
