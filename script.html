@@ -204,7 +204,9 @@ window.openProfile = async function(id){
  document.getElementById("pvName").innerText = data.prenom;
  document.getElementById("pvInfo").innerText = (data.age || "") + " ans - " + (data.ville || "");
  document.getElementById("pvbio").innerText = data.bio || "";
-document.getElementById("pvPhoto").src = data.photo || "";
+
+ document.getElementById("pvPhoto").src = data.photo || "";
+
  showPage("profileView");
 };
 
@@ -248,13 +250,18 @@ window.sendMessage = async function(){
 window.startPayment = async function (){
  if(!currentUser) return alert("Connecte-toi");
 
-fetch("http://localhost:3000/create-checkout-session", {
+ const res = await fetch("http://localhost:3000/create-checkout-session", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ email: currentUser.email })
-});
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    email: currentUser.email
+  })
+ });
 
  const data = await res.json();
+
  window.location.href = data.url;
 };
 
