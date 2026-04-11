@@ -324,8 +324,9 @@ window.openProfile = async function(id){
 pvName.innerText = data.prenom;
 pvInfo.innerText = data.age + " ans - " + data.ville;
 pvbio.innerText = data.bio;
+<p id="pvMatch"></p>
   const match = await isMatch(id);
- pvMatch.innerText = match ? "🔥 MATCH !" : "";
+document.getElementById("matchStatus").innerText = match ? "🔥 MATCH !" : "";
  showPage("profileView");
 };
 
@@ -369,7 +370,7 @@ window.sendMessage = async function(){
 window.startPayment = async function (){
  if(!currentUser) return alert("Connecte-toi");
 
- const res = await fetch("http://localhost:3000/create-checkout-session", {
+ const res = await fetch("https://buy.stripe.com/4gM5kCgQ6gRAgoz8LP5wI01", {
   method: "POST",
   headers: {
     "Content-Type": "application/json"
