@@ -118,7 +118,7 @@ Rencontre des personnes sérieuses près de toi ❤️
 <button onclick="openChatFromProfile()">💬 Discuter</button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
 <script>
@@ -138,13 +138,25 @@ function updateAuthButton(){
  btn.innerText = currentUser ? "Déconnexion" : "Connexion";
 }
 // AUTO LOGIN
-supabase.auth.getSession().then(({ data })=>{
- if(data.session){
-  currentUser = data.session.user;
+async function initAuth(){
+ const { data: { session } } = await supabase.auth.getSession();
+
+ if(session){
+  currentUser = session.user;
   updateAuthButton();
   loadMyProfile();
+  supabase.auth.onAuthStateChange((event, session) => {
+ if(session){
+  currentUser = session.user;
+ } else {
+  currentUser = null;
  }
+
+ updateAuthButton();
 });
+ }
+
+}
 
 window.handleAuth = function(){
  currentUser ? logout() : showPage("login");
@@ -160,7 +172,7 @@ window.register = async function(){
  const { data, error } = await supabase.auth.signUp({ email, password: pass });
  if(error) return alert(error.message);
 
- const user = data.user || data.session?.user;
+const user = data.user ?? data.session?.user;
  if(!user) return alert("Vérifie ton email");
 
  currentUser = user;
@@ -184,7 +196,7 @@ window.login = async function(){
  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
  if(error) return alert(error.message);
 
- currentUser = data.user;
+currentUser = data.session.user;
 
  alert("Connecté !");
  updateAuthButton();
