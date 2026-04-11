@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="style.css">
-<script src="script.html"></script>
 <title>Rencontre Sérieuse</title>
 
 </head>
@@ -119,6 +118,309 @@ Rencontre des personnes sérieuses près de toi ❤️
 <button onclick="openChatFromProfile()">💬 Discuter</button>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="supabase.js"></script>
+
+<script>
+let currentUser = null;
+let currentChatUser = null;
+
+// NAV
+window.showPage = function(id){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+};
+
+// AUTH BUTTON
+function updateAuthButton(){
+ const btn = document.getElementById("authBtn");
+ if(!btn) return;
+ btn.innerText = currentUser ? "Déconnexion" : "Connexion";
+}
+// AUTO LOGIN
+supabase.auth.getSession().then(({ data })=>{
+ if(data.session){
+  currentUser = data.session.user;
+  updateAuthButton();
+  loadMyProfile();
+ }
+});
+
+window.handleAuth = function(){
+ currentUser ? logout() : showPage("login");
+};
+
+// REGISTER
+window.register = async function(){
+ const email = document.getElementById("regEmail").value;
+ const pass = document.getElementById("regPass").value;
+
+ if(!email || !pass) return alert("Remplis tout");
+
+ const { data, error } = await supabase.auth.signUp({ email, password: pass });
+ if(error) return alert(error.message);
+
+ const user = data.user || data.session?.user;
+ if(!user) return alert("Vérifie ton email");
+
+ currentUser = user;
+
+ await supabase.from('profiles').insert({
+  id: user.id,
+  email: email
+  
+ });
+if(!email.includes("@"))
+ alert("Compte créé !");
+ showPage("profile");
+ updateAuthButton();
+};
+
+// LOGIN
+window.login = async function(){
+ const email = document.getElementById("logEmail").value;
+ const pass = document.getElementById("logPass").value;
+
+ const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+ if(error) return alert(error.message);
+
+ currentUser = data.user;
+
+ alert("Connecté !");
+ updateAuthButton();
+ loadProfiles();
+ loadMyProfile();
+};
+
+// LOGOUT
+window.logout = async function(){
+ await supabase.auth.signOut();
+ currentUser = null;
+ updateAuthButton();
+ showPage("home");
+};
+
+// PROFILE
+window.createProfile = async function(){
+
+ if(!currentUser) return alert("Connecte-toi");
+
+ const prenom = document.getElementById("prenomInput").value;
+ const age = document.getElementById("ageInput").value;
+ const ville = document.getElementById("villeInput").value;
+ const bio = document.getElementById("bioInput").value;
+ const file = document.getElementById("photoInput").files[0];
+
+ if(!prenom || !age || !ville){
+  return alert("Remplis tous les champs");
+ }
+
+ let photoUrl = null;
+
+ if(file){
+  const fileName = currentUser.id + "-" + Date.now();
+
+  const { error: uploadError } = await supabase.storage
+   .from('avatars')
+   .upload(fileName, file);
+
+  if(uploadError){
+   alert(uploadError.message);
+   return;
+  }
+
+  photoUrl = supabase.storage
+   .from('avatars')
+   .getPublicUrl(fileName).data.publicUrl;
+ }
+
+ const { error } = await supabase.from('profiles').upsert({
+  id: currentUser.id,
+  prenom,
+  age: parseInt(age),
+  ville,
+  bio,
+  photo: photoUrl
+ });
+
+ if(error) return alert(error.message);
+
+ alert("✅ Profil enregistré !");
+ loadProfiles();
+};
+ 
+
+// LOAD MY PROFILE
+async function loadMyProfile(){
+ if(!currentUser) return;
+
+ const { data } = await supabase
+  .from('profiles')
+  .select('*')
+  .eq('id', currentUser.id)
+  .single();
+
+ if(!data) return;
+
+ document.getElementById("prenomInput").value = data.prenom || "";
+ document.getElementById("ageInput").value = data.age || "";
+ document.getElementById("villeInput").value = data.ville || "";
+ document.getElementById("bioInput").value = data.bio || "";
+}
+
+// LOAD PROFILES
+async function loadProfiles(){
+ if(!currentUser) return;
+
+ showPage("profiles");
+
+ const { data } = await supabase
+  .from('profiles')
+  .select('*');
+
+ const list = document.getElementById("list");
+ list.innerHTML = '';
+
+ data.forEach(u=>{
+  if(u.id === currentUser.id) return;
+
+  list.innerHTML += `
+  <div class="card" onclick="openProfile('${u.id}')">
+   ${u.prenom || "Sans nom"} (${u.age || ""})
+  </div>`;
+ });
+}
+
+// NAV PROFILE
+window.goMyProfile = function(){
+ if(!currentUser) return alert("Connecte-toi");
+ showPage("profile");
+ loadMyProfile();
+};
+
+window.goProfiles = function(){
+ if(!currentUser) return alert("Connecte-toi");
+ loadProfiles();
+};
+
+// OPEN PROFILE
+window.openProfile = async function(id){
+ const { data } = await supabase
+  .from('profiles')
+  .select('*')
+  .eq('id', id)
+  .single();
+
+    currentProfileId = id;
+
+ document.getElementById("pvName").innerText = data.prenom;
+ document.getElementById("pvInfo").innerText = (data.age || "") + " ans - " + (data.ville || "");
+ document.getElementById("pvbio").innerText = data.bio || "";
+
+ document.getElementById("pvPhoto").src = data.photo || "";
+
+ showPage('profileView');
+
+pvName.innerText = data.prenom;
+pvInfo.innerText = data.age + " ans - " + data.ville;
+pvbio.innerText = data.bio;
+  const match = await isMatch(id);
+ pvMatch.innerText = match ? "🔥 MATCH !" : "";
+ showPage("profileView");
+};
+
+// LIKE
+async function like(id){
+ if(!currentUser) return alert("Connecte-toi");
+
+ await supabase.from('likes').insert({
+  from_user: currentUser.id,
+  to_user: id
+ });
+
+ alert("❤️ Like envoyé");
+}
+
+// MATCH
+async function isMatch(id){
+ const { data } = await supabase
+  .from('likes')
+  .select('*')
+  .or(`and(from_user.eq.${currentUser.id},to_user.eq.${id}),and(from_user.eq.${id},to_user.eq.${currentUser.id})`);
+
+ return data.length >= 2;
+}
+
+// CHAT
+window.sendMessage = async function(){
+ const msg = document.getElementById("msg");
+ if(!msg.value) return;
+
+ await supabase.from('messages').insert({
+  from_user: currentUser.id,
+  to_user: currentChatUser,
+  text: msg.value
+ });
+
+ msg.value = "";
+};
+
+// PAYMENT
+window.startPayment = async function (){
+ if(!currentUser) return alert("Connecte-toi");
+
+ const res = await fetch("http://localhost:3000/create-checkout-session", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    email: currentUser.email
+  })
+ });
+
+ const data = await res.json();
+
+ window.location.href = data.url;
+};
+
+document.getElementById("photoInput").addEventListener("change", function(e){
+ const file = e.target.files[0];
+ if(!file) return;
+
+ const reader = new FileReader();
+
+ reader.onload = function(e){
+  const img = document.getElementById("preview");
+  img.src = e.target.result;
+  img.style.display = "block";
+ };
+
+ reader.readAsDataURL(file);
+});
+
+// AFFICHAGE PROFILS
+async function showProfiles(){
+ showPage('profiles');
+
+ const { data } = await supabase
+  .from('profiles')
+  .select('*')
+  .neq('id', currentUser.id);
+  
+const list = document.getElementById("list");
+list.innerHTML = '';
+
+ data.forEach(u=>{
+  list.innerHTML += `
+  <div class="card" onclick="openProfile('${u.id}')">
+  <b>${u.prenom || 'Sans nom'}</b>
+<p>${u.age || ''} ${u.ville || ''}</p>
+  </div>`;
+ });
+}
+updateAuthButton();
+</script>
 
 </body>
 
