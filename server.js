@@ -33,53 +33,6 @@ app.post("/create-checkout-session", async (req, res) => {
 
  res.json({ url: session.url });
 });
-import bodyParser from "body-parser";
-
-app.post("/webhook",
- bodyParser.raw({type: 'application/json'}),
- async (req, res) => {
-
- const sig = req.headers['stripe-signature'];
-
- let event;
-
- try {
-  event = stripe.webhooks.constructEvent(
-   req.body,
-   sig,
-   "whsec_e21fe8ae276e45581a3df1fdfe4c035d5ad5f7f488c4a593801c86fec1369a38" // 👈 ton secret
-  );
- } catch (err) {
-  console.log("❌ Webhook erreur:", err.message);
-  return res.sendStatus(400);
- }
-
- // ✅ PAIEMENT OK
- if(event.type === "checkout.session.completed"){
-  const session = event.data.object;
-  const email = session.customer_details.email;
-
-  await updatePremium(email, true);
- }
-
- // ❌ ABONNEMENT ANNULÉ
- if(event.type === "customer.subscription.deleted"){
-  const sub = event.data.object;
-
-  await updatePremiumByCustomer(sub.customer, false);
- }
-
- res.sendStatus(200);
-});
-app.get("/stats", async (req,res)=>{
-
- const customers = await stripe.customers.list({limit:100});
- const subs = await stripe.subscriptions.list({limit:100});
-
- res.json({
-  clients: customers.data.length,
-  abonnements: subs.data.length
- });
 
  async function updatePremium(email, status){
 
@@ -97,4 +50,3 @@ app.get("/stats", async (req,res)=>{
  });
 
 }
-});
