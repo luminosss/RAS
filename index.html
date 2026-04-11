@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="./supabase.js"></script>
 <link rel="manifest" href="./manifest.json">
 <link rel="stylesheet" href="./style.css">
 <title>Rencontre Sérieuse</title>
@@ -120,11 +119,15 @@ Rencontre des personnes sérieuses près de toi ❤️
 </div>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
+<script src="./supabase.js"></script>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="./supabase.js"></script>
 
 <script>
 let currentUser = null;
 let currentChatUser = null;
+let currentProfileId = null;
 
 // NAV
 window.showPage = function(id){
@@ -133,11 +136,12 @@ window.showPage = function(id){
 };
 
 // AUTH BUTTON
-function updateAuthButton(){
+window.updateAuthButton = function(){
  const btn = document.getElementById("authBtn");
  if(!btn) return;
  btn.innerText = currentUser ? "Déconnexion" : "Connexion";
-}
+};
+
 // AUTO LOGIN
 async function initAuth(){
  const { data: { session } } = await supabase.auth.getSession();
@@ -146,34 +150,30 @@ async function initAuth(){
   currentUser = session.user;
   updateAuthButton();
   loadMyProfile();
-  supabase.auth.onAuthStateChange((event, session) => {
- if(session){
-  currentUser = session.user;
- } else {
-  currentUser = null;
  }
 
- updateAuthButton();
-});
- }
-
+ supabase.auth.onAuthStateChange((event, session) => {
+  currentUser = session?.user || null;
+  updateAuthButton();
+ });
 }
 
+// AUTH
 window.handleAuth = function(){
  currentUser ? logout() : showPage("login");
 };
 
 // REGISTER
 window.register = async function(){
- const email = document.getElementById("regEmail").value;
- const pass = document.getElementById("regPass").value;
+ const email = regEmail.value;
+ const pass = regPass.value;
 
  if(!email || !pass) return alert("Remplis tout");
 
  const { data, error } = await supabase.auth.signUp({ email, password: pass });
  if(error) return alert(error.message);
 
-const user = data.user ?? data.session?.user;
+ const user = data.user ?? data.session?.user;
  if(!user) return alert("Vérifie ton email");
 
  currentUser = user;
@@ -181,25 +181,23 @@ const user = data.user ?? data.session?.user;
  await supabase.from('profiles').insert({
   id: user.id,
   email: email
-  
  });
-if(!email.includes("@"))
- alert("Compte créé !");
+
  showPage("profile");
  updateAuthButton();
 };
 
 // LOGIN
 window.login = async function(){
- const email = document.getElementById("logEmail").value;
- const pass = document.getElementById("logPass").value;
+ const { data, error } = await supabase.auth.signInWithPassword({
+  email: logEmail.value,
+  password: logPass.value
+ });
 
- const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
  if(error) return alert(error.message);
 
-currentUser = data.session.user;
+ currentUser = data.session.user;
 
- alert("Connecté !");
  updateAuthButton();
  loadProfiles();
  loadMyProfile();
@@ -213,16 +211,15 @@ window.logout = async function(){
  showPage("home");
 };
 
-// PROFILE
+// CREATE PROFILE
 window.createProfile = async function(){
-
  if(!currentUser) return alert("Connecte-toi");
 
- const prenom = document.getElementById("prenomInput").value;
- const age = document.getElementById("ageInput").value;
- const ville = document.getElementById("villeInput").value;
- const bio = document.getElementById("bioInput").value;
- const file = document.getElementById("photoInput").files[0];
+ const prenom = prenomInput.value;
+ const age = ageInput.value;
+ const ville = villeInput.value;
+ const bio = bioInput.value;
+ const file = photoInput.files[0];
 
  if(!prenom || !age || !ville){
   return alert("Remplis tous les champs");
@@ -233,14 +230,11 @@ window.createProfile = async function(){
  if(file){
   const fileName = currentUser.id + "-" + Date.now();
 
-  const { error: uploadError } = await supabase.storage
+  const { error } = await supabase.storage
    .from('avatars')
    .upload(fileName, file);
 
-  if(uploadError){
-   alert(uploadError.message);
-   return;
-  }
+  if(error) return alert(error.message);
 
   photoUrl = supabase.storage
    .from('avatars')
@@ -261,7 +255,6 @@ window.createProfile = async function(){
  alert("✅ Profil enregistré !");
  loadProfiles();
 };
- 
 
 // LOAD MY PROFILE
 async function loadMyProfile(){
@@ -275,10 +268,10 @@ async function loadMyProfile(){
 
  if(!data) return;
 
- document.getElementById("prenomInput").value = data.prenom || "";
- document.getElementById("ageInput").value = data.age || "";
- document.getElementById("villeInput").value = data.ville || "";
- document.getElementById("bioInput").value = data.bio || "";
+ prenomInput.value = data.prenom || "";
+ ageInput.value = data.age || "";
+ villeInput.value = data.ville || "";
+ bioInput.value = data.bio || "";
 }
 
 // LOAD PROFILES
@@ -287,11 +280,8 @@ async function loadProfiles(){
 
  showPage("profiles");
 
- const { data } = await supabase
-  .from('profiles')
-  .select('*');
+ const { data } = await supabase.from('profiles').select('*');
 
- const list = document.getElementById("list");
  list.innerHTML = '';
 
  data.forEach(u=>{
@@ -304,14 +294,14 @@ async function loadProfiles(){
  });
 }
 
-// NAV PROFILE
-window.goMyProfile = async function(){
+// NAV
+window.goMyProfile = function(){
  if(!currentUser) return alert("Connecte-toi");
  showPage("profile");
  loadMyProfile();
 };
 
-window.goProfiles =  async  function(){
+window.goProfiles = function(){
  if(!currentUser) return alert("Connecte-toi");
  loadProfiles();
 };
@@ -324,27 +314,25 @@ window.openProfile = async function(id){
   .eq('id', id)
   .single();
 
-    currentProfileId = id;
+ currentChatUser = id;
+ currentProfileId = id;
 
- document.getElementById("pvName").innerText = data.prenom;
- document.getElementById("pvInfo").innerText = (data.age || "") + " ans - " + (data.ville || "");
- document.getElementById("pvbio").innerText = data.bio || "";
+ pvName.innerText = data.prenom;
+ pvInfo.innerText = (data.age || "") + " ans - " + (data.ville || "");
+ pvbio.innerText = data.bio || "";
+ pvPhoto.src = data.photo || "";
 
- document.getElementById("pvPhoto").src = data.photo || "";
+ const match = await isMatch(id);
+ matchStatus.innerText = match ? "🔥 MATCH !" : "";
 
- showPage('profileView');
-
-pvName.innerText = data.prenom;
-pvInfo.innerText = data.age + " ans - " + data.ville;
-pvbio.innerText = data.bio;
-<p id="pvMatch"></p>
-  const match = await isMatch(id);
-document.getElementById("matchStatus").innerText = match ? "🔥 MATCH !" : "";
  showPage("profileView");
+ loadMessages(id);
+subscribeToChat(id);
+showPage("chatPage");
 };
 
 // LIKE
-async function like(id){
+window.like = async function(id){
  if(!currentUser) return alert("Connecte-toi");
 
  await supabase.from('likes').insert({
@@ -353,7 +341,7 @@ async function like(id){
  });
 
  alert("❤️ Like envoyé");
-}
+};
 
 // MATCH
 async function isMatch(id){
@@ -367,7 +355,6 @@ async function isMatch(id){
 
 // CHAT
 window.sendMessage = async function(){
- const msg = document.getElementById("msg");
  if(!msg.value) return;
 
  await supabase.from('messages').insert({
@@ -375,64 +362,114 @@ window.sendMessage = async function(){
   to_user: currentChatUser,
   text: msg.value
  });
-
+if(!currentUser.premium){
+ return alert("Passe Premium pour discuter 💎");
+}
  msg.value = "";
 };
 
-// PAYMENT
+// STRIPE
 window.startPayment = async function (){
  if(!currentUser) return alert("Connecte-toi");
 
  const res = await fetch("https://buy.stripe.com/4gM5kCgQ6gRAgoz8LP5wI01", {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    email: currentUser.email
+   email: currentUser.email
   })
  });
+ app.post("/webhook", express.raw({type: 'application/json'}), (req, res) => {
+ const event = req.body;
+
+ if(event.type === "checkout.session.completed"){
+  const email = event.data.object.customer_email;
+
+  // 👉 mettre premium = true dans Supabase
+ }
+
+ res.sendStatus(200);
+});
 
  const data = await res.json();
 
  window.location.href = data.url;
 };
-
-document.getElementById("photoInput").addEventListener("change", function(e){
+// PREVIEW IMAGE
+photoInput.addEventListener("change", function(e){
  const file = e.target.files[0];
  if(!file) return;
 
  const reader = new FileReader();
-
- reader.onload = function(e){
-  const img = document.getElementById("preview");
-  img.src = e.target.result;
-  img.style.display = "block";
+ reader.onload = e => {
+  preview.src = e.target.result;
+  preview.style.display = "block";
  };
-
  reader.readAsDataURL(file);
 });
 
-// AFFICHAGE PROFILS
-async function showProfiles(){
- showPage('profiles');
+//Écoute des messages en live
+let channel = null;
 
- const { data } = await supabase
-  .from('profiles')
-  .select('*')
-  .neq('id', currentUser.id);
-  
-const list = document.getElementById("list");
-list.innerHTML = '';
+function subscribeToChat(userId){
+ if(channel) supabase.removeChannel(channel);
 
- data.forEach(u=>{
-  list.innerHTML += `
-  <div class="card" onclick="openProfile('${u.id}')">
-  <b>${u.prenom || 'Sans nom'}</b>
-<p>${u.age || ''} ${u.ville || ''}</p>
-  </div>`;
- });
+ channel = supabase
+  .channel('chat')
+  .on(
+   'postgres_changes',
+   {
+    event: 'INSERT',
+    schema: 'public',
+    table: 'messages'
+   },
+   payload => {
+    const msg = payload.new;
+
+    if(
+     (msg.from_user === currentUser.id && msg.to_user === userId) ||
+     (msg.from_user === userId && msg.to_user === currentUser.id)
+    ){
+     addMessage(msg);
+    }
+   }
+  )
+  .subscribe();
 }
+//Affichage messages
+function addMessage(msg){
+ const box = document.getElementById("chatBox");
+
+ const div = document.createElement("div");
+ div.innerText = msg.text;
+
+ div.style.padding = "5px";
+ div.style.margin = "5px";
+
+ if(msg.from_user === currentUser.id){
+  div.style.textAlign = "right";
+  div.style.background = "#dcf8c6";
+ } else {
+  div.style.background = "#eee";
+ }
+
+ box.appendChild(div);
+ box.scrollTop = box.scrollHeight;
+}
+
+//Charger historique
+async function loadMessages(userId){
+ const { data } = await supabase
+  .from('messages')
+  .select('*')
+  .or(`and(from_user.eq.${currentUser.id},to_user.eq.${userId}),and(from_user.eq.${userId},to_user.eq.${currentUser.id})`)
+  .order('created_at');
+
+ chatBox.innerHTML = '';
+ data.forEach(addMessage);
+}
+
+initAuth();
 updateAuthButton();
 </script>
 
