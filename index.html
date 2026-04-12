@@ -333,7 +333,8 @@ if(!list){
 
   list.innerHTML += `
   <div class="card">
-   <img src="${u.photo || 'https://via.placeholder.com/400'}" class="card-img">
+  <img src="${u.photo || 'https://via.placeholder.com/400'}" 
+     onerror="this.src='https://via.placeholder.com/400'"
    <div class="card-body">
     <h3>${u.prenom || "Sans nom"}, ${u.age || ""}</h3>
     <p>📍 ${u.ville || "Inconnue"}</p>
