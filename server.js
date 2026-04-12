@@ -1,53 +1,67 @@
-import express from "express";
-import Stripe from "stripe";
-import cors from "cors";
-import dotenv from "dotenv";
+const express = require("express");
+const Stripe = require("stripe");
+const cors = require("cors");
 
-dotenv.config();
 const app = express();
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
-const stripe = new Stripe(process.env.STRIPE_SECRET);
+const stripe = new Stripe("sk_test_TA_CLE_SECRETE");
 
-// 🔥 créer session abonnement
+// 👉 CRÉER SESSION CHECKOUT
 app.post("/create-checkout-session", async (req, res) => {
+ try {
+  const { email } = req.body;
 
- const { email } = req.body;
+  const session = await stripe.checkout.sessions.create({
+   payment_method_types: ["card"],
+   mode: "subscription",
+   customer_email: email,
 
- const customer = await stripe.customers.create({
-  email: email
- });
+   line_items: [
+    {
+     price: "price_TON_ID_STRIPE", // ⚠️ à créer dans Stripe
+     quantity: 1,
+    },
+   ],
 
- const session = await stripe.checkout.sessions.create({
-  customer: customer.id,
-  payment_method_types: ["card"],
-  mode: "subscription",
-  line_items: [{
-   price: "price_1TKLt5CPuB7hpwNMaAaod3Ua", // 👈 ton ID
-   quantity: 1
-  }],
-  success_url: "http://localhost:8000?success=true",
-  cancel_url: "http://localhost:8000"
- });
+   success_url: "http://localhost:5500?success=true",
+   cancel_url: "http://localhost:5500?cancel=true",
+  });
 
- res.json({ url: session.url });
+  res.json({ url: session.url });
+
+ } catch (err) {
+  console.error(err);
+  res.status(500).json({ error: err.message });
+ }
 });
+const bodyParser = require("body-parser");
 
- async function updatePremium(email, status){
+// ⚠️ IMPORTANT pour Stripe
+app.post("/webhook", bodyParser.raw({ type: "application/json" }), async (req, res) => {
+ const event = req.body;
 
- await fetch("https://ngxrsfntupkrpuzaffov.supabase.co/rest/v1/profiles?email=eq."+email,{
-  method:"PATCH",
-  headers:{
-   "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHJzZm50dXBrcnB1emFmZm92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3Mzk0MTEsImV4cCI6MjA5MTMxNTQxMX0.rferAxInyPefZ6e_gqlemLOlAkRowu_gmSazEQDH96w",
-   "Authorization":"Bearer TA_CLE_ANON",
-   "Content-Type":"application/json"
-   
-  },
- });
-window.startPayment = function (){
- if(!currentUser) return alert("Connecte-toi");
+ if (event.type === "checkout.session.completed") {
 
- window.location.href = "https://buy.stripe.com/4gM5kCgQ6gRAgoz8LP5wI01";
-};
-}
+  const session = event.data.object;
+  const email = session.customer_email;
+
+  console.log("Paiement OK pour :", email);
+
+  // 👉 appeler Supabase pour activer premium
+  await fetch("https://TON-PROJET.supabase.co/rest/v1/profiles?email=eq." + email, {
+   method: "PATCH",
+   headers: {
+    "apikey": "TA_SERVICE_ROLE_KEY",
+    "Authorization": "Bearer TA_SERVICE_ROLE_KEY",
+    "Content-Type": "application/json"
+   },
+   body: JSON.stringify({
+    premium: true
+   })
+  });
+ }
+
+ res.sendStatus(200);
+});

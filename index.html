@@ -121,10 +121,18 @@ Rencontre des personnes sérieuses près de toi ❤️
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="./supabase.js"></script>
 
-<script>
+<script async
 let currentUser = null;
 let currentChatUser = null;
 let currentProfileId = null;
+ src="https://js.stripe.com/v3/buy-button.js">
+
+
+<stripe-buy-button
+  buy-button-id="buy_btn_1TLBT4C5UF3Szf7ZzYjoqubL"
+  publishable-key="pk_live_51TJJnsC5UF3Szf7Zh18YSDw0rNqMTdf97PcPVlN0mZQaHYqpbObfEvrUHD7Fm7bpQueANLG8JhqrLKzdVtpMA7nv00324vk653"
+>
+</stripe-buy-button>
 
 // NAV
 window.showPage = function(id){
@@ -392,33 +400,24 @@ await supabaseClient.from('messages').insert({
 });
 };
 
+
 // STRIPE
 window.startPayment = async function (){
  if(!currentUser) return alert("Connecte-toi");
 
- const res = await fetch("https://buy.stripe.com/4gM5kCgQ6gRAgoz8LP5wI01", {
+ const res = await fetch("http://localhost:3000/create-checkout-session", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
    email: currentUser.email
   })
  });
- app.post("/webhook", express.raw({type: 'application/json'}), (req, res) => {
- const event = req.body;
-
- if(event.type === "checkout.session.completed"){
-  const email = event.data.object.customer_email;
-
-  // 👉 mettre premium = true dans Supabase
- }
-
- res.sendStatus(200);
-});
 
  const data = await res.json();
 
  window.location.href = data.url;
 };
+
 // PREVIEW IMAGE
 photoInput.addEventListener("change", function(e){
  const file = e.target.files[0];
