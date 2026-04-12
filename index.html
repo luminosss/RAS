@@ -317,7 +317,11 @@ if(!list){
   console.error(error);
   alert("Erreur chargement profils");
   return;
- }
+ }if(match){
+ btn.style.display = "block";
+}else{
+ btn.style.display = "none";
+}
 
  console.log("Profils:", data);
 
@@ -333,8 +337,8 @@ if(!list){
 
   list.innerHTML += `
   <div class="card">
-  <img src="${u.photo || 'https://via.placeholder.com/400'}" 
-     onerror="this.src='https://via.placeholder.com/400'"
+  <img src="${u.photo || 'https://picsum.photos/400'}" 
+     onerror="this.src='https://picsum.photos/400'"
    <div class="card-body">
     <h3>${u.prenom || "Sans nom"}, ${u.age || ""}</h3>
     <p>📍 ${u.ville || "Inconnue"}</p>
@@ -383,14 +387,18 @@ matchStatus.innerText = match ? "🔥 MATCH !" : "";
 
 const btn = document.querySelector("#profileView button:last-child");
 
-if(match){
- btn.style.display = "block";
-}else{
- btn.style.display = "none";
-}
+btn.style.display = match ? "block" : "none";
+
  loadMessages(id);
 subscribeToChat(id);
 showPage("profileView");
+};
+window.openChatFromProfile = function(){
+ if(!currentChatUser) return;
+
+ showPage("chatPage");
+ loadMessages(currentChatUser);
+ subscribeToChat(currentChatUser);
 };
 
 // LIKE
@@ -449,17 +457,25 @@ window.startPayment = async function (){
 };
 
 // PREVIEW IMAGE
-photoInput.addEventListener("change", function(e){
- const file = e.target.files[0];
- if(!file) return;
+const photoInputEl = document.getElementById("photoInput");
 
- const reader = new FileReader();
- reader.onload = e => {
-  preview.src = e.target.result;
-  preview.style.display = "block";
- };
- reader.readAsDataURL(file);
-});
+if(photoInputEl){
+ photoInputEl.addEventListener("change", function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const preview = document.getElementById("preview");
+
+  const reader = new FileReader();
+  reader.onload = e => {
+   if(preview){
+    preview.src = e.target.result;
+    preview.style.display = "block";
+   }
+  };
+  reader.readAsDataURL(file);
+ });
+}
 
 //Écoute des messages en live
 let channel = null;
