@@ -3,718 +3,293 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔥 Rencontre Amoureuse !</title>
 
-<link rel="stylesheet" href="./style.css">
-<title>Rencontre Sérieuse</title>
+<style>
+* { box-sizing: border-box; }
 
+body {
+ margin: 0;
+ font-family: 'Segoe UI', sans-serif;
+ background: linear-gradient(135deg, #ff416c, #ff4b2b);
+ color: white;
+}
+
+/* NAV */
+nav {
+ display: flex;
+ justify-content: space-around;
+ padding: 12px;
+ background: rgba(0,0,0,0.3);
+ backdrop-filter: blur(10px);
+ position: sticky;
+ top: 0;
+}
+
+nav button {
+ background: white;
+ color: #ff416c;
+ border: none;
+ border-radius: 25px;
+ padding: 10px 15px;
+ font-weight: bold;
+}
+
+/* PAGES */
+.page {
+ display: none;
+ padding: 15px;
+ animation: fade 0.3s ease;
+}
+
+.active { display: block; }
+
+@keyframes fade {
+ from { opacity: 0; transform: translateY(10px); }
+ to { opacity: 1; transform: translateY(0); }
+}
+
+/* AUTH */
+.auth-box {
+ background: white;
+ color: black;
+ padding: 20px;
+ border-radius: 20px;
+ max-width: 350px;
+ margin: auto;
+ margin-top: 40px;
+ text-align: center;
+}
+
+.auth-box input {
+ width: 100%;
+ padding: 10px;
+ margin: 5px 0;
+ border-radius: 10px;
+ border: 1px solid #ddd;
+}
+
+.auth-box button {
+ width: 100%;
+ background: linear-gradient(45deg,#ff416c,#ff4b2b);
+ color: white;
+ margin-top: 10px;
+}
+
+/* SWIPE */
+#swipeContainer {
+ position: relative;
+ height: 420px;
+}
+
+.card {
+ position: absolute;
+ width: 100%;
+ height: 100%;
+ border-radius: 20px;
+ overflow: hidden;
+ box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+ background: black;
+}
+
+.card img {
+ width: 100%;
+ height: 100%;
+ object-fit: cover;
+}
+
+.card h3 {
+ position: absolute;
+ bottom: 20px;
+ left: 20px;
+}
+
+/* CHAT */
+#chatBox {
+ height: 300px;
+ overflow-y: auto;
+ background: rgba(255,255,255,0.2);
+ border-radius: 15px;
+ padding: 10px;
+}
+
+.msg {
+ padding: 10px;
+ border-radius: 15px;
+ margin: 5px;
+ max-width: 70%;
+}
+
+.me { background: #dcf8c6; color:black; margin-left:auto; }
+.other { background: white; color:black; }
+
+/* INPUT */
+.input-row {
+ display: flex;
+ gap: 5px;
+ margin-top: 10px;
+}
+
+.input-row input {
+ flex: 1;
+ padding: 10px;
+ border-radius: 20px;
+ border: none;
+}
+
+/* CONVERSATIONS */
+.conv-item {
+ background: white;
+ color: black;
+ padding: 10px;
+ border-radius: 15px;
+ margin-bottom: 5px;
+ display: flex;
+ justify-content: space-between;
+}
+
+/* BADGE */
+.badge {
+ background: red;
+ border-radius: 50%;
+ padding: 5px 8px;
+ font-size: 12px;
+}
+</style>
 </head>
 
 <body>
 
-<header>
-<h2>❤️ Rencontre Sérieuse</h2>
-<button onclick="showPage('home')">Accueil</button>
-<button id="authBtn" onclick="handleAuth()">Connexion</button>
-<button onclick="showPage('register')">Inscription</button>
-<button onclick="goMyProfile()">👤 Mon profil</button>
-<button onclick="goProfiles()">🌍 Profils</button>
-<button onclick="goLikes()">❤️ Likes</button>
-</header>
+<!-- NAV -->
+<nav>
+ <button onclick="showPage('authPage')">👤</button>
+ <button onclick="loadSwipe()">🔥</button>
+ <button onclick="loadConversations()">💬 <span id="notifBadge" class="badge">0</span></button>
+ <button onclick="goPremium()">💎</button>
+ <button onclick="showPage('profilePage')">👤👤 Profil</button>
+<button onclick="loadLikes()">❤️ Likes</button>
+ 
+</nav>
 
-<!-- HOME -->
-<div id="home" class="page active">
+<!-- AUTH -->
+<div id="authPage" class="page active">
+ <div class="auth-box">
+  <h2>🔥 Rencontre Amoureuse !</h2>
 
-<h2 style="text-align:center;">💖 Trouve l’amour</h2>
+  <input id="logEmail" placeholder="Email">
+  <input id="logPass" type="password" placeholder="Mot de passe">
+  <button onclick="login()">Connexion</button>
 
-<div style="display:flex;gap:5px;">
-<img src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e" style="width:33%;border-radius:10px;">
-<img src="https://images.unsplash.com/photo-1517841905240-472988babdf9" style="width:33%;border-radius:10px;">
-<img src="https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb" style="width:33%;border-radius:10px;">
+  <hr>
+
+  <input id="regEmail" placeholder="Email">
+  <input id="regPass" type="password" placeholder="Mot de passe">
+  <button onclick="register()">Créer un compte</button>
+ </div>
 </div>
 
-<p style="text-align:center;margin-top:10px;">
-Rencontre des personnes sérieuses près de toi ❤️
-</p>
-
-<div style="background:#ffe4ec;padding:10px;border-radius:10px;margin-top:10px;">
-<h4>💖 Pourquoi nous choisir ?</h4>
-<ul>
-<li>✔️ Rencontres sérieuses</li>
-<li>✔️ Profils réels</li>
-<li>✔️ Simple et rapide</li>
-<li>✔️ Communauté active</li>
-</ul>
-</div>
-
-<div style="background:#fff0f5;padding:10px;border-radius:10px;margin-top:10px;">
-<h4>🚀 Comment ça marche ?</h4>
-<ol>
-<li>Créer un compte</li>
-<li>Créer ton profil</li>
-<li>Liker ❤️</li>
-<li>Matcher 🔥</li>
-<li>Discuter 💬</li>
-</ol>
-</div>
--
-<div style="background:#f9f9f9;padding:10px;border-radius:10px;margin-top:10px;">
-<h4>💎 Premium</h4>
-<p>Chat illimité + visibilité boost</p>
-</div>
-
-<button onclick="startPayment()" style="width:100%;background:gold;color:black">
-💳 Passer Premium
-</button>
-
-</div>
-
-<!-- REGISTER -->
-<div id="register" class="page">
-<h3>Inscription</h3>
-<input id="regEmail" placeholder="Email">
-<input id="regPass" type="password" placeholder="Mot de passe">
-<button onclick="register()">S'inscrire</button>
-</div>
-
-<!-- LOGIN -->
-<div id="login" class="page">
-<h3>Connexion</h3>
-<input id="logEmail" placeholder="Email">
-<input id="logPass" type="password" placeholder="Mot de passe">
-<button onclick="login()">Connexion</button>
-</div>
-
-<!-- PROFILE -->
-<div id="profile" class="page">
-<h3>Créer profil</h3>
-<input id="prenomInput" placeholder="Prénom">
-<input id="ageInput" placeholder="Âge">
-<input id="villeInput" placeholder="Ville">
-<textarea id="bioInput" placeholder="Bio"></textarea>
-<input id="photoInput" type="file">
-<button onclick="createProfile()">Valider</button>
-
-</div>
-
-<!-- PROFILES -->
+<!-- SWIPE -->
 <div id="profiles" class="page">
-<h3>🌍 Découvrir</h3>
-<div id="list"></div>
-<button onclick="event.stopPropagation(); like('${u.id}')">❤️</button>
-<button onclick="event.stopPropagation(); openProfile('${u.id}')">👁️</button>
+ <div id="swipeContainer"></div>
+ <div style="background:white;color:black;padding:10px;border-radius:15px;margin-bottom:10px;">
+ <input id="minAge" placeholder="Âge min">
+ <input id="maxAge" placeholder="Âge max">
+ <input id="cityFilter" placeholder="Ville">
+</div>
 </div>
 
 <!-- CHAT -->
 <div id="chatPage" class="page">
-<h3>Chat</h3>
-<div id="chatBox"></div>
-<p id="typingStatus"></p>
-<input id="msg">
-<button onclick="sendMessage()">Envoyer</button>
+ <h3>💬 Chat</h3>
+ <div id="chatBox"></div>
+
+ <div class="input-row">
+  <input id="msg" placeholder="Message...">
+  <button onclick="sendMessage()">➤</button>
+  <button onclick="startRecording()">🎤</button>
+ </div>
 </div>
 
+<!-- CONVERSATIONS -->
+<div id="conv" class="page">
+ <h3>💬 Conversations</h3>
+ <div id="convList"></div>
+</div>
+
+<!-- BIO IA -->
+<div id="bioPage" class="page">
+ <h3>🧠 Bio IA</h3>
+ <textarea id="bio" style="width:100%;border-radius:10px;"></textarea>
+ <button onclick="generateBio()">Générer</button>
+</div>
+
+
+<!-- mon profil -->
+<div id="profilePage" class="page">
+ <h3>👤 Mon profil</h3>
+
+ <input id="prenom" placeholder="Prénom">
+ <input id="age" type="number" placeholder="Âge">
+ <input id="ville" placeholder="Ville">
+
+ <textarea id="bio" placeholder="Ta bio..."></textarea>
+
+ <input id="interests" placeholder="Centres d’intérêt (sport, musique...)">
+
+ <select id="lookingFor">
+  <option value="">Je cherche...</option>
+  <option value="amour">❤️ Amour</option>
+  <option value="amitié">😊 Amitié</option>
+  <option value="fun">🔥 Fun</option>
+ </select>
+
+ <input type="file" id="photoInput" multiple>
+<button onclick="improveProfile()">🧠 Améliorer mon profil</button>
+ <button onclick="saveProfile()">💾 Sauvegarder</button>
+</div>
+
+<!-- qui ma like  -->
 <div id="likesPage" class="page">
-<h3>❤️ Ils t'ont liké</h3>
-<div id="likesList"></div>
+ <h3>❤️ Qui t’a liké</h3>
+ <div id="likesList"></div>
 </div>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="./supabase.js"></script>
-
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
-let currentUser = null;
-let currentChatUser = null;
-let currentProfileId = null;
+const supabaseClient = supabase.createClient(
+ "https://YOUR_PROJECT.supabase.co",
+ "YOUR_PUBLIC_KEY"
+);
+</script>
 
-initAuth();
-subscribeToPresence();
-updateAuthButton();
-
-// NAV
-window.showPage = function(id){
+<!-- AUTH -->
+<script>
+function showPage(id){
  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
  document.getElementById(id).classList.add('active');
-};
-
-// AUTH BUTTON
-window.updateAuthButton = function(){
- const btn = document.getElementById("authBtn");
- if(!btn) return;
- btn.innerText = currentUser ? "Déconnexion" : "Connexion";
-};
-
-// AUTO LOGIN
-async function initAuth(){
- const { data: { session } } = await supabaseClient.auth.getSession();
-
- if(session){
-  currentUser = session.user;
-  updateAuthButton();
-  loadMyProfile();
- }
-
- supabaseClient.auth.onAuthStateChange((event, session) => {
-  currentUser = session?.user || null;
-  updateAuthButton();
- });
- if(session){
- currentUser = session.user;
- updateAuthButton();
-
- await supabaseClient
-  .from('profiles')
-  .update({ is_online: true })
-  .eq('id', currentUser.id);
-
- loadMyProfile();
-}
-window.addEventListener("beforeunload", async () => {
- if(currentUser){
-  await supabaseClient
-   .from('profiles')
-   .update({ is_online: false })
-   .eq('id', currentUser.id);
- }
-
- await supabaseClient
- .from('profiles')
- .update({
-  is_online: true,
-  last_seen: new Date().toISOString()
- })
- .eq('id', currentUser.id);
-
-setInterval(async () => {
- if(currentUser){
-  await supabaseClient
-   .from('profiles')
-   .update({
-    last_seen: new Date().toISOString()
-   })
-   .eq('id', currentUser.id);
- }
-}, 30000);
-});
 }
 
-// AUTH
-window.handleAuth = function(){
- currentUser ? logout() : showPage("login");
-};
-
-// REGISTER
-window.register = async function(){
- const email = regEmail.value;
- const pass = regPass.value;
-
- if(!email || !pass) return alert("Remplis tout");
-
- const { data, error } = await supabaseClient.auth.signUp({ email, password: pass });
- if(error) return alert(error.message);
-
- const user = data.user ?? data.session?.user;
- if(!user) return alert("Vérifie ton email");
-
- currentUser = user;
-
-const { error: insertError } = await supabaseClient
- .from('profiles')
- .insert({
-  id: currentUser.id,
-  prenom: "test"
-});
-
-if(insertError){
- console.error(insertError);
- alert(insertError.message);
- return;
-}
- showPage("profile");
- updateAuthButton();
-};
-
-// LOGIN
-window.login = async function(){
- const { data, error } = await supabaseClient.auth.signInWithPassword({
+async function login(){
+ const { error } = await supabaseClient.auth.signInWithPassword({
   email: logEmail.value,
   password: logPass.value
  });
-
  if(error) return alert(error.message);
-
- currentUser = data.session.user;
-
- updateAuthButton();
- loadProfiles();
- loadMyProfile();
-};
-// LOGOUT
-window.logout = async function(){
- await supabaseClient.auth.signOut();
- const id = currentUser.id;
-}
-await supabaseClient
- .from('profiles')
- .update({ is_online: false })
- .eq('id', id);
-
-currentUser = null;
-
-
-
-// CREATE PROFILE
-window.createProfile = async function(){
- if(!currentUser) return alert("Connecte-toi");
-
- const prenom = prenomInput.value;
- const age = ageInput.value;
- const ville = villeInput.value;
- const bio = bioInput.value;
- const file = photoInput.files[0];
-
- if(!prenom || !age || !ville){
-  return alert("Remplis tous les champs");
- }
-
- let photoUrl = null;
-
- if(file){
-  const fileName = currentUser.id + "-" + Date.now();
-
-  const { error } = await supabaseClient.storage
-   .from('avatars')
-   .upload(fileName, file);
-
-  if(error) return alert(error.message);
-
-  photoUrl = supabaseClient.storage
-   .from('avatars')
-   .getPublicUrl(fileName).data.publicUrl;
- }
-
-const { error: updateError } = await supabaseClient
- .from('profiles')
- .update({
-  prenom,
-  age,
-  ville,
-  bio,
-  photo: photoUrl
- })
- .eq('id', currentUser.id);
-
-if(updateError) return alert(updateError.message);
- alert("✅ Profil enregistré !");
-
- loadProfiles();
-};
-
-// LOAD MY PROFILE
-async function loadMyProfile(){
-
- if(!currentUser){
- console.log("Pas connecté");
- return;
+ loadSwipe();
 }
 
-
-const { data, error } = await supabaseClient
- .from('profiles')
- .select('*')
- .eq('id', currentUser.id)
- .maybeSingle();
-
-if(error){
- console.log(error);
- return;
-}
-
- if(!data) return;
-
- prenomInput.value = data.prenom || "";
- ageInput.value = data.age || "";
- villeInput.value = data.ville || "";
- bioInput.value = data.bio || "";
-}
-
-// LOAD PROFILES
-
-async function loadProfiles(){
-
- console.log("Chargement profils...");
-
- if(!currentUser){
-  console.log("Utilisateur non connecté");
-  return;
- }
-
- showPage("profiles");
-
- const list = document.getElementById("list");
-
- if(!list){
-  console.error("list introuvable");
-  return;
- }
-
- // récupérer ma ville
- const { data: me } = await supabaseClient
-  .from('profiles')
-  .select('ville')
-  .eq('id', currentUser.id)
-  .single();
-
- // récupérer profils
- const { data, error } = await supabaseClient
-  .from('profiles')
-  .select('*')
-  .neq('id', currentUser.id);
-
- if(error){
-  console.error(error);
-  return;
- }
-
- list.innerHTML = '';
-
- for(const u of data){
-
-  // ❤️ match
-  const match = await isMatch(u.id);
-
-  // 🔥 likes
-  const { data: likesData } = await supabaseClient
-   .from('likes')
-   .select('*')
-   .eq('to_user', u.id);
-
-  const likesCount = likesData ? likesData.length : 0;
-
-  // 📍 même ville
-  const sameCity = u.ville === me?.ville;
-
-  // ⏱ statut
-  const status = getLastSeenText(u.last_seen);
-
-  list.innerHTML += `
-  <div class="card">
-
-   ${match ? '<div class="match-badge">🔥 MATCH</div>' : ''}
-   ${sameCity ? '<div class="match-badge">📍 Même ville</div>' : ''}
-
-   <img src="${u.photo || 'https://picsum.photos/400'}" class="card-img">
-
-   <div class="card-body">
-    <h3>${u.prenom || "Sans nom"}, ${u.age || ""}</h3>
-    <p>${status}</p>
-    <p>📍 ${u.ville || "Inconnue"}</p>
-    <p>🔥 ${likesCount} likes</p>
-
-    <div class="card-actions">
-     <button onclick="event.stopPropagation(); like('${u.id}')">❤️</button>
-     <button onclick="event.stopPropagation(); openProfile('${u.id}')">👁️</button>
-     <button class="like-btn" onclick="event.stopPropagation(); like('${u.id}')">
-    </div>
-   </div>
-
-  </div>
-  `;
- }
-}
-
-function subscribeToPresence(){
- supabaseClient
-  .channel('presence')
-  .on(
-   'postgres_changes',
-   {
-    event: 'UPDATE',
-    schema: 'public',
-    table: 'profiles'
-   },
-   () => loadProfiles()
-  )
-  .subscribe();
-}
-//nav
-
-window.goMyProfile = function(){
- if(!currentUser) return alert("Connecte-toi");
- showPage("profile");
- loadMyProfile();
-};
-
-window.goProfiles = function(){
- if(!currentUser) return alert("Connecte-toi");
- loadProfiles();
-};
-
-// OPEN PROFILE
-
-window.openProfile = async function(id){
- const { data } = await supabaseClient
-  .from('profiles')
-  .select('*')
-  .eq('id', id)
-  .single();
-
- currentChatUser = id;
- currentProfileId = id;
-
- pvName.innerText = data.prenom;
- pvInfo.innerText = (data.age || "") + " ans - " + (data.ville || "");
- pvbio.innerText = data.bio || "";
- pvPhoto.src = data.photo || "";
-
-const match = await isMatch(id);
-
-matchStatus.innerText = match ? "🔥 MATCH !" : "";
-
-const btn = document.querySelector("#profileView button:last-child");
-
-btn.style.display = match ? "block" : "none";
-
- loadMessages(id);
-subscribeToChat(id);
-showPage("profileView");
-};
-window.openChatFromProfile = function(){
- if(!currentChatUser) return;
-
- showPage("chatPage");
- loadMessages(currentChatUser);
- subscribeToChat(currentChatUser);
-};
-
-// LIKE
-
-window.like = async function(id){
- if(!currentUser) return alert("Connecte-toi");
-
- await supabaseClient.from('likes').insert({
-  from_user: currentUser.id,
-  to_user: id
+async function register(){
+ const { error } = await supabaseClient.auth.signUp({
+  email: regEmail.value,
+  password: regPass.value
  });
-
- alert("❤️ Like envoyé");
-};
-
-window.goLikes = async function(){
- if(!currentUser) return alert("Connecte-toi");
-
- showPage("likesPage");
-
- const { data: likes } = await supabaseClient
-  .from('likes')
-  .select('*')
-  .eq('to_user', currentUser.id);
-
- const likesList = document.getElementById("likesList");
- likesList.innerHTML = "";
-
- for (const like of likes){
-
-  const { data: user } = await supabaseClient
-   .from('profiles')
-   .select('*')
-   .eq('id', like.from_user)
-   .single();
-
-  if(!user) continue;
-
-  likesList.innerHTML += `
-   <div class="card">
-    <img src="${user.photo || 'https://via.placeholder.com/400'}" class="card-img">
-    <div class="card-body">
-     <h3>${user.prenom}</h3>
-
-     <button onclick="like('${user.id}')">❤️ Liker en retour</button>
-     <button onclick="openProfile('${user.id}')">👁️ Voir</button>
-    </div>
-   </div>
-  `;
- }
-};
-
-// MATCH
-async function isMatch(id){
- const { data } = await supabaseClient
-  .from('likes')
-  .select('*')
-  .or(`and(from_user.eq.${currentUser.id},to_user.eq.${id}),and(from_user.eq.${id},to_user.eq.${currentUser.id})`);
-
- return data.length >= 2;
+ if(error) return alert(error.message);
+ alert("Compte créé !");
 }
-
-// CHAT
-window.sendMessage = async function(){
-const { data } = await supabaseClient
- .from('profiles')
- .select('premium')
- .eq('id', currentUser.id)
- .single();
-
-if(!data?.premium){
- return alert("Passe Premium 💎");
-}
-await supabaseClient.from('messages').insert({
- from_user: currentUser.id,
- to_user: currentChatUser,
- text: msg.value
-});
-};
-
-
-// STRIPE
-window.startPayment = async function (){
- const res = await fetch("https://backend-rencontre.onrender.com/create-checkout-session", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-   email: currentUser.email
-  })
- });
-
- const data = await res.json();
- window.location.href = data.url;
-};
-
-// PREVIEW IMAGE
-const photoInputEl = document.getElementById("photoInput");
-
-if(photoInputEl){
- photoInputEl.addEventListener("change", function(e){
-  const file = e.target.files[0];
-  if(!file) return;
-
-  const preview = document.getElementById("preview");
-
-  const reader = new FileReader();
-  reader.onload = e => {
-   if(preview){
-    preview.src = e.target.result;
-    preview.style.display = "block";
-   }
-  };
-  reader.readAsDataURL(file);
- });
-}
-
-//Écoute des messages en live
-let channel = null;
-
-function subscribeToChat(userId){
- if(channel) supabaseClient.removeChannel(channel);
-
- channel = supabaseClient
-  .channel('chat')
-  .on(
-   'postgres_changes',
-   {
-    event: 'INSERT',
-    schema: 'public',
-    table: 'messages'
-   },
-   payload => {
-    const msg = payload.new;
-
-    if(
-     (msg.from_user === currentUser.id && msg.to_user === userId) ||
-     (msg.from_user === userId && msg.to_user === currentUser.id)
-    ){
-     addMessage(msg);
-    }
-   }
-  )
-  .subscribe();
-}
-//Affichage messages
-
-function addMessage(msg){
- const box = document.getElementById("chatBox");
-
- const div = document.createElement("div");
- div.innerText = msg.text;
-
- div.style.padding = "5px";
- div.style.margin = "5px";
-
- if(msg.from_user === currentUser.id){
-  div.style.textAlign = "right";
-  div.style.background = "#dcf8c6";
- } else {
-  div.style.background = "#eee";
- }
-
- box.appendChild(div);
- box.scrollTop = box.scrollHeight;
-}
-msg.addEventListener("input", async () => {
- if(!currentChatUser) return;
-
- await supabaseClient.from('typing').upsert({
-  from_user: currentUser.id,
-  to_user: currentChatUser,
-  is_typing: true
- });
-});
-let typingTimeout;
-
-msg.addEventListener("input", () => {
- clearTimeout(typingTimeout);
-
- typingTimeout = setTimeout(async () => {
-  await supabaseClient.from('typing').upsert({
-   from_user: currentUser.id,
-   to_user: currentChatUser,
-   is_typing: false
-  });
- }, 2000);
-});
-
-function subscribeTyping(userId){
- supabaseClient
-  .channel('typing')
-  .on(
-   'postgres_changes',
-   {
-    event: '*',
-    schema: 'public',
-    table: 'typing'
-   },
-   payload => {
-    const t = payload.new;
-
-    if(t.from_user === userId && t.to_user === currentUser.id){
-     showTyping(t.is_typing);
-    }
-   }
-  )
-  .subscribe();
-}
-<p id="typingStatus"></p>
-function showTyping(isTyping){
- const el = document.getElementById("typingStatus");
-
- el.innerText = isTyping ? "👀 En train d'écrire..." : "";
-}
-
-//Charger historique
-async function loadMessages(userId){
- const { data } = await supabaseClient
-  .from('messages')
-  .select('*')
-  .or(`and(from_user.eq.${currentUser.id},to_user.eq.${userId}),and(from_user.eq.${userId},to_user.eq.${currentUser.id})`)
-  .order('created_at');
-
- chatBox.innerHTML = '';
- data.forEach(addMessage);
-}
-
-initAuth();
-updateAuthButton();
 </script>
 
-</body>
+<script src="script.js"></script>
 
+</body>
 </html>
