@@ -18,7 +18,7 @@
 <button onclick="showPage('register')">Inscription</button>
 <button onclick="goMyProfile()">👤 Mon profil</button>
 <button onclick="goProfiles()">🌍 Profils</button>
-<button onclick="goLikes()">❤️ Likes</button>0
+<button onclick="goLikes()">❤️ Likes</button>
 </header>
 
 <!-- HOME -->
@@ -111,19 +111,10 @@ Rencontre des personnes sérieuses près de toi ❤️
 <!-- CHAT -->
 <div id="chatPage" class="page">
 <h3>Chat</h3>
-<div id="chatBox" style="height:200px;overflow:auto"></div>
+<div id="chatBox"></div>
+<p id="typingStatus"></p>
 <input id="msg">
 <button onclick="sendMessage()">Envoyer</button>
-</div>
-<div id="profileView" class="page">
-<button onclick="like(currentChatUser)">❤️ Like</button>
-<p id="matchStatus"></p>
-<h3 id="pvName"></h3>
-<img id="pvPhoto" style="width:100%;border-radius:15px;">
-<p id="pvInfo"></p>
-<p id="pvbio"></p>
-<button onclick="openChatFromProfile()">💬 Discuter</button>
-
 </div>
 
 // like liste
@@ -265,14 +256,16 @@ window.login = async function(){
 // LOGOUT
 window.logout = async function(){
  await supabaseClient.auth.signOut();
- currentUser = null;
- updateAuthButton();
- showPage("home");
- await supabaseClient
+ const id = currentUser.id;
+}
+await supabaseClient
  .from('profiles')
  .update({ is_online: false })
- .eq('id', currentUser.id);
-};
+ .eq('id', id);
+
+currentUser = null;
+
+
 
 // CREATE PROFILE
 window.createProfile = async function(){
@@ -365,53 +358,73 @@ async function loadProfiles(){
  const list = document.getElementById("list");
 
  if(!list){
-  console.error("Element #list introuvable");
+  console.error("list introuvable");
   return;
  }
 
-const { data: me } = await supabaseClient
- .from('profiles')
- .select('ville')
- .eq('id', currentUser.id)
- .single();
+ // récupérer ma ville
+ const { data: me } = await supabaseClient
+  .from('profiles')
+  .select('ville')
+  .eq('id', currentUser.id)
+  .single();
 
-const { data, error } = await supabaseClient
- .from('profiles')
- .select('*')
- .neq('id', currentUser.id)
- .order('ville', { ascending: true });
-
- const isSameCity = u.ville === me?.ville;
- ${isSameCity ? '<div class="match-badge">📍 Même ville</div>' : ''}
+ // récupérer profils
+ const { data, error } = await supabaseClient
+  .from('profiles')
+  .select('*')
+  .neq('id', currentUser.id);
 
  if(error){
   console.error(error);
-  alert("Erreur chargement profils");
   return;
  }
-
- console.log("Profils:", data);
 
  list.innerHTML = '';
 
- if(!data || data.length === 0){
-  list.innerHTML = "<p>Aucun profil</p>";
-  return;
+ for(const u of data){
+
+  // ❤️ match
+  const match = await isMatch(u.id);
+
+  // 🔥 likes
+  const { data: likesData } = await supabaseClient
+   .from('likes')
+   .select('*')
+   .eq('to_user', u.id);
+
+  const likesCount = likesData ? likesData.length : 0;
+
+  // 📍 même ville
+  const sameCity = u.ville === me?.ville;
+
+  // ⏱ statut
+  const status = getLastSeenText(u.last_seen);
+
+  list.innerHTML += `
+  <div class="card">
+
+   ${match ? '<div class="match-badge">🔥 MATCH</div>' : ''}
+   ${sameCity ? '<div class="match-badge">📍 Même ville</div>' : ''}
+
+   <img src="${u.photo || 'https://picsum.photos/400'}" class="card-img">
+
+   <div class="card-body">
+    <h3>${u.prenom || "Sans nom"}, ${u.age || ""}</h3>
+    <p>${status}</p>
+    <p>📍 ${u.ville || "Inconnue"}</p>
+    <p>🔥 ${likesCount} likes</p>
+
+    <div class="card-actions">
+     <button onclick="event.stopPropagation(); like('${u.id}')">❤️</button>
+     <button onclick="event.stopPropagation(); openProfile('${u.id}')">👁️</button>
+    </div>
+   </div>
+
+  </div>
+  `;
  }
- const status = u.is_online ? "🟢 En ligne" : "⚫ Hors ligne";
-
- function getLastSeenText(date){
- if(!date) return "⚫ Hors ligne";
-
- const diff = Math.floor((Date.now() - new Date(date)) / 1000);
-
- if(diff < 60) return "🟢 En ligne";
- if(diff < 3600) return `⏱ Vu il y a ${Math.floor(diff/60)} min`;
- if(diff < 86400) return `⏱ Vu il y a ${Math.floor(diff/3600)} h`;
-
- return "⚫ Hors ligne";
 }
-const status = getLastSeenText(u.last_seen);
 
 function subscribeToPresence(){
  supabaseClient
@@ -423,35 +436,10 @@ function subscribeToPresence(){
     schema: 'public',
     table: 'profiles'
    },
-   payload => {
-    console.log("Update profil", payload);
-
-    // recharge les profils en live
-    loadProfiles();
-   }
+   () => loadProfiles()
   )
   .subscribe();
 }
- <div class= "card">
-
-  ${match ? '<div class="match-badge">🔥 MATCH</div>' : ''}
-
-  <img src="${u.photo || 'https://via.placeholder.com/400'}" class="card-img">
-
-  <div class="card-body">
-   <h3>${u.prenom || "Sans nom"}, ${u.age || ""}</h3>
-   <p>📍 ${u.ville || "Inconnue"}</p>
-
-   <p>🔥 ${likesCount} likes</p>
-
-   <div class="card-actions">
-    <button onclick="event.stopPropagation(); like('${u.id}')">❤️</button>
-    <button onclick="event.stopPropagation(); openProfile('${u.id}')">👁️</button>
-   </div>
-  </div>
- </div>
-}
-
 //nav
 
 window.goMyProfile = function(){
@@ -709,7 +697,6 @@ function subscribeTyping(userId){
   .subscribe();
 }
 <p id="typingStatus"></p>
-
 function showTyping(isTyping){
  const el = document.getElementById("typingStatus");
 
