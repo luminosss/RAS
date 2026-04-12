@@ -112,3 +112,12 @@ position: relative;
  font-weight: bold;
  z-index: 2;
 }
+
+.online {
+ color: green;
+ font-weight: bold;
+}
+
+.offline {
+ color: gray;
+}

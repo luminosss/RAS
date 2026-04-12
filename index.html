@@ -18,6 +18,7 @@
 <button onclick="showPage('register')">Inscription</button>
 <button onclick="goMyProfile()">👤 Mon profil</button>
 <button onclick="goProfiles()">🌍 Profils</button>
+<button onclick="goLikes()">❤️ Likes</button>0
 </header>
 
 <!-- HOME -->
@@ -101,6 +102,10 @@ Rencontre des personnes sérieuses près de toi ❤️
 <div id="list"></div>
 <button class="like-btn" onclick="event.stopPropagation(); like('${u.id}')">❤️ Like</button>
 <button class="view-btn" onclick="event.stopPropagation(); openProfile('${u.id}')">👁️ Voir</button>
+<p>${status}</p>
+<p class="${u.is_online ? 'online' : 'offline'}">
+ ${u.is_online ? '🟢 En ligne' : '⚫ Hors ligne'}
+</p>
 </div>
 
 <!-- CHAT -->
@@ -118,6 +123,12 @@ Rencontre des personnes sérieuses près de toi ❤️
 <p id="pvInfo"></p>
 <p id="pvbio"></p>
 <button onclick="openChatFromProfile()">💬 Discuter</button>
+</div>
+
+// like liste
+<div id="likesPage" class="page">
+<h3>❤️ Ils t'ont liké</h3>
+<div id="likesList"></div>
 </div>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -155,6 +166,25 @@ async function initAuth(){
   currentUser = session?.user || null;
   updateAuthButton();
  });
+ if(session){
+ currentUser = session.user;
+ updateAuthButton();
+
+ await supabaseClient
+  .from('profiles')
+  .update({ is_online: true })
+  .eq('id', currentUser.id);
+
+ loadMyProfile();
+}
+window.addEventListener("beforeunload", async () => {
+ if(currentUser){
+  await supabaseClient
+   .from('profiles')
+   .update({ is_online: false })
+   .eq('id', currentUser.id);
+ }
+});
 }
 
 // AUTH
@@ -214,6 +244,10 @@ window.logout = async function(){
  currentUser = null;
  updateAuthButton();
  showPage("home");
+ await supabaseClient
+ .from('profiles')
+ .update({ is_online: false })
+ .eq('id', currentUser.id);
 };
 
 // CREATE PROFILE
@@ -294,6 +328,7 @@ if(error){
 // LOAD PROFILES
 
 async function loadProfiles(){
+
  console.log("Chargement profils...");
 
  if(!currentUser){
@@ -310,9 +345,20 @@ async function loadProfiles(){
   return;
  }
 
- const { data, error } = await supabaseClient
-  .from('profiles')
-  .select('*');
+const { data: me } = await supabaseClient
+ .from('profiles')
+ .select('ville')
+ .eq('id', currentUser.id)
+ .single();
+
+const { data, error } = await supabaseClient
+ .from('profiles')
+ .select('*')
+ .neq('id', currentUser.id)
+ .order('ville', { ascending: true });
+
+ const isSameCity = u.ville === me?.ville;
+ ${isSameCity ? '<div class="match-badge">📍 Même ville</div>' : ''}
 
  if(error){
   console.error(error);
@@ -328,6 +374,8 @@ async function loadProfiles(){
   list.innerHTML = "<p>Aucun profil</p>";
   return;
  }
+ const status = u.is_online ? "🟢 En ligne" : "⚫ Hors ligne";
+ 
  
  <div class= "card">
 
@@ -346,15 +394,11 @@ async function loadProfiles(){
     <button onclick="event.stopPropagation(); openProfile('${u.id}')">👁️</button>
    </div>
   </div>
-
  </div>
- `;
 }
-  </div>
-  `;
 
+//nav
 
-// NAV
 window.goMyProfile = function(){
  if(!currentUser) return alert("Connecte-toi");
  showPage("profile");
@@ -404,6 +448,7 @@ window.openChatFromProfile = function(){
 };
 
 // LIKE
+
 window.like = async function(id){
  if(!currentUser) return alert("Connecte-toi");
 
@@ -413,6 +458,43 @@ window.like = async function(id){
  });
 
  alert("❤️ Like envoyé");
+};
+
+window.goLikes = async function(){
+ if(!currentUser) return alert("Connecte-toi");
+
+ showPage("likesPage");
+
+ const { data: likes } = await supabaseClient
+  .from('likes')
+  .select('*')
+  .eq('to_user', currentUser.id);
+
+ const likesList = document.getElementById("likesList");
+ likesList.innerHTML = "";
+
+ for (const like of likes){
+
+  const { data: user } = await supabaseClient
+   .from('profiles')
+   .select('*')
+   .eq('id', like.from_user)
+   .single();
+
+  if(!user) continue;
+
+  likesList.innerHTML += `
+   <div class="card">
+    <img src="${user.photo || 'https://via.placeholder.com/400'}" class="card-img">
+    <div class="card-body">
+     <h3>${user.prenom}</h3>
+
+     <button onclick="like('${user.id}')">❤️ Liker en retour</button>
+     <button onclick="openProfile('${user.id}')">👁️ Voir</button>
+    </div>
+   </div>
+  `;
+ }
 };
 
 // MATCH
