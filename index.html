@@ -210,6 +210,7 @@ currentUser = data.session.user;
  updateAuthButton();
  loadProfiles();
  loadMyProfile();
+ goProfiles()
 
 // LOGOUT
 window.logout = async function(){
@@ -336,6 +337,7 @@ window.goMyProfile = function(){
  if(!currentUser) return alert("Connecte-toi");
  showPage("profile");
  loadMyProfile();
+ goProfiles()
 };
 
 window.goProfiles = function(){
