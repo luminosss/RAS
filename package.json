@@ -1,15 +1,8 @@
 {
-  "name": "Rencontre Sérieuse",
+  "name": "backend",
   "version": "1.0.0",
   "main": "server.js",
-  "dependencies": {
-    "@supabase/ssr": "^0.10.2",
-    "@supabase/supabase-js": "^2.103.0",
-    "body-parser": "^2.2.2",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.1",
-    "express": "^4.22.1",
-    "socket.io": "^4.7.2",
-    "stripe": "^14.25.0"
+  "scripts": {
+    "start": "node server.js"
   }
 }

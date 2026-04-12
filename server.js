@@ -65,3 +65,8 @@ app.post("/webhook", bodyParser.raw({ type: "application/json" }), async (req, r
 
  res.sendStatus(200);
 });
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server running on port " + PORT));
+app.use(cors({
+ origin: "*"
+}));
