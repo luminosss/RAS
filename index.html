@@ -200,20 +200,14 @@ window.login = async function(){
   password: logPass.value
  });
 
-if(error) return alert(error.message);{
-currentUser = data.session.user;
+ if(error) return alert(error.message);
 
- console.error(error);
- alert(error.message);
- return;
- }
+ currentUser = data.session.user;
 
  updateAuthButton();
  loadProfiles();
  loadMyProfile();
- goProfiles()
- }
- 
+};
 // LOGOUT
 window.logout = async function(){
  await supabaseClient.auth.signOut();
@@ -252,7 +246,7 @@ window.createProfile = async function(){
    .getPublicUrl(fileName).data.publicUrl;
  }
 
-const { error } = await supabaseClient
+const { error: updateError } = await supabaseClient
  .from('profiles')
  .update({
   prenom,
@@ -263,8 +257,7 @@ const { error } = await supabaseClient
  })
  .eq('id', currentUser.id);
 
-if(error) return alert(error.message);
-
+if(updateError) return alert(updateError.message);
  alert("✅ Profil enregistré !");
 
  loadProfiles();
@@ -310,12 +303,11 @@ async function loadProfiles(){
 
  showPage("profiles");
 
- const list = document.getElementById("list");
-
- if(!list){
-  console.error("Element #list introuvable");
-  return;
- }
+const list = document.getElementById("list");
+if(!list){
+ console.error("list introuvable");
+ return;
+}
 
  const { data, error } = await supabaseClient
   .from('profiles')
@@ -361,7 +353,6 @@ window.goMyProfile = function(){
  if(!currentUser) return alert("Connecte-toi");
  showPage("profile");
  loadMyProfile();
- goProfiles()
 };
 
 window.goProfiles = function(){
