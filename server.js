@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const stripe = new Stripe("sk_test_TA_CLE_SECRETE");
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // 👉 CRÉER SESSION CHECKOUT
 app.post("/create-checkout-session", async (req, res) => {
@@ -62,6 +62,13 @@ app.post("/webhook", bodyParser.raw({ type: "application/json" }), async (req, r
    })
   });
  }
+fetch(process.env.SUPABASE_URL + "/rest/v1/profiles?email=eq." + email, {
+ headers: {
+  "apikey": process.env.SUPABASE_SERVICE_KEY,
+  "Authorization": "Bearer " + process.env.SUPABASE_SERVICE_KEY,
+  "Content-Type": "application/json"
+ }
+});
 
  res.sendStatus(200);
 });
@@ -69,4 +76,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server running on port " + PORT));
 app.use(cors({
  origin: "*"
+ 
 }));
