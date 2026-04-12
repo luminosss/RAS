@@ -56,7 +56,7 @@ Rencontre des personnes sérieuses près de toi ❤️
 <li>Discuter 💬</li>
 </ol>
 </div>
-
+-
 <div style="background:#f9f9f9;padding:10px;border-radius:10px;margin-top:10px;">
 <h4>💎 Premium</h4>
 <p>Chat illimité + visibilité boost</p>
@@ -123,6 +123,7 @@ Rencontre des personnes sérieuses près de toi ❤️
 <p id="pvInfo"></p>
 <p id="pvbio"></p>
 <button onclick="openChatFromProfile()">💬 Discuter</button>
+
 </div>
 
 // like liste
@@ -138,6 +139,10 @@ Rencontre des personnes sérieuses près de toi ❤️
 let currentUser = null;
 let currentChatUser = null;
 let currentProfileId = null;
+
+initAuth();
+subscribeToPresence();
+updateAuthButton();
 
 // NAV
 window.showPage = function(id){
@@ -184,6 +189,25 @@ window.addEventListener("beforeunload", async () => {
    .update({ is_online: false })
    .eq('id', currentUser.id);
  }
+
+ await supabaseClient
+ .from('profiles')
+ .update({
+  is_online: true,
+  last_seen: new Date().toISOString()
+ })
+ .eq('id', currentUser.id);
+
+setInterval(async () => {
+ if(currentUser){
+  await supabaseClient
+   .from('profiles')
+   .update({
+    last_seen: new Date().toISOString()
+   })
+   .eq('id', currentUser.id);
+ }
+}, 30000);
 });
 }
 
@@ -375,8 +399,39 @@ const { data, error } = await supabaseClient
   return;
  }
  const status = u.is_online ? "🟢 En ligne" : "⚫ Hors ligne";
- 
- 
+
+ function getLastSeenText(date){
+ if(!date) return "⚫ Hors ligne";
+
+ const diff = Math.floor((Date.now() - new Date(date)) / 1000);
+
+ if(diff < 60) return "🟢 En ligne";
+ if(diff < 3600) return `⏱ Vu il y a ${Math.floor(diff/60)} min`;
+ if(diff < 86400) return `⏱ Vu il y a ${Math.floor(diff/3600)} h`;
+
+ return "⚫ Hors ligne";
+}
+const status = getLastSeenText(u.last_seen);
+
+function subscribeToPresence(){
+ supabaseClient
+  .channel('presence')
+  .on(
+   'postgres_changes',
+   {
+    event: 'UPDATE',
+    schema: 'public',
+    table: 'profiles'
+   },
+   payload => {
+    console.log("Update profil", payload);
+
+    // recharge les profils en live
+    loadProfiles();
+   }
+  )
+  .subscribe();
+}
  <div class= "card">
 
   ${match ? '<div class="match-badge">🔥 MATCH</div>' : ''}
@@ -590,6 +645,7 @@ function subscribeToChat(userId){
   .subscribe();
 }
 //Affichage messages
+
 function addMessage(msg){
  const box = document.getElementById("chatBox");
 
@@ -608,6 +664,56 @@ function addMessage(msg){
 
  box.appendChild(div);
  box.scrollTop = box.scrollHeight;
+}
+msg.addEventListener("input", async () => {
+ if(!currentChatUser) return;
+
+ await supabaseClient.from('typing').upsert({
+  from_user: currentUser.id,
+  to_user: currentChatUser,
+  is_typing: true
+ });
+});
+let typingTimeout;
+
+msg.addEventListener("input", () => {
+ clearTimeout(typingTimeout);
+
+ typingTimeout = setTimeout(async () => {
+  await supabaseClient.from('typing').upsert({
+   from_user: currentUser.id,
+   to_user: currentChatUser,
+   is_typing: false
+  });
+ }, 2000);
+});
+
+function subscribeTyping(userId){
+ supabaseClient
+  .channel('typing')
+  .on(
+   'postgres_changes',
+   {
+    event: '*',
+    schema: 'public',
+    table: 'typing'
+   },
+   payload => {
+    const t = payload.new;
+
+    if(t.from_user === userId && t.to_user === currentUser.id){
+     showTyping(t.is_typing);
+    }
+   }
+  )
+  .subscribe();
+}
+<p id="typingStatus"></p>
+
+function showTyping(isTyping){
+ const el = document.getElementById("typingStatus");
+
+ el.innerText = isTyping ? "👀 En train d'écrire..." : "";
 }
 
 //Charger historique
