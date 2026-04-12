@@ -303,11 +303,12 @@ async function loadProfiles(){
 
  showPage("profiles");
 
-const list = document.getElementById("list");
-if(!list){
- console.error("list introuvable");
- return;
-}
+ const list = document.getElementById("list");
+
+ if(!list){
+  console.error("Element #list introuvable");
+  return;
+ }
 
  const { data, error } = await supabaseClient
   .from('profiles')
@@ -317,37 +318,38 @@ if(!list){
   console.error(error);
   alert("Erreur chargement profils");
   return;
- }if(match){
- btn.style.display = "block";
-}else{
- btn.style.display = "none";
-}
+ }
 
  console.log("Profils:", data);
 
  list.innerHTML = '';
 
  if(!data || data.length === 0){
-  list.innerHTML = "<p>Aucun profil pour le moment</p>";
+  list.innerHTML = "<p>Aucun profil</p>";
   return;
  }
+ 
+ <div class= "card">
 
- data.forEach(u => {
-  if(u.id === currentUser.id) return;
+  ${match ? '<div class="match-badge">🔥 MATCH</div>' : ''}
 
-  list.innerHTML += `
-  <div class="card">
-  <img src="${u.photo || 'https://via.placeholder.com/400'}" 
-     onerror="this.src='https://via.placeholder.com/400'"
-   <div class="card-body">
-    <h3>${u.prenom || "Sans nom"}, ${u.age || ""}</h3>
-    <p>📍 ${u.ville || "Inconnue"}</p>
+  <img src="${u.photo || 'https://picsum.photos/400'}" class="card-img">
 
-    <div class="card-actions">
-     <button onclick="event.stopPropagation(); like('${u.id}')">❤️</button>
-     <button onclick="event.stopPropagation(); openProfile('${u.id}')">👁️</button>
-    </div>
+  <div class="card-body">
+   <h3>${u.prenom || "Sans nom"}, ${u.age || ""}</h3>
+   <p>📍 ${u.ville || "Inconnue"}</p>
+
+   <p>🔥 ${likesCount} likes</p>
+
+   <div class="card-actions">
+    <button onclick="event.stopPropagation(); like('${u.id}')">❤️</button>
+    <button onclick="event.stopPropagation(); openProfile('${u.id}')">👁️</button>
    </div>
+  </div>
+
+ </div>
+ `;
+}
   </div>
   `;
  });
