@@ -333,7 +333,7 @@ async function loadProfiles(){
 
   ${match ? '<div class="match-badge">🔥 MATCH</div>' : ''}
 
-  <img src="${u.photo || 'https://picsum.photos/400'}" class="card-img">
+  <img src="${u.photo || 'https://via.placeholder.com/400'}" class="card-img">
 
   <div class="card-body">
    <h3>${u.prenom || "Sans nom"}, ${u.age || ""}</h3>
@@ -352,8 +352,7 @@ async function loadProfiles(){
 }
   </div>
   `;
- });
-}
+
 
 // NAV
 window.goMyProfile = function(){
@@ -368,6 +367,7 @@ window.goProfiles = function(){
 };
 
 // OPEN PROFILE
+
 window.openProfile = async function(id){
  const { data } = await supabaseClient
   .from('profiles')
