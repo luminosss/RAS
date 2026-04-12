@@ -200,18 +200,20 @@ window.login = async function(){
   password: logPass.value
  });
 
-if(error) return alert(error.message);
+if(error) return alert(error.message);{
 currentUser = data.session.user;
 
  console.error(error);
  alert(error.message);
  return;
-}
+ }
+
  updateAuthButton();
  loadProfiles();
  loadMyProfile();
  goProfiles()
-
+ }
+ 
 // LOGOUT
 window.logout = async function(){
  await supabaseClient.auth.signOut();
