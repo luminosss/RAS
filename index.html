@@ -121,18 +121,10 @@ Rencontre des personnes sérieuses près de toi ❤️
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="./supabase.js"></script>
 
-<script async
+<script>
 let currentUser = null;
 let currentChatUser = null;
 let currentProfileId = null;
- src="https://js.stripe.com/v3/buy-button.js">
-
-
-<stripe-buy-button
-  buy-button-id="buy_btn_1TLBT4C5UF3Szf7ZzYjoqubL"
-  publishable-key="pk_live_51TJJnsC5UF3Szf7Zh18YSDw0rNqMTdf97PcPVlN0mZQaHYqpbObfEvrUHD7Fm7bpQueANLG8JhqrLKzdVtpMA7nv00324vk653"
->
-</stripe-buy-button>
 
 // NAV
 window.showPage = function(id){
@@ -404,7 +396,7 @@ await supabaseClient.from('messages').insert({
 // STRIPE
 window.startPayment = async function (){
  if(!currentUser) return alert("Connecte-toi");
-
+ src="https://js.stripe.com/v3/buy-button.js"
  const res = await fetch("http://localhost:3000/create-checkout-session", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -413,6 +405,11 @@ window.startPayment = async function (){
   })
  });
 
+<stripe-buy-button
+  buy-button-id="buy_btn_1TLBT4C5UF3Szf7ZzYjoqubL"
+  publishable-key="pk_live_51TJJnsC5UF3Szf7Zh18YSDw0rNqMTdf97PcPVlN0mZQaHYqpbObfEvrUHD7Fm7bpQueANLG8JhqrLKzdVtpMA7nv00324vk653"
+>
+</stripe-buy-button>
  const data = await res.json();
 
  window.location.href = data.url;
