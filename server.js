@@ -62,13 +62,6 @@ app.post("/webhook", bodyParser.raw({ type: "application/json" }), async (req, r
    })
   });
  }
-fetch(process.env.SUPABASE_URL + "/rest/v1/profiles?email=eq." + email, {
- headers: {
-  "apikey": process.env.SUPABASE_SERVICE_KEY,
-  "Authorization": "Bearer " + process.env.SUPABASE_SERVICE_KEY,
-  "Content-Type": "application/json"
- }
-});
 
  res.sendStatus(200);
 });

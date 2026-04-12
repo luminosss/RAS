@@ -175,14 +175,16 @@ window.register = async function(){
 
  currentUser = user;
 
-await supabaseClient.from('profiles').insert({
- id: currentUser.id,
- prenom: "test"
+const { error: insertError } = await supabaseClient
+ .from('profiles')
+ .insert({
+  id: currentUser.id,
+  prenom: "test"
 });
 
-if(error){
- console.error(error);
- alert(error.message);
+if(insertError){
+ console.error(insertError);
+ alert(insertError.message);
  return;
 }
  showPage("profile");
@@ -196,10 +198,9 @@ window.login = async function(){
   password: logPass.value
  });
 
- if(error) return alert(error.message);
+if(error) return alert(error.message);
+currentUser = data.session.user;
 
- currentUser = data.session.user;
-if(error){
  console.error(error);
  alert(error.message);
  return;
@@ -207,7 +208,6 @@ if(error){
  updateAuthButton();
  loadProfiles();
  loadMyProfile();
-};
 
 // LOGOUT
 window.logout = async function(){
@@ -247,15 +247,18 @@ window.createProfile = async function(){
    .getPublicUrl(fileName).data.publicUrl;
  }
 
-await supabaseClient.from('profiles').update({
- prenom,
- age,
- ville,
- bio,
- photo: photoUrl
-}).eq('id', currentUser.id);
+const { error } = await supabaseClient
+ .from('profiles')
+ .update({
+  prenom,
+  age,
+  ville,
+  bio,
+  photo: photoUrl
+ })
+ .eq('id', currentUser.id);
 
- if(error) return alert(error.message);
+if(error) return alert(error.message);
 
  alert("✅ Profil enregistré !");
 
@@ -347,12 +350,20 @@ window.openProfile = async function(id){
  pvbio.innerText = data.bio || "";
  pvPhoto.src = data.photo || "";
 
- const match = await isMatch(id);
- matchStatus.innerText = match ? "🔥 MATCH !" : "";
+const match = await isMatch(id);
 
+matchStatus.innerText = match ? "🔥 MATCH !" : "";
+
+const btn = document.querySelector("#profileView button:last-child");
+
+if(match){
+ btn.style.display = "block";
+}else{
+ btn.style.display = "none";
+}
  loadMessages(id);
 subscribeToChat(id);
-showPage("chatPage");
+showPage("profileView");
 };
 
 // LIKE
@@ -379,12 +390,15 @@ async function isMatch(id){
 
 // CHAT
 window.sendMessage = async function(){
- if(!msg.value) return;
+const { data } = await supabaseClient
+ .from('profiles')
+ .select('premium')
+ .eq('id', currentUser.id)
+ .single();
 
- if(!currentUser.premium){
+if(!data?.premium){
  return alert("Passe Premium 💎");
 }
-
 await supabaseClient.from('messages').insert({
  from_user: currentUser.id,
  to_user: currentChatUser,
