@@ -98,7 +98,7 @@ Rencontre des personnes sérieuses près de toi ❤️
 <!-- PROFILES -->
 <div id="profiles" class="page">
 <h3>🌍 Découvrir</h3>
-<div id="list" class="profiles-grid"></div>
+<div id="list"></div>
 <button class="like-btn" onclick="event.stopPropagation(); like('${u.id}')">❤️ Like</button>
 <button class="view-btn" onclick="event.stopPropagation(); openProfile('${u.id}')">👁️ Voir</button>
 </div>
@@ -270,7 +270,11 @@ if(error) return alert(error.message);
 
 // LOAD MY PROFILE
 async function loadMyProfile(){
- if(!currentUser) return;
+
+ if(!currentUser){
+ console.log("Pas connecté");
+ return;
+}
 
 
 const { data, error } = await supabaseClient
@@ -295,9 +299,21 @@ if(error){
 // LOAD PROFILES
 
 async function loadProfiles(){
- if(!currentUser) return;
+ console.log("Chargement profils...");
+
+ if(!currentUser){
+  console.log("Utilisateur non connecté");
+  return;
+ }
 
  showPage("profiles");
+
+ const list = document.getElementById("list");
+
+ if(!list){
+  console.error("Element #list introuvable");
+  return;
+ }
 
  const { data, error } = await supabaseClient
   .from('profiles')
@@ -305,33 +321,39 @@ async function loadProfiles(){
 
  if(error){
   console.error(error);
+  alert("Erreur chargement profils");
   return;
  }
 
+ console.log("Profils:", data);
+
  list.innerHTML = '';
+
+ if(!data || data.length === 0){
+  list.innerHTML = "<p>Aucun profil pour le moment</p>";
+  return;
+ }
 
  data.forEach(u => {
   if(u.id === currentUser.id) return;
 
   list.innerHTML += `
   <div class="card">
-
    <img src="${u.photo || 'https://via.placeholder.com/400'}" class="card-img">
-
    <div class="card-body">
     <h3>${u.prenom || "Sans nom"}, ${u.age || ""}</h3>
     <p>📍 ${u.ville || "Inconnue"}</p>
 
     <div class="card-actions">
-     <button class="like-btn" onclick="like('${u.id}')">❤️ Like</button>
-     <button class="view-btn" onclick="openProfile('${u.id}')">👁️ Voir</button>
+     <button onclick="event.stopPropagation(); like('${u.id}')">❤️</button>
+     <button onclick="event.stopPropagation(); openProfile('${u.id}')">👁️</button>
     </div>
    </div>
-
   </div>
   `;
  });
 }
+
 // NAV
 window.goMyProfile = function(){
  if(!currentUser) return alert("Connecte-toi");
