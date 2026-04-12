@@ -92,13 +92,15 @@ Rencontre des personnes sérieuses près de toi ❤️
 <textarea id="bioInput" placeholder="Bio"></textarea>
 <input id="photoInput" type="file">
 <button onclick="createProfile()">Valider</button>
+
 </div>
 
 <!-- PROFILES -->
 <div id="profiles" class="page">
-<h3>Profils</h3>
-<div id="list"></div>
-<img id="preview" style="width:100%;margin-top:10px;border-radius:10px;display:none;">
+<h3>🌍 Découvrir</h3>
+<div id="list" class="profiles-grid"></div>
+<button class="like-btn" onclick="event.stopPropagation(); like('${u.id}')">❤️ Like</button>
+<button class="view-btn" onclick="event.stopPropagation(); openProfile('${u.id}')">👁️ Voir</button>
 </div>
 
 <!-- CHAT -->
@@ -290,38 +292,45 @@ if(error){
 }
 
 // LOAD PROFILES
+
 async function loadProfiles(){
  if(!currentUser) return;
 
  showPage("profiles");
 
- const { data } = await supabaseClient.from('profiles').select('*');
+ const { data, error } = await supabaseClient
+  .from('profiles')
+  .select('*');
+
+ if(error){
+  console.error(error);
+  return;
+ }
 
  list.innerHTML = '';
 
- data.forEach(u=>{
+ data.forEach(u => {
   if(u.id === currentUser.id) return;
 
-list.innerHTML += `
-<div class="card" onclick="openProfile('${u.id}')">
+  list.innerHTML += `
+  <div class="card">
 
- <img src="${u.photo || 'https://via.placeholder.com/300'}" class="card-img">
+   <img src="${u.photo || 'https://via.placeholder.com/400'}" class="card-img">
 
- <div class="card-body">
-  <h3>${u.prenom || "Sans nom"}, ${u.age || ""}</h3>
-  <p>📍 ${u.ville || "Inconnue"}</p>
+   <div class="card-body">
+    <h3>${u.prenom || "Sans nom"}, ${u.age || ""}</h3>
+    <p>📍 ${u.ville || "Inconnue"}</p>
 
-  <div class="card-actions">
-   <button onclick="event.stopPropagation(); like('${u.id}')">❤️</button>
-   <button onclick="event.stopPropagation(); openProfile('${u.id}')">👁️</button>
+    <div class="card-actions">
+     <button class="like-btn" onclick="like('${u.id}')">❤️ Like</button>
+     <button class="view-btn" onclick="openProfile('${u.id}')">👁️ Voir</button>
+    </div>
+   </div>
+
   </div>
- </div>
-
-</div>
-`;
+  `;
  });
 }
-
 // NAV
 window.goMyProfile = function(){
  if(!currentUser) return alert("Connecte-toi");
