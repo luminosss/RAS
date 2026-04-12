@@ -100,12 +100,8 @@ Rencontre des personnes sérieuses près de toi ❤️
 <div id="profiles" class="page">
 <h3>🌍 Découvrir</h3>
 <div id="list"></div>
-<button class="like-btn" onclick="event.stopPropagation(); like('${u.id}')">❤️ Like</button>
-<button class="view-btn" onclick="event.stopPropagation(); openProfile('${u.id}')">👁️ Voir</button>
-<p>${status}</p>
-<p class="${u.is_online ? 'online' : 'offline'}">
- ${u.is_online ? '🟢 En ligne' : '⚫ Hors ligne'}
-</p>
+<button onclick="event.stopPropagation(); like('${u.id}')">❤️</button>
+<button onclick="event.stopPropagation(); openProfile('${u.id}')">👁️</button>
 </div>
 
 <!-- CHAT -->
@@ -417,6 +413,7 @@ async function loadProfiles(){
     <div class="card-actions">
      <button onclick="event.stopPropagation(); like('${u.id}')">❤️</button>
      <button onclick="event.stopPropagation(); openProfile('${u.id}')">👁️</button>
+     <button class="like-btn" onclick="event.stopPropagation(); like('${u.id}')">
     </div>
    </div>
 

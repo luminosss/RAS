@@ -59,6 +59,10 @@ header button{
  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
  transition: 0.2s;
 position: relative;
+ z-index: 1;
+ .card {
+ pointer-events: auto;
+}
 }
 
 .card:hover {
@@ -89,6 +93,10 @@ position: relative;
  display: flex;
  justify-content: space-between;
  margin-top: 10px;
+}
+.card-actions button {
+ z-index: 2;
+ position: relative;
 }
 
 .like-btn {
