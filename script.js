@@ -1,6 +1,18 @@
 let currentUser = null;
 let currentChatUser = null;
+let soundStarted = false;
+let introStep = 0;
 
+function handleStart(){
+
+ console.log("CLICK OK");
+
+ introStep++;
+
+ document.getElementById("introTitle").innerText =
+  "Bienvenue 🔥";
+
+}
 // INIT
 showLoading();
 enableSplashClick();
@@ -999,8 +1011,9 @@ const steps = [
 ];
 
 function nextIntro(){
-
+    
  introStep++;
+ updateIntro();
 
  if(introStep >= steps.length){
   hideIntro();
@@ -1127,8 +1140,8 @@ function fadeOutMusic(){
  }, 100);
 }
 function handleStart(){
+ console.log("CLICK OK"); // test
 
- // lancer le son une seule fois
  if(!soundStarted){
   startIntroSound();
   soundStarted = true;
@@ -1136,3 +1149,4 @@ function handleStart(){
 
  nextIntro();
 }
+
