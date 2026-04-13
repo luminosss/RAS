@@ -747,36 +747,6 @@ setInterval(async () => {
 function showLoading(){
  document.body.innerHTML = "<h2 style='text-align:center'>Chargement...</h2>";
 }
-function hideSplash(){
-
- const splash = document.getElementById("splashScreen");
-
- splash.style.transition = "opacity 0.5s";
- splash.style.opacity = "0";
-
- setTimeout(()=>{
-  splash.style.display = "none";
- }, 30);
-}
-function hideSplash(){
-
- const splash = document.getElementById("splashScreen");
-
-splash.style.transition = "opacity 0.3s ease";
- splash.style.opacity = "0";
-
- splash.addEventListener("transitionend", () => {
-  splash.remove();
-  setTimeout(hideSplash, 2000);
-
- });
-}
-function enableSplashClick(){
-
- const splash = document.getElementById("splashScreen");
-
- splash.addEventListener("click", hideSplash);
-}
 
 function playStartupSound(){
 
@@ -990,7 +960,6 @@ async function loadMRR(){
   "💰 MRR: " + mrr + "€";
 }
 let monthlyUsers = data.filter(p=>p.type==="premium").length;
-
 let mrr = monthlyUsers * 10.00;
 async function loadAnalytics(){
 
@@ -1007,27 +976,12 @@ supabaseClient
   loadAnalytics();
  })
  .subscribe();
- let splashHidden = false;
 
-function enableSplashClick(){
-
- const splash = document.getElementById("splashScreen");
-
- splash.addEventListener("click", () => {
-
-  if(splashHidden) return;
-
-  splashHidden = true;
-
-  hideSplash();
- });
-}
-splash.addEventListener("touchstart", hideSplash);
 let introStep = 0;
 
 const steps = [
  {
-  title: "💘 Match",
+ title: "💘 Match",
   text: "Trouve ton match parfait"
  },
  {
