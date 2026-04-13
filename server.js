@@ -8,8 +8,6 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-const stripe = new Stripe("sk_test_xxx");
-
 // STRIPE
 const stripe = new Stripe(process.env.STRIPE_KEY);
 

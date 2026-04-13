@@ -236,12 +236,13 @@ button:hover {
 
 <!-- NAV -->
 <nav>
- <button onclick="loadHome()">🏠</button>
- <button onclick="showPage('profilePage')">👤</button>
- <button onclick="loadSwipe()">🔥</button>
- <button onclick="loadConversations()">💬</button>
+ <button onclick="showPage('homePage')">🏠</button>
+  <button onclick="showPage('authPage')">👤</button>
+ <button onclick="showPage('profilePage')">🔥👤</button>
+ <button onclick="showPage(profiles)">🔥</button>
+ <button onclick="showPage('chatPage')">💬</button>
  <button onclick="showPage('adminPage')">🛠️</button>
- <button onclick="showPage('monetisationPage')">💎</button>
+ <button onclick="showPage('premiumPage')">💎</button>
  <button onclick="logout()">🚪</button>
  
 </nav>
@@ -252,6 +253,7 @@ button:hover {
  <div style="text-align:center;padding:40px">
 
   <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
+    <hr>
 
   <p style="font-size:18px">
    Trouve des personnes compatibles grâce à l’IA 🔥
@@ -267,13 +269,24 @@ button:hover {
   ">
    Commencer
   </button>
-
+<img src="logo.png" alt="Description de l'image" width="400" height="300">
+  <hr>
   <div style="margin-top:30px;font-size:14px">
    ❤️ +10 000 utilisateurs<br>
    🔥 +500 matchs / jour
   </div>
-
+   <hr>
+  <p>Bienvenue sur notre site de rencontre ou vous trouverais votre veritable Amour !</p>
  </div>
+  <h2 style="font-size:25px"> Qui somme Nous ?</h2>
+  <hr>
+  <p>Nous somme un petit groupe de personne qui aide les célibataires comme vous a trouver l'amour.
+ Si vous avez des questions où un besoin on pourra vous aidez.  Contactez nous!
+  </p>
+
+   <h2 style="font-size:25px"> Comment ça marche ?</h2>
+    <hr>
+<p> Je vous explique c'est tous simple</p>
 
 </div>
 <!-- ONBOARDING -->
@@ -316,6 +329,7 @@ button:hover {
 
 <!-- SWIPE -->
 <div id="profiles" class="page">
+
  <div class="box">
   <h3>🔥 Découvre des profils</h3>
   <p>
