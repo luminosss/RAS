@@ -3,6 +3,14 @@ import fetch from "node-fetch";
 import Stripe from "stripe";
 import dotenv from "dotenv";
 dotenv.config();
+import rateLimit from "express-rate-limit";
+
+app.use(rateLimit({
+ windowMs: 15 * 60 * 1000,
+ max: 100
+}));
+
+const stripe = new Stripe(process.env.STRIPE_KEY);
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -15,7 +23,6 @@ const app = express();
 app.use(express.json());
 
 // STRIPE
-const stripe = new Stripe(process.env.STRIPE_KEY);
 
 // 💳 paiement
 app.post("/create-checkout-session", async (req,res)=>{
@@ -290,4 +297,14 @@ app.post("/login", async (req,res)=>{
  }
 
  res.json({ success:true });
+});
+app.use((req,res,next)=>{
+
+ const allowed = ["http://localhost:5500"];
+
+ if(!allowed.includes(req.headers.origin)){
+  return res.status(403).send("Blocked");
+ }
+
+ next();
 });
