@@ -104,8 +104,6 @@ if(!currentUser?.premium){
  loadMessages(id);
 }
 
-
-
 function test(){
  return;
 }
@@ -486,16 +484,21 @@ async function verifyPhoto(){
  alert("📸 Prends un selfie pour vérifier ton profil");
 
  // tu peux ensuite envoyer au backend
-}
-if(computeTrust(user) < 40){
+ if(computeTrust(user) < 40){
  // cacher profil
  return;
-}
-if(user.verified){
+
+ if(user.verified){
  const badge = document.createElement("div");
  badge.innerText = "✔️ Vérifié";
  card.appendChild(badge);
+
 }
+
+}
+
+}
+
 async function reportUser(id){
 
  await supabaseClient.from('reports').insert({
