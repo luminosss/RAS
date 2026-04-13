@@ -760,11 +760,12 @@ function hideSplash(){
 
  const splash = document.getElementById("splashScreen");
 
-splash.style.transition = "opacity 0.2s";
+ splash.style.transition = "opacity 0.3s";
+ splash.style.opacity = "0";
 
-setTimeout(()=>{
- splash.remove();
-}, 200);
+ splash.addEventListener("transitionend", () => {
+  splash.remove();
+ });
 }
 function playStartupSound(){
 
