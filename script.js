@@ -14,8 +14,25 @@ fadeOutMusic();
 let currentUser = null;
 let currentChatUser = null;
 let soundStarted = false;
-
 let introStep = 0;
+let selectedUser = null;
+
+function openProfile(user){
+
+ selectedUser = user;
+
+ document.getElementById("profileView").style.display = "block";
+
+ document.getElementById("viewPhoto").src = user.photo_url;
+ document.getElementById("viewName").innerText = user.prenom;
+ document.getElementById("viewBio").innerText = user.bio;
+
+}
+
+const supabaseUrl = "https://ngxrsfntupkrpuzaffov.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHJzZm50dXBrcnB1emFmZm92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3Mzk0MTEsImV4cCI6MjA5MTMxNTQxMX0.rferAxInyPefZ6e_gqlemLOlAkRowu_gmSazEQDH96w";
+
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 function handleStart(){
  console.log("CLICK OK");
@@ -98,7 +115,9 @@ card.innerHTML = `
   <p>📍 ${u.ville}</p>
   <p>${u.bio || ""}</p>
   <p>💘 ${percent}% match</p>
+  card.onclick = () => openProfile(user);
  </div>
+ 
 `;
  });
    const res = await fetch("/predict-match", {
@@ -125,25 +144,74 @@ if(!(await canLike())){
  return alert("🚫 Limite atteinte. Passe Premium 💎");
 }
 }
+async function likeUser(){
+
+ const me = (await supabaseClient.auth.getUser()).data.user;
+
+ await supabaseClient.from('likes').insert({
+  from_user: me.id,
+  to_user: selectedUser.id
+ });
+
+ checkMatch(me.id, selectedUser.id);
+
+//match
+
+async function checkMatch(me, other){
+
+ const { data } = await supabaseClient
+  .from('likes')
+  .select('*')
+  .eq('from_user', other)
+  .eq('to_user', me);
+
+ if(data.length > 0){
+
+  alert("💘 MATCH !");
+
+  // créer match en DB
+  await supabaseClient.from('matches').insert({
+   user1: me,
+   user2: other
+  });
+
+  openChatIfPremium(other);
+ }
+}
 
 // CHAT
-function openChat(id){
+async function openChatIfPremium(otherUserId){
 
- if(!currentUser?.premium){
-  alert("💎 Passe Premium");
+ const user = (await supabaseClient.auth.getUser()).data.user;
+
+ const { data } = await supabaseClient
+  .from('profiles')
+  .select('premium')
+  .eq('id', user.id)
+  .single();
+
+ if(!data?.premium){
+  alert("💎 Abonnement requis pour discuter");
   showPage("premiumPage");
   return;
  }
 
- currentChatUser = id;
- showPage("chatPage");
- loadMessages(id);
+ openChat(otherUserId);
 }
 
-function test(){
- return;
-}
 
+async function openChatIfPremium(id){
+
+ const isPremium = await checkPremium();
+
+ if(!isPremium){
+  alert("💎 Abonnement requis");
+  showPage("premiumPage");
+  return;
+ }
+
+ openChat(id);
+}
 async function loadMessages(id){
 
  const box = document.getElementById("chatBox");
@@ -165,20 +233,68 @@ async function loadMessages(id){
 // SEND MESSAGE (premium)
 async function sendMessage(){
 
- const { data } = await supabaseClient
-  .from('profiles')
-  .select('premium')
-  .eq('id', currentUser.id)
-  .single();
+ const text = document.getElementById("msgInput").value;
 
- if(!data.premium) return alert("💎 Premium requis");
+ const user = (await supabaseClient.auth.getUser()).data.user;
 
  await supabaseClient.from('messages').insert({
-  from_user: currentUser.id,
+  from_user: user.id,
   to_user: currentChatUser,
-  text: msg.value
+  text
  });
 
+ document.getElementById("msgInput").value = "";
+}
+supabaseClient
+ .channel('chat')
+ .on('postgres_changes', {
+  event: 'INSERT',
+  schema: 'public',
+  table: 'messages'
+ }, payload => {
+
+  displayMessage(payload.new);
+
+ })
+ .subscribe();
+ async function sendTyping(){
+
+ await supabaseClient.from('typing').upsert({
+  user_id: currentUser.id,
+  to_user: currentChatUser,
+  typing: true
+ });
+}
+supabaseClient
+ .channel('typing')
+ .on('postgres_changes', {
+  event:'UPDATE',
+  table:'typing'
+ }, payload => {
+
+  document.getElementById("typingIndicator").innerText =
+   "✍️ En train d’écrire...";
+ })
+ .subscribe();
+setInterval(async () => {
+
+ await supabaseClient.from('online').upsert({
+  user_id: currentUser.id,
+  last_seen: new Date()
+ });
+
+}, 5000);
+
+function lastSeenText(date){
+
+ const diff = Math.floor((Date.now() - new Date(date)) / 1000);
+
+ if(diff < 60) return "🟢 en ligne";
+ if(diff < 300) return "👀 vu il y a 2 min";
+ if(diff < 3600) return "👀 vu il y a " + Math.floor(diff/60) + " min";
+
+ return "👀 vu il y a " + Math.floor(diff/3600) + " h";
+}
  msg.value = "";
 }
 
@@ -226,47 +342,118 @@ async function goPremium(){
  location.href = data.url;
 }
 
+async function uploadPhoto(file){
+
+ const user = (await supabaseClient.auth.getUser()).data.user;
+
+ const fileName = user.id + "_" + Date.now();
+
+ const { error } = await supabaseClient.storage
+  .from('photos')
+  .upload(fileName, file);
+
+ if(error){
+  alert("Erreur upload");
+  return null;
+ }
+
+ const { data } = supabaseClient.storage
+  .from('photos')
+  .getPublicUrl(fileName);
+
+ return data.publicUrl;
+}
+
 //Save profil 
 
 async function saveProfile(){
 
-let photos = [];
+ const user = (await supabaseClient.auth.getUser()).data.user;
 
-if(photoInput.files.length > 0){
+ const prenom = document.getElementById("prenom").value;
+ const age = document.getElementById("age").value;
+ const ville = document.getElementById("ville").value;
+ const bio = document.getElementById("bio").value;
 
- // upload
-}
+ const file = document.getElementById("photoInput").files[0];
 
-  for(const file of photoInput.files){
+ let photo_url = null;
 
-   const name = currentUser.id + "-" + Date.now();
-
-   await supabaseClient.storage
-    .from('avatars')
-    .upload(name, file);
-
-   const url = supabaseClient.storage
-    .from('avatars')
-    .getPublicUrl(name).data.publicUrl;
-
-   photos.push(url);
-  }
+ if(file){
+  photo_url = await uploadPhoto(file);
  }
 
- await supabaseClient.from('profiles').upsert({
-  id: currentUser.id,
-  prenom: prenom.value,
-  age: age.value,
-  ville: ville.value,
-  bio: bio.value,
-  interests: interests.value.split(","),
-  looking_for: lookingFor.value,
-  photos: photos
+ const { error } = await supabaseClient
+  .from('profiles')
+  .upsert({
+   id: user.id,
+   email: user.email,
+   prenom,
+   age,
+   ville,
+   bio,
+   photo_url
+  });
+
+ if(error){
+  alert(error.message);
+ } else {
+  alert("✅ Profil enregistré !");
+ }
+}
+
+ async function register(){
+
+ const email = document.getElementById("email").value;
+ const password = document.getElementById("password").value;
+
+ const { data, error } = await supabaseClient.auth.signUp({
+  email,
+  password
  });
 
- alert("Profil enregistré 🔥");
+ if(error){
+  alert(error.message);
+ } else {
+  alert("✅ Inscription réussie !");
+ }
+}
 
+async function login(){
 
+ const email = document.getElementById("email").value;
+ const password = document.getElementById("password").value;
+
+ const { data, error } = await supabaseClient.auth.signInWithPassword({
+  email,
+  password
+ });
+
+ if(error){
+  alert(error.message);
+ } else {
+  alert("✅ Connecté !");
+  showApp();
+ }
+}
+function showApp(){
+
+ document.getElementById("loginPage").style.display = "none";
+ document.getElementById("app").style.display = "block";
+ 
+}
+function displayMessage(m){
+
+ const div = document.createElement("div");
+
+ const me = currentUser.id === m.from_user;
+
+ div.className = "msg " + (me ? "me" : "other");
+
+ div.innerText = m.text;
+
+ document.getElementById("chatBox").appendChild(div);
+}
 async function improveProfile(){
 
  const payload = {
@@ -451,6 +638,23 @@ async function superLike(id){
 
  alert("⭐ Super Like !");
 }
+async function buyPremium(){
+
+ const user = (await supabaseClient.auth.getUser()).data.user;
+
+ const res = await fetch("http://localhost:3000/create-checkout-session",{
+  method:"POST",
+  headers:{ "Content-Type":"application/json" },
+  body: JSON.stringify({
+   userId: user.id,
+   email: user.email
+  })
+ });
+
+ const data = await res.json();
+
+ window.location.href = data.url;
+}
 async function buy(type){
 
  const res = await fetch("/buy", {
@@ -463,22 +667,28 @@ async function buy(type){
 
  window.location.href = data.url;
 }
+
 async function loadMyProfile(){
+
+ const user = (await supabaseClient.auth.getUser()).data.user;
 
  const { data } = await supabaseClient
   .from('profiles')
   .select('*')
-  .eq('id', currentUser.id)
+  .eq('id', user.id)
   .single();
 
- if(!data) return;
+ if(data){
 
- prenom.value = data.prenom || "";
- age.value = data.age || "";
- ville.value = data.ville || "";
- bio.value = data.bio || "";
- interests.value = data.interests?.join(", ") || "";
- lookingFor.value = data.looking_for || "";
+  document.getElementById("prenom").value = data.prenom || "";
+  document.getElementById("age").value = data.age || "";
+  document.getElementById("ville").value = data.ville || "";
+  document.getElementById("bio").value = data.bio || "";
+
+  if(data.photo_url){
+   document.getElementById("preview").src = data.photo_url;
+  }
+ }
 }
 
 async function loadProfiles(){
@@ -515,14 +725,23 @@ function startRecording(){
 // supabase.js
 import { createClient } from '@supabase/supabase-js';
 
-function computeTrust(user){
+function computeScore(a, b){
 
  let score = 0;
 
- if(user.photos?.length >= 2) score += 30;
- if(user.bio?.length > 20) score += 20;
- if(user.interests?.length) score += 20;
- if(user.verified) score += 30;
+ // âge proche
+ if(Math.abs(a.age - b.age) < 5) score += 30;
+
+ // même ville
+ if(a.ville === b.ville) score += 30;
+
+ // intérêts communs
+ if(a.interests && b.interests){
+  const common = a.interests.filter(i => b.interests.includes(i));
+  score += common.length * 10;
+ }
+
+ if(score > 100) score = 100;
 
  return score;
 }
@@ -647,7 +866,18 @@ async function loadData(){
  const { data: reports } = await supabaseClient.from('reports').select('*');
 const { data: messages } = await supabaseClient.from('messages').select('*');
 }
+async function checkPremium(){
 
+ const user = (await supabaseClient.auth.getUser()).data.user;
+
+ const { data } = await supabaseClient
+  .from('profiles')
+  .select('premium')
+  .eq('id', user.id)
+  .single();
+
+ return data?.premium;
+}
 async function checkAdmin(){
 
  const { data } = await supabaseClient
@@ -742,8 +972,15 @@ card.innerHTML = `
   <p>📍 ${u.ville}</p>
   <p>${getStatus(u)}</p>
   <p>💘 ${percent}% compatibilité</p>
+  
  </div>
 `;
+const score = computeScore(currentUserProfile, user);
+
+const badge = document.createElement("div");
+badge.innerText = score + "% 💘";
+card.onclick = () => openProfile(user);
+card.appendChild(badge);
 
 if(u.premium){
  const badge = document.createElement("div");
@@ -753,22 +990,29 @@ if(u.premium){
  badge.style.right = "10px";
  card.appendChild(badge);
 }
+if(isMatch){
+ const badge = document.createElement("div");
+ badge.innerText = "💘 MATCH";
+ card.appendChild(badge);
+}
+
 async function initApp(){
 
  const { data: { session } } = await supabaseClient.auth.getSession();
 
-function checkUser(){
- if(!currentUser){
-  return;
-  toggleNav(true);
-  loadHome(); // 👉 dashboard user
+async function checkUser(){
 
+ const { data } = await supabaseClient.auth.getSession();
+
+ if(data.session){
+  currentUser = data.session.user;
+  showApp();
  } else {
-  toggleNav(false);
-  showPage("homePage"); // 👉 accueil public
+  showPage("loginPage");
  }
 }
 
+checkUser();
  // cacher splash après chargement
  setTimeout(hideSplash, 1500);
 
@@ -790,8 +1034,7 @@ async function logout(){
 
  await supabaseClient.auth.signOut();
 
- toggleNav(false);
- showPage("homePage");
+ showPage("loginPage");
 }
 
 supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -809,15 +1052,23 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
   showPage("authPage");
  }
 });
-setInterval(async () => {
+function isOnline(last_seen){
 
- const { data } = await supabaseClient.auth.getSession();
+ return (Date.now() - new Date(last_seen)) < 10000;
+}
+supabaseClient
+ .channel('matches')
+ .on('postgres_changes', {
+  event:'INSERT',
+  table:'matches'
+ }, payload => {
 
- if(!data.session){
-  logout();
- }
+  if(payload.new.user2 === currentUser.id){
+   alert("💘 Nouveau match !");
+  }
 
-}, 60000);
+ })
+ .subscribe();
 function showLoading(){
  document.body.innerHTML = "<h2 style='text-align:center'>Chargement...</h2>";
 }
@@ -1242,3 +1493,25 @@ function handleStart(){
 
  nextIntro();
 }
+document.addEventListener("DOMContentLoaded", () => {
+
+ const input = document.getElementById("photoInput");
+ const preview = document.getElementById("preview");
+
+ if(!input || !preview) return;
+
+ input.addEventListener("change", e => {
+
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+   preview.src = reader.result;
+  };
+
+  reader.readAsDataURL(file);
+ });
+
+});

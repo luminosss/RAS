@@ -1,9 +1,15 @@
 import express from "express";
 import fetch from "node-fetch";
-import Stripe from "stripe";0
+import Stripe from "stripe";
 import dotenv from "dotenv";
-
 dotenv.config();
+
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseClient = createClient(
+ process.env.SUPABASE_URL,
+ process.env.SUPABASE_SERVICE_KEY
+);
 
 const app = express();
 app.use(express.json());
@@ -12,31 +18,61 @@ app.use(express.json());
 const stripe = new Stripe(process.env.STRIPE_KEY);
 
 // 💳 paiement
-app.post("/buy", async (req,res)=>{
+app.post("/create-checkout-session", async (req,res)=>{
 
- const { type } = req.body;
-
- const prices = {
-  premium: 1000,
-  boost: 299
- };
+ const { userId, email } = req.body;
 
  const session = await stripe.checkout.sessions.create({
   payment_method_types:["card"],
-  mode:"payment",
+  mode:"subscription", // 🔥 abonnement
+  customer_email: email,
+
   line_items:[{
-   price_data:{
-    currency:"eur",
-    product_data:{ name:type },
-    unit_amount: prices[type]
-   },
+   price: "price_xxx", // ⚠️ ton ID Stripe
    quantity:1
   }],
-  success_url:"http://localhost:3000",
-  cancel_url:"http://localhost:3000"
+
+  metadata:{
+   user_id: userId
+  },
+
+  success_url:"http://localhost:3000/success.html",
+  cancel_url:"http://localhost:3000/cancel.html"
  });
 
  res.json({ url: session.url });
+});
+app.post("/webhook", express.raw({type:"application/json"}), async (req,res)=>{
+
+ const sig = req.headers["stripe-signature"];
+
+ let event;
+
+ try{
+  event = stripe.webhooks.constructEvent(
+   req.body,
+   sig,
+   process.env.STRIPE_WEBHOOK_SECRET
+  );
+ } catch(err){
+  return res.status(400).send("Webhook Error");
+ }
+
+ // 💘 paiement réussi
+ if(event.type === "checkout.session.completed"){
+
+  const session = event.data.object;
+
+  const userId = session.metadata.user_id;
+
+  // activer premium
+  await supabaseClient
+   .from('profiles')
+   .update({ premium: true })
+   .eq('id', userId);
+ }
+
+ res.json({ received: true });
 });
 
 // 🧠 IA bio
@@ -215,43 +251,7 @@ app.post("/predict-match", async (req,res)=>{
 
  res.json({ probability: score });
 });
-app.post("/buy", async (req,res)=>{
 
- const { type } = req.body;
-
- let price = 1000;
-
- if(type === "boost") price = 299;
- if(type === "superlikes") price = 499;
-
- const session = await stripe.checkout.sessions.create({
-  payment_method_types:["card"],
-  mode:"payment",
-  line_items:[{
-   price_data:{
-    currency:"eur",
-    product_data:{ name:type },
-    unit_amount:price
-   },
-   quantity:1
-  }],
-  success_url:"http://localhost:3000",
-  cancel_url:"http://localhost:3000"
- });
-
- res.json({ url: session.url });
-});
-
-if(event.type === "checkout.session.completed"){
-
- const session = event.data.object;
-
- await supabaseClient.from('payments').insert({
-  user_id: session.client_reference_id,
-  amount: session.amount_total / 100,
-  type: session.metadata?.type
- });
-}
 
  const type = session.metadata?.type;
 
@@ -270,3 +270,24 @@ if(event.type === "checkout.session.completed"){
  if(type === "superlikes"){
   await supabaseClient.rpc("add_super_likes");
  }
+app.post("/register", async (req,res)=>{
+
+ const { email, password } = req.body;
+
+ // simple mock (à améliorer avec DB)
+ if(!email || !password){
+  return res.status(400).json({error:"Missing"});
+ }
+
+ res.json({ success:true });
+});
+app.post("/login", async (req,res)=>{
+
+ const { email, password } = req.body;
+
+ if(!email || !password){
+  return res.status(400).json({error:"Missing"});
+ }
+
+ res.json({ success:true });
+});

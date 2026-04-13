@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🔥 Match App</title>
 <link rel="icon" href="favicon.ico">
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 body {
  margin: 0;
@@ -183,13 +183,17 @@ button:hover {
 }
 
 #introBtn {
- margin-top: 20px;
- padding: 12px 20px;
+ margin-top: 25px;
+ padding: 14px 30px;
  border-radius: 30px;
  border: none;
  background: white;
  color: #ff416c;
- font-size: 16px;
+ font-size: 18px;
+ font-weight: bold;
+ cursor: pointer;
+
+ transition: 0.3s;
 }
 
 #progressBar {
@@ -204,19 +208,6 @@ button:hover {
  from { opacity: 0; transform: translateY(20px); }
  to { opacity: 1; transform: translateY(0); }
 }
-#introBtn {
- margin-top: 25px;
- padding: 14px 30px;
- border-radius: 30px;
- border: none;
- background: white;
- color: #ff416c;
- font-size: 18px;
- font-weight: bold;
- cursor: pointer;
-
- transition: 0.3s;
-}
 
 #introBtn:hover {
  transform: scale(1.05);
@@ -228,6 +219,68 @@ button:hover {
 }
 #introBtn {
  box-shadow: 0 0 15px rgba(255,255,255,0.6);
+}
+#authPage {
+ height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ background:linear-gradient(135deg,#ff416c,#ff4b2b);
+}
+
+.card {
+ background:white;
+ padding:30px;
+ border-radius:20px;
+ width:300px;
+ text-align:center;
+ box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+
+input {
+ width:100%;
+ padding:12px;
+ margin:10px 0;
+ border-radius:10px;
+ border:1px solid #ddd;
+}
+
+button {
+
+ padding:8px;
+ margin-top:10px;
+ border:none;
+ border-radius:10px;
+ background:#ff416c;
+ color:white;
+ font-weight:bold;
+}
+
+.secondary {
+ background:#eee;
+ color:#333;
+}
+#chatBox {
+ height:70vh;
+ overflow-y:auto;
+ padding:10px;
+}
+
+.msg {
+ padding:10px;
+ margin:5px;
+ border-radius:10px;
+ max-width:70%;
+}
+
+.me {
+ background:#ff416c;
+ color:white;
+ margin-left:auto;
+}
+
+.other {
+ background:#eee;
 }
 </style>
 </head>
@@ -284,7 +337,23 @@ button:hover {
 
    <h2 style="font-size:25px"> Comment ça marche ?</h2>
     <hr>
-<p> Je vous explique c'est tous simple</p>
+<p> Je vous explique c'est tous simple.
+  <br>
+  <br>
+  1) 👤 inscrivez-vous !
+  <br>
+  <br>
+  2) 👤 connectez-vous !
+  <br>
+  <br>
+  3) 🔥👤 créer votre profil !
+  <br>
+  <br>
+  4) 🔥 swiper pour voir tous les profils !
+  <br>
+  <br>
+  Pour pouvoir discuté avec les profils faudrat avoir un match avec un autre profil et un abonnement 
+</p>
 
 </div>
 <!-- ONBOARDING -->
@@ -299,28 +368,16 @@ button:hover {
 </div>
 
 <!-- AUTH -->
-<div id="authPage" class="page">
+<div id="authPage">
 
- <div class="box">
-  <h2>Connexion</h2>
-<hr>
-  <p>👉 Connecte-toi pour accéder aux profils et commencer à matcher.</p>
+ <div class="card">
+  <h2>💘 Créer un compte</h2>
 
-  <input id="logEmail" placeholder="Email"><br>
-  <input id="logPass" type="password" placeholder="Mot de passe"><br>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Mot de passe">
 
-  <button onclick="login()">Se connecter</button>
- </div>
-
- <div class="box">
-  <h2>Inscription</h2>
-<hr>
-  <p>👉 Crée un compte pour apparaître dans les profils.</p>
-
-  <input id="regEmail" placeholder="Email"><br>
-  <input id="regPass" type="password" placeholder="Mot de passe"><br>
-
-  <button onclick="register()">Créer un compte</button>
+  <button onclick="register()">S’inscrire 🚀</button>
+  <button onclick="login()" class="secondary">Se connecter</button>
  </div>
 
 </div>
@@ -338,45 +395,35 @@ button:hover {
   </p>
  </div>
 
- <div id="swipeContainer"></div>
+ <div id="loadSwipe"></div>
 </div>
 
 <!-- CHAT -->
-<div id="chatPage" class="page">
-<div id="typingIndicator"></div>
-
- <div class="box">
-  <h3>💬 Discussion</h3>
-
-  <p>
-   👉 Tu peux discuter seulement avec un match.<br>
-   💎 Le chat illimité est réservé aux Premium.
-  </p>
-  <button onclick="reportUser(userId)">🚨 Signaler</button>
-  <p>${lastSeenText(u.last_seen)}</p>
- </div>
+<div id="chatPage">
 
  <div id="chatBox"></div>
 
- <input id="msg" placeholder="Message...">
- <button onclick="sendMessage()">Envoyer</button>
-</div>
+ <div id="typingIndicator"></div>
 
-<!-- CONVERSATIONS -->
-<div id="conv" class="page">
- <div class="box">
-  <h3>💬 Conversations</h3>
-<hr>
-  <p>
-   👉 Ici tu retrouves toutes tes discussions.<br>
-   🔔 Les nouveaux messages apparaissent en haut.
-  </p>
+ <div class="inputBox">
+  <input id="msgInput" placeholder="Message...">
+  <button onclick="sendMessage()">Envoyer</button>
  </div>
 
- <div id="convList"></div>
 </div>
+<!--PROFILS VIEW -->
+<div id="profileView" style="display:none">
 
+ <img id="viewPhoto" width="200">
+
+ <h2 id="viewName"></h2>
+ <p id="viewBio"></p>
+
+ <button onclick="likeUser()">❤️ Like</button>
+
+</div>
 <!-- MONETISATION -->
+ 
 <div id="premiumPage" class="page">
 
  <div class="box">
@@ -390,7 +437,7 @@ button:hover {
    ✔ Boost profil 🚀
   </p>
   
-  <button onclick="buy('premium')">🔥 Essayer maintenant</button>
+  <button onclick="buyPremium()">💎 Devenir Premium</button>
 </div>
 
  <div class="box">
@@ -445,10 +492,9 @@ button:hover {
    <option value="amitié">😊 Amitié</option>
    <option value="fun">🔥 Fun</option>
   </select><br><br>
-
   <input type="file" id="photoInput" multiple><br><br>
-
-  <button onclick="saveProfile()">💾 Sauvegarder</button>
+ <img id="preview" width="150">
+ <button onclick="saveProfile()">Enregistrer</button>
   <button onclick="improveProfile()">🧠 Améliorer avec IA</button>
  </div>
 </div>
@@ -469,7 +515,16 @@ button:hover {
   <button onclick="loadRevenue()">📊</button>
  </div>
  <div id="adminContent"></div>
+<div class="box">
+ <h3>📊 Conversion</h3>
+ <p id="conversionRate"></p>
+ <div id="funnel"></div>
+</div>
 
+<div class="box">
+ <h3>💰 Revenus Mensuels</h3>
+ <p id="mrr"></p>
+</div>
 </div>
 
 <!-- revenu -->
