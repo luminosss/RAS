@@ -1,23 +1,3 @@
-let currentUser = null;
-let currentChatUser = null;
-let introStep = 0;
-let soundStarted = false;
-
-function handleStart(){
- console.log("CLICK OK");
-
- if(!soundStarted){
-  startIntroSound();
-  soundStarted = true;
- }
-
- nextIntro();
-}
-
-function nextIntro(){
- introStep++;
- updateIntro();
-}
 
 // INIT
 showLoading();
@@ -30,6 +10,30 @@ subscribeNotifications();
 subscribeAdminAlerts();
 subscribeRevenue();
 fadeOutMusic();
+
+let currentUser = null;
+let currentChatUser = null;
+let soundStarted = false;
+
+let introStep = 0;
+
+function handleStart(){
+ console.log("CLICK OK");
+ nextIntro();
+}
+
+function nextIntro(){
+ introStep++;
+ updateIntro();
+}
+
+function startApp(){
+
+ document.getElementById("introScreen").style.display = "none";
+ document.getElementById("app").style.display = "block";
+ document.getElementById("introText").innerText = "🧠 IA qui trouve les meilleurs profils";
+ 
+}
 
 // NAV
 function showPage(id){
@@ -126,7 +130,7 @@ if(!(await canLike())){
 function openChat(id){
 
  if(!currentUser?.premium){
-  alert("💎 Passe Premium pour discuter");
+  alert("💎 Passe Premium");
   showPage("premiumPage");
   return;
  }
@@ -628,9 +632,6 @@ async function verifyUser(id){
 async function loadStats(){
 
  const container = document.getElementById("adminContent");
-// const { data: users } = await supabaseClient.from('profiles').select('*');
-//const { data: reports } = await supabaseClient.from('reports').select('*');
-//const { data: messages } = await supabaseClient.from('messages').select('*');
 
  container.innerHTML = `
   <div class="box">
@@ -639,6 +640,12 @@ async function loadStats(){
    💬 Messages: ${messages.length}
   </div>
  `;
+}
+
+async function loadData(){
+ const { data } = await supabaseClient.from('profiles').select('*');
+ const { data: reports } = await supabaseClient.from('reports').select('*');
+const { data: messages } = await supabaseClient.from('messages').select('*');
 }
 
 async function checkAdmin(){
@@ -968,7 +975,32 @@ await supabaseClient.from('events').insert({
  user_id: currentUser.id,
  type: "like"
 });
+async function loadLikes(){
 
+ showPage("likesPage");
+
+ const { data } = await supabaseClient
+  .from('likes')
+  .select('*')
+  .eq('to_user', currentUser.id);
+
+ const list = document.getElementById("likesList");
+ list.innerHTML = "";
+
+ for(const l of data){
+
+  const { data: user } = await supabaseClient
+   .from('profiles')
+   .select('*')
+   .eq('id', l.from_user)
+   .single();
+
+  const div = document.createElement("div");
+  div.innerText = user.prenom;
+
+  list.appendChild(div);
+ }
+}
 // paiement
 await supabaseClient.from('events').insert({
  user_id: currentUser.id,

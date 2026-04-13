@@ -1,6 +1,9 @@
 import express from "express";
-import Stripe from "stripe";
 import fetch from "node-fetch";
+import Stripe from "stripe";0
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -8,7 +11,17 @@ app.use(express.json());
 const stripe = new Stripe("sk_test_xxx");
 
 // STRIPE
-app.post("/create-checkout-session", async (req,res)=>{
+const stripe = new Stripe(process.env.STRIPE_KEY);
+
+// 💳 paiement
+app.post("/buy", async (req,res)=>{
+
+ const { type } = req.body;
+
+ const prices = {
+  premium: 1000,
+  boost: 299
+ };
 
  const session = await stripe.checkout.sessions.create({
   payment_method_types:["card"],
@@ -16,8 +29,8 @@ app.post("/create-checkout-session", async (req,res)=>{
   line_items:[{
    price_data:{
     currency:"eur",
-    product_data:{name:"Premium"},
-    unit_amount:1000
+    product_data:{ name:type },
+    unit_amount: prices[type]
    },
    quantity:1
   }],
@@ -25,60 +38,34 @@ app.post("/create-checkout-session", async (req,res)=>{
   cancel_url:"http://localhost:3000"
  });
 
- res.json({url:session.url});
+ res.json({ url: session.url });
 });
 
-// IA BIO
+// 🧠 IA bio
 app.post("/generate-bio", async (req,res)=>{
 
  const r = await fetch("https://api.openai.com/v1/chat/completions",{
   method:"POST",
   headers:{
-   "Authorization":"Bearer YOUR_OPENAI_KEY",
+   "Authorization":"Bearer " + process.env.OPENAI_KEY,
    "Content-Type":"application/json"
   },
   body:JSON.stringify({
    model:"gpt-4.1-mini",
    messages:[{
     role:"user",
-    content:"Fais une bio courte pour une app de rencontre"
+    content:"Fais une bio courte pour app de rencontre"
    }]
   })
  });
 
  const j = await r.json();
 
- res.json({bio:j.choices[0].message.content});
+ res.json({ bio: j.choices[0].message.content });
 });
 
-app.listen(3000,()=>console.log("Server OK"));
+app.listen(3000, ()=>console.log("🚀 Server running"));
 
-async function loadLikes(){
-
- showPage("likesPage");
-
- const { data } = await supabaseClient
-  .from('likes')
-  .select('*')
-  .eq('to_user', currentUser.id);
-
- const list = document.getElementById("likesList");
- list.innerHTML = "";
-
- for(const l of data){
-
-  const { data: user } = await supabaseClient
-   .from('profiles')
-   .select('*')
-   .eq('id', l.from_user)
-   .single();
-
-  const div = document.createElement("div");
-  div.innerText = user.prenom;
-
-  list.appendChild(div);
- }
-}
 
 app.post("/improve-profile", async (req, res) => {
 

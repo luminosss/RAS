@@ -233,18 +233,6 @@ button:hover {
 </head>
 
 <body>
-<div id="introScreen">
-
- <div id="introContent">
-  <h1 id="introTitle">💘 Rencontre Amoureuse Sérieuse !</h1>
-  <p id="introText">Trouve ton amour pour la vie !</p>
-<audio id="introMusic" src="start.mp3"></audio>
-  <div id="progressBar"></div>
-
-<button id="introBtn" onclick="handleStart()">Commencer 🚀</button>
- </div>
-
-</div>
 
 <!-- NAV -->
 <nav>
@@ -381,7 +369,6 @@ button:hover {
 
  <div class="box">
   <h2>💎 Passe Premium</h2>
-
   <p>
    🔥 Multiplie tes matchs par 3<br><br>
 
@@ -390,13 +377,8 @@ button:hover {
    ✔ Chat illimité 💬<br>
    ✔ Boost profil 🚀
   </p>
-
-  <button onclick="buy('premium')">
-   🔥 Essayer maintenant
-  </button>
-
- </div>
-
+  
+  <button onclick="buy('premium')">🔥 Essayer maintenant</button>
 </div>
 
  <div class="box">
@@ -419,6 +401,9 @@ button:hover {
   </p>
 
   <button onclick="buy('superlikes')">⭐ Acheter</button>
+ </div>
+</div>
+
  </div>
 </div>
 
@@ -471,8 +456,8 @@ button:hover {
   <button onclick="loadStats()">📊 Stats</button>
   <button onclick="loadRevenue()">📊</button>
  </div>
-
  <div id="adminContent"></div>
+
 </div>
 
 <!-- revenu -->
@@ -492,16 +477,6 @@ button:hover {
 
 </div>
 
-<div class="box">
- <h3>📊 Conversion</h3>
- <p id="conversionRate"></p>
- <div id="funnel"></div>
-</div>
-
-<div class="box">
- <h3>💰 Revenus Mensuels</h3>
- <p id="mrr"></p>
-</div>
 
 <!-- JS -->
 <script>
