@@ -3,6 +3,21 @@ let currentChatUser = null;
 let introStep = 0;
 let soundStarted = false;
 
+function handleStart(){
+ console.log("CLICK OK");
+
+ if(!soundStarted){
+  startIntroSound();
+  soundStarted = true;
+ }
+
+ nextIntro();
+}
+
+function nextIntro(){
+ introStep++;
+ updateIntro();
+}
 
 // INIT
 showLoading();
@@ -16,21 +31,28 @@ subscribeAdminAlerts();
 subscribeRevenue();
 fadeOutMusic();
 
-function handleStart(){
- console.log("CLICK OK");
- nextIntro();
-}
-
-function nextIntro(){
- introStep++;
- console.log("STEP:", introStep);
-}
-
 // NAV
 function showPage(id){
  document.querySelectorAll('.page').forEach(p=>p.style.display="none");
  document.getElementById(id).style.display="block";
 }
+
+async function initApp(){
+
+ const { data: { session } } = await supabaseClient.auth.getSession();
+
+ if(session){
+  currentUser = session.user;
+  toggleNav(true);
+  loadHome();
+ } else {
+  toggleNav(false);
+  showPage("homePage");
+ }
+}
+
+initApp();
+
 
 // AUTH
 async function initAuth(){
@@ -94,12 +116,11 @@ if(!(await canLike())){
 // CHAT
 function openChat(id){
 
- // ⚠️ vérifie premium AVANT d’ouvrir le chat
-if(!currentUser?.premium){
- alert("💎 Passe Premium pour discuter");
- showPage("premiumPage");
- return;
-}
+ if(!currentUser?.premium){
+  alert("💎 Passe Premium pour discuter");
+  showPage("premiumPage");
+  return;
+ }
 
  currentChatUser = id;
  showPage("chatPage");
@@ -111,6 +132,7 @@ function test(){
 }
 
 async function loadMessages(id){
+
  const box = document.getElementById("chatBox");
  box.innerHTML = "";
 
@@ -1168,4 +1190,3 @@ function handleStart(){
 
  nextIntro();
 }
-
