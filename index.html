@@ -203,6 +203,31 @@ button:hover {
  from { opacity: 0; transform: translateY(20px); }
  to { opacity: 1; transform: translateY(0); }
 }
+#introBtn {
+ margin-top: 25px;
+ padding: 14px 30px;
+ border-radius: 30px;
+ border: none;
+ background: white;
+ color: #ff416c;
+ font-size: 18px;
+ font-weight: bold;
+ cursor: pointer;
+
+ transition: 0.3s;
+}
+
+#introBtn:hover {
+ transform: scale(1.05);
+ box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
+
+#introBtn:active {
+ transform: scale(0.95);
+}
+#introBtn {
+ box-shadow: 0 0 15px rgba(255,255,255,0.6);
+}
 </style>
 </head>
 
@@ -215,7 +240,7 @@ button:hover {
 <audio id="introMusic" src="start.mp3"></audio>
   <div id="progressBar"></div>
 
-  <button id="introBtn" onclick="nextIntro()">Commencer</button>
+<button id="introBtn" onclick="handleStart()">Commencer 🚀</button>
  </div>
 
 </div>

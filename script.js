@@ -1017,6 +1017,14 @@ function updateIntro(){
  document.getElementById("introTitle").innerText = step.title;
  document.getElementById("introText").innerText = step.text;
 
+ const btn = document.getElementById("introBtn");
+
+ if(introStep === steps.length - 1){
+  btn.innerText = "Entrer dans l’app 🔥";
+ } else {
+  btn.innerText = "Suivant ➡️";
+ }
+
  document.getElementById("progressBar").style.width =
   ((introStep+1) / steps.length * 100) + "%";
 }
@@ -1117,4 +1125,14 @@ function fadeOutMusic(){
   }
 
  }, 100);
+}
+function handleStart(){
+
+ // lancer le son une seule fois
+ if(!soundStarted){
+  startIntroSound();
+  soundStarted = true;
+ }
+
+ nextIntro();
 }
