@@ -754,7 +754,7 @@ function hideSplash(){
 
  setTimeout(()=>{
   splash.style.display = "none";
- }, 500);
+ }, 50);
 }
 function hideSplash(){
 
