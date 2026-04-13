@@ -3,6 +3,7 @@ let currentChatUser = null;
 
 // INIT
 showLoading();
+enableSplashClick();
 playStartupSound();
 initApp();
 initAuth();
@@ -10,6 +11,7 @@ subscribeConversations();
 subscribeNotifications();
 subscribeAdminAlerts();
 subscribeRevenue();
+fadeOutMusic();
 
 // NAV
 function showPage(id){
@@ -760,13 +762,22 @@ function hideSplash(){
 
  const splash = document.getElementById("splashScreen");
 
- splash.style.transition = "opacity 0.3s";
+splash.style.transition = "opacity 0.3s ease";
  splash.style.opacity = "0";
 
  splash.addEventListener("transitionend", () => {
   splash.remove();
+  setTimeout(hideSplash, 2000);
+
  });
 }
+function enableSplashClick(){
+
+ const splash = document.getElementById("splashScreen");
+
+ splash.addEventListener("click", hideSplash);
+}
+
 function playStartupSound(){
 
  const audio = document.getElementById("startupSound");
@@ -996,3 +1007,160 @@ supabaseClient
   loadAnalytics();
  })
  .subscribe();
+ let splashHidden = false;
+
+function enableSplashClick(){
+
+ const splash = document.getElementById("splashScreen");
+
+ splash.addEventListener("click", () => {
+
+  if(splashHidden) return;
+
+  splashHidden = true;
+
+  hideSplash();
+ });
+}
+splash.addEventListener("touchstart", hideSplash);
+let introStep = 0;
+
+const steps = [
+ {
+  title: "💘 Match",
+  text: "Trouve ton match parfait"
+ },
+ {
+  title: "🧠 IA",
+  text: "On te propose les meilleurs profils"
+ },
+ {
+  title: "💬 Chat",
+  text: "Discute en temps réel"
+ },
+ {
+  title: "🚀 Boost",
+  text: "Augmente tes matchs"
+ }
+];
+
+function nextIntro(){
+
+ introStep++;
+
+ if(introStep >= steps.length){
+  hideIntro();
+  
+  return;
+ }
+
+ updateIntro();
+}
+function updateIntro(){
+
+ const step = steps[introStep];
+
+ document.getElementById("introTitle").innerText = step.title;
+ document.getElementById("introText").innerText = step.text;
+
+ document.getElementById("progressBar").style.width =
+  ((introStep+1) / steps.length * 100) + "%";
+}
+function hideIntro(){
+
+ const intro = document.getElementById("introScreen");
+
+ intro.style.transition = "opacity 0.5s";
+ intro.style.opacity = "0";
+
+ setTimeout(()=>{
+  intro.remove();
+ }, 300);
+}
+document.getElementById("introScreen")
+ .addEventListener("click", nextIntro);
+ let startX = 0;
+
+document.getElementById("introScreen")
+ .addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+ });
+
+document.getElementById("introScreen")
+ .addEventListener("touchend", e => {
+
+  let endX = e.changedTouches[0].clientX;
+
+  if(endX - startX > 50){
+   nextIntro(); // swipe droite
+  }
+ });
+ function startIntroSound(){
+
+ const music = document.getElementById("introMusic");
+
+ music.volume = 0.4;
+
+ music.play().catch(()=>{});
+}
+let soundStarted = false;
+
+function nextIntro(){
+
+ if(!soundStarted){
+  startIntroSound();
+  soundStarted = true;
+ }
+
+ playClick();
+
+ introStep++;
+
+ if(introStep >= steps.length){
+  hideIntro();
+  return;
+ }
+
+ updateIntro();
+}
+function playClick(){
+
+ const click = document.getElementById("clickSound");
+
+ click.currentTime = 0;
+ click.volume = 0.6;
+
+ click.play().catch(()=>{});
+}
+function hideIntro(){
+
+ const intro = document.getElementById("introScreen");
+ const music = document.getElementById("introMusic");
+
+ intro.style.transition = "opacity 0.5s";
+ intro.style.opacity = "0";
+
+ music.pause();
+
+ setTimeout(()=>{
+  intro.remove();
+ }, 400);
+}
+function fadeOutMusic(){
+
+ const music = document.getElementById("introMusic");
+
+ let vol = music.volume;
+
+ const interval = setInterval(() => {
+
+  if(vol <= 0){
+   clearInterval(interval);
+   music.pause();
+  } else {
+   vol -= 0.05;
+   music.volume = vol;
+  }
+
+ }, 100);
+}
