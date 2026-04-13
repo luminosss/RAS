@@ -3,15 +3,6 @@ let currentChatUser = null;
 let introStep = 0;
 let soundStarted = false;
 
-function handleStart(){
- console.log("CLICK OK");
- nextIntro();
-}
-
-function nextIntro(){
- introStep++;
- console.log("STEP:", introStep);
-}
 
 // INIT
 showLoading();
@@ -24,6 +15,16 @@ subscribeNotifications();
 subscribeAdminAlerts();
 subscribeRevenue();
 fadeOutMusic();
+
+function handleStart(){
+ console.log("CLICK OK");
+ nextIntro();
+}
+
+function nextIntro(){
+ introStep++;
+ console.log("STEP:", introStep);
+}
 
 // NAV
 function showPage(id){
@@ -197,6 +198,7 @@ async function saveProfile(){
 let photos = [];
 
 if(photoInput.files.length > 0){
+
  // upload
 }
 
