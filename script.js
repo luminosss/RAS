@@ -1,17 +1,18 @@
 let currentUser = null;
 let currentChatUser = null;
 let introStep = 0;
+let soundStarted = false;
 
 function handleStart(){
-
  console.log("CLICK OK");
-
- introStep++;
-
- document.getElementById("introTitle").innerText =
-  "Bienvenue 🔥";
-
+ nextIntro();
 }
+
+function nextIntro(){
+ introStep++;
+ console.log("STEP:", introStep);
+}
+
 // INIT
 showLoading();
 enableSplashClick();
@@ -706,9 +707,9 @@ async function initApp(){
 
  const { data: { session } } = await supabaseClient.auth.getSession();
 
- if(session){
-  currentUser = session.user;
-
+function checkUser(){
+ if(!currentUser){
+  return;
   toggleNav(true);
   loadHome(); // 👉 dashboard user
 
