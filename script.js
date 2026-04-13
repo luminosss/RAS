@@ -1,6 +1,5 @@
 let currentUser = null;
 let currentChatUser = null;
-let soundStarted = false;
 let introStep = 0;
 
 function handleStart(){
@@ -989,7 +988,6 @@ supabaseClient
  })
  .subscribe();
 
-let introStep = 0;
 
 const steps = [
  {
@@ -1011,7 +1009,7 @@ const steps = [
 ];
 
 function nextIntro(){
-    
+
  introStep++;
  updateIntro();
 
