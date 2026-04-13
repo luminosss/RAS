@@ -754,18 +754,17 @@ function hideSplash(){
 
  setTimeout(()=>{
   splash.style.display = "none";
- }, 50);
+ }, 30);
 }
 function hideSplash(){
 
  const splash = document.getElementById("splashScreen");
 
- splash.style.transition = "opacity 0.8s";
- splash.style.opacity = "0";
+splash.style.transition = "opacity 0.2s";
 
- setTimeout(()=>{
-  splash.remove();
- }, 800);
+setTimeout(()=>{
+ splash.remove();
+}, 200);
 }
 function playStartupSound(){
 
