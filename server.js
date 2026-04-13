@@ -230,3 +230,58 @@ app.post("/predict-match", async (req,res)=>{
 
  res.json({ probability: score });
 });
+app.post("/buy", async (req,res)=>{
+
+ const { type } = req.body;
+
+ let price = 1000;
+
+ if(type === "boost") price = 299;
+ if(type === "superlikes") price = 499;
+
+ const session = await stripe.checkout.sessions.create({
+  payment_method_types:["card"],
+  mode:"payment",
+  line_items:[{
+   price_data:{
+    currency:"eur",
+    product_data:{ name:type },
+    unit_amount:price
+   },
+   quantity:1
+  }],
+  success_url:"http://localhost:3000",
+  cancel_url:"http://localhost:3000"
+ });
+
+ res.json({ url: session.url });
+});
+
+if(event.type === "checkout.session.completed"){
+
+ const session = event.data.object;
+
+ await supabaseClient.from('payments').insert({
+  user_id: session.client_reference_id,
+  amount: session.amount_total / 100,
+  type: session.metadata?.type
+ });
+}
+
+ const type = session.metadata?.type;
+
+ if(type === "premium"){
+  await supabaseClient.from('profiles')
+   .update({ premium: true })
+   .eq('email', session.customer_email);
+ }
+
+ if(type === "boost"){
+  await supabaseClient.from('profiles')
+   .update({ boost_until: new Date(Date.now()+86400000) })
+   .eq('email', session.customer_email);
+ }
+
+ if(type === "superlikes"){
+  await supabaseClient.rpc("add_super_likes");
+ }

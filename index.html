@@ -3,15 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🔥 Rencontre Amoureuse !</title>
+<title>🔥 Match App</title>
 
 <style>
-* { box-sizing: border-box; }
-
 body {
  margin: 0;
- font-family: 'Segoe UI', sans-serif;
- background: linear-gradient(135deg, #ff416c, #ff4b2b);
+ font-family: Arial;
+ background: linear-gradient(135deg,#f37895,#ee7d69);
  color: white;
 }
 
@@ -19,273 +17,416 @@ body {
 nav {
  display: flex;
  justify-content: space-around;
- padding: 12px;
+ padding: 10px;
  background: rgba(0,0,0,0.3);
- backdrop-filter: blur(10px);
- position: sticky;
- top: 0;
 }
 
 nav button {
  background: white;
  color: #ff416c;
  border: none;
- border-radius: 25px;
- padding: 10px 15px;
- font-weight: bold;
-}
-
-/* PAGES */
-.page {
- display: none;
- padding: 15px;
- animation: fade 0.3s ease;
-}
-
-.active { display: block; }
-
-@keyframes fade {
- from { opacity: 0; transform: translateY(10px); }
- to { opacity: 1; transform: translateY(0); }
-}
-
-/* AUTH */
-.auth-box {
- background: white;
- color: black;
- padding: 20px;
  border-radius: 20px;
- max-width: 350px;
- margin: auto;
- margin-top: 40px;
- text-align: center;
-}
-
-.auth-box input {
- width: 100%;
  padding: 10px;
- margin: 5px 0;
- border-radius: 10px;
- border: 1px solid #ddd;
 }
 
-.auth-box button {
- width: 100%;
- background: linear-gradient(45deg,#ff416c,#ff4b2b);
- color: white;
- margin-top: 10px;
+/* PAGE */
+.page { display:none; padding:15px; }
+.active { display:block; }
+
+/* BOX */
+.box {
+ background:white;
+ color:black;
+ padding:15px;
+ border-radius:15px;
+ margin-bottom:10px;
 }
 
 /* SWIPE */
-#swipeContainer {
- position: relative;
- height: 420px;
-}
-
-.card {
- position: absolute;
- width: 100%;
- height: 100%;
- border-radius: 20px;
- overflow: hidden;
- box-shadow: 0 15px 30px rgba(0,0,0,0.3);
- background: black;
-}
-
-.card img {
- width: 100%;
- height: 100%;
- object-fit: cover;
-}
-
-.card h3 {
- position: absolute;
- bottom: 20px;
- left: 20px;
-}
+#swipeContainer { height:400px; }
 
 /* CHAT */
 #chatBox {
- height: 300px;
- overflow-y: auto;
- background: rgba(255,255,255,0.2);
- border-radius: 15px;
- padding: 10px;
+ height:300px;
+ overflow:auto;
+ background:white;
+ color:black;
+ padding:10px;
+ border-radius:10px;
 }
+h1 {
+   margin: 0;
+   font-family: Arial;
+   text-align: center;
 
-.msg {
- padding: 10px;
- border-radius: 15px;
- margin: 5px;
- max-width: 70%;
 }
-
-.me { background: #dcf8c6; color:black; margin-left:auto; }
-.other { background: white; color:black; }
-
-/* INPUT */
-.input-row {
+#splashScreen {
+ position: fixed;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ background: linear-gradient(135deg,#ff416c,#ff4b2b);
  display: flex;
- gap: 5px;
- margin-top: 10px;
+ align-items: center;
+ justify-content: center;
+ z-index: 9999;
 }
 
-.input-row input {
- flex: 1;
- padding: 10px;
- border-radius: 20px;
- border: none;
+.splash-content {
+ text-align: center;
+ color: white;
 }
 
-/* CONVERSATIONS */
-.conv-item {
- background: white;
- color: black;
- padding: 10px;
- border-radius: 15px;
- margin-bottom: 5px;
- display: flex;
- justify-content: space-between;
+/* Logo animation */
+.logo {
+ font-size: 40px;
+ animation: pulse 1.5s infinite;
 }
 
-/* BADGE */
-.badge {
- background: red;
+/* Loader */
+.loader {
+ margin-top: 20px;
+ width: 40px;
+ height: 40px;
+ border: 4px solid rgba(255,255,255,0.3);
+ border-top: 4px solid white;
  border-radius: 50%;
- padding: 5px 8px;
- font-size: 12px;
+ animation: spin 1s linear infinite;
+}
+
+/* Animations */
+@keyframes spin {
+ 0% { transform: rotate(0deg); }
+ 100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+ 0% { transform: scale(1); }
+ 50% { transform: scale(1.1); }
+ 100% { transform: scale(1); }
+}
+.logo-img {
+ width: 100px;
+ animation: pulse 1.5s infinite;
+}
+#splashScreen {
+ position: fixed;
+ width: 100%;
+ height: 100%;
+ background: black;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ z-index: 9999;
+}
+
+#logo {
+ width: 120px;
+ opacity: 0;
+ transform: scale(0.8);
+ animation: logoAnim 2s ease forwards;
+}
+
+@keyframes logoAnim {
+ 0% {
+  opacity: 0;
+  transform: scale(0.8);
+ }
+ 50% {
+  opacity: 1;
+  transform: scale(1.1);
+ }
+ 100% {
+  opacity: 1;
+  transform: scale(1);
+ }
+ 
+}
+button {
+ transition: 0.3s;
+}
+
+button:hover {
+ transform: scale(1.05);
+}
+
+.box {
+ box-shadow: 0 5px 20px rgba(0,0,0,0.2);
 }
 </style>
 </head>
 
 <body>
 
+<div id="splashScreen">
+ <div class="logo-container">
+  <audio id="startupSound" src="start.mp3"></audio>
+  <img src="logo.png" id="logo">
+ </div>
+</div>
+
 <!-- NAV -->
 <nav>
- <button onclick="showPage('authPage')">👤</button>
+ <button onclick="loadHome()">🏠</button>
+ <button onclick="showPage('profilePage')">👤</button>
  <button onclick="loadSwipe()">🔥</button>
- <button onclick="loadConversations()">💬 <span id="notifBadge" class="badge">0</span></button>
- <button onclick="goPremium()">💎</button>
- <button onclick="showPage('profilePage')">👤👤 Profil</button>
-<button onclick="loadLikes()">❤️ Likes</button>
- 
+ <button onclick="loadConversations()">💬</button>
+ <button onclick="showPage('adminPage')">🛠️</button>
+ <button onclick="showPage('monetisationPage')">💎</button>
+ <button onclick="logout()">🚪</button>
 </nav>
 
+<!-- home -->
+<div id="homePage" class="page active">
+
+ <div style="text-align:center;padding:40px">
+
+  <h1 style="font-size:40px">💘 Rencontre Aamoureuse !</h1>
+
+  <p style="font-size:18px">
+   Trouve des personnes compatibles grâce à l’IA 🔥
+  </p>
+
+  <button onclick="startOnboarding()" style="
+   padding:15px 25px;
+   border:none;
+   border-radius:30px;
+   background:white;
+   color:#ff416c;
+   font-size:18px;
+  ">
+   Commencer
+  </button>
+
+  <div style="margin-top:30px;font-size:14px">
+   ❤️ +10 000 utilisateurs<br>
+   🔥 +500 matchs / jour
+  </div>
+
+ </div>
+
+</div>
+<!-- ONBOARDING -->
+<div id="onboardingPage" class="page">
+
+ <div class="box" id="slideContent"></div>
+
+ <div style="text-align:center;margin-top:20px">
+  <button onclick="nextSlide()">Suivant ➡️</button>
+ </div>
+
+</div>
+
 <!-- AUTH -->
-<div id="authPage" class="page active">
- <div class="auth-box">
-  <h2>🔥 Rencontre Amoureuse !</h2>
+<div id="authPage" class="page">
 
-  <input id="logEmail" placeholder="Email">
-  <input id="logPass" type="password" placeholder="Mot de passe">
-  <button onclick="login()">Connexion</button>
+ <div class="box">
+  <h2>Connexion</h2>
+<hr>
+  <p>👉 Connecte-toi pour accéder aux profils et commencer à matcher.</p>
 
-  <hr>
+  <input id="logEmail" placeholder="Email"><br>
+  <input id="logPass" type="password" placeholder="Mot de passe"><br>
 
-  <input id="regEmail" placeholder="Email">
-  <input id="regPass" type="password" placeholder="Mot de passe">
+  <button onclick="login()">Se connecter</button>
+ </div>
+
+ <div class="box">
+  <h2>Inscription</h2>
+<hr>
+  <p>👉 Crée un compte pour apparaître dans les profils.</p>
+
+  <input id="regEmail" placeholder="Email"><br>
+  <input id="regPass" type="password" placeholder="Mot de passe"><br>
+
   <button onclick="register()">Créer un compte</button>
  </div>
+
 </div>
 
 <!-- SWIPE -->
 <div id="profiles" class="page">
+ <div class="box">
+  <h3>🔥 Découvre des profils</h3>
+  <p>
+   👉 Swipe à droite = ❤️ Like <br>
+   👉 Swipe à gauche = ❌ Passer <br><br>
+
+   💡 Astuce : plus ton profil est complet, plus tu auras de matchs !
+  </p>
+ </div>
+
  <div id="swipeContainer"></div>
- <div style="background:white;color:black;padding:10px;border-radius:15px;margin-bottom:10px;">
- <input id="minAge" placeholder="Âge min">
- <input id="maxAge" placeholder="Âge max">
- <input id="cityFilter" placeholder="Ville">
-</div>
 </div>
 
 <!-- CHAT -->
 <div id="chatPage" class="page">
- <h3>💬 Chat</h3>
+<div id="typingIndicator"></div>
+
+ <div class="box">
+  <h3>💬 Discussion</h3>
+
+  <p>
+   👉 Tu peux discuter seulement avec un match.<br>
+   💎 Le chat illimité est réservé aux Premium.
+  </p>
+  <button onclick="reportUser(userId)">🚨 Signaler</button>
+  <p>${lastSeenText(u.last_seen)}</p>
+ </div>
+
  <div id="chatBox"></div>
 
- <div class="input-row">
-  <input id="msg" placeholder="Message...">
-  <button onclick="sendMessage()">➤</button>
-  <button onclick="startRecording()">🎤</button>
- </div>
+ <input id="msg" placeholder="Message...">
+ <button onclick="sendMessage()">Envoyer</button>
 </div>
 
 <!-- CONVERSATIONS -->
 <div id="conv" class="page">
- <h3>💬 Conversations</h3>
+ <div class="box">
+  <h3>💬 Conversations</h3>
+<hr>
+  <p>
+   👉 Ici tu retrouves toutes tes discussions.<br>
+   🔔 Les nouveaux messages apparaissent en haut.
+  </p>
+ </div>
+
  <div id="convList"></div>
 </div>
 
-<!-- BIO IA -->
-<div id="bioPage" class="page">
- <h3>🧠 Bio IA</h3>
- <textarea id="bio" style="width:100%;border-radius:10px;"></textarea>
- <button onclick="generateBio()">Générer</button>
+<!-- MONETISATION -->
+<div id="premiumPage" class="page">
+
+ <div class="box">
+  <h2>💎 Passe Premium</h2>
+
+  <p>
+   🔥 Multiplie tes matchs par 3<br><br>
+
+   ✔ Likes illimités<br>
+   ✔ Voir qui t’a liké ❤️<br>
+   ✔ Chat illimité 💬<br>
+   ✔ Boost profil 🚀
+  </p>
+
+  <button onclick="buy('premium')">
+   🔥 Essayer maintenant
+  </button>
+
+ </div>
+
 </div>
 
+ <div class="box">
+  <h3>🚀 Boost</h3>
+<hr>
+  <p>
+   👉 Ton profil est montré à plus de personnes pendant 24h.<br>
+   🎯 Idéal pour avoir plus de matchs rapidement.
+  </p>
 
-<!-- mon profil -->
+  <button onclick="buy('boost')">🚀 Booster</button>
+ </div>
+
+ <div class="box">
+  <h3>⭐ Super Like</h3>
+<hr>
+  <p>
+   👉 Ton profil est mis en avant chez la personne.<br>
+   💘 Augmente fortement tes chances de match.
+  </p>
+
+  <button onclick="buy('superlikes')">⭐ Acheter</button>
+ </div>
+</div>
+
+<!-- Page profil -->
 <div id="profilePage" class="page">
- <h3>👤 Mon profil</h3>
+ <div class="box">
+  <h3>👤 Mon profil</h3>
 
- <input id="prenom" placeholder="Prénom">
- <input id="age" type="number" placeholder="Âge">
- <input id="ville" placeholder="Ville">
+  <hr>
+  
+  <p>
+   👉 Complète ton profil pour avoir plus de matchs 💘<br>
+   💡 Plus tu ajoutes d’infos, plus l’IA te propose de bons profils
+  </p>
 
- <textarea id="bio" placeholder="Ta bio..."></textarea>
+  <input id="prenom" placeholder="Prénom"><br>
+  <input id="age" type="number" placeholder="Âge"><br>
+  <input id="ville" placeholder="Ville"><br>
 
- <input id="interests" placeholder="Centres d’intérêt (sport, musique...)">
+  <textarea id="bio" placeholder="Ta bio..."></textarea><br>
 
- <select id="lookingFor">
-  <option value="">Je cherche...</option>
-  <option value="amour">❤️ Amour</option>
-  <option value="amitié">😊 Amitié</option>
-  <option value="fun">🔥 Fun</option>
- </select>
+  <input id="interests" placeholder="Centres d’intérêt (sport, musique...)"><br>
 
- <input type="file" id="photoInput" multiple>
-<button onclick="improveProfile()">🧠 Améliorer mon profil</button>
- <button onclick="saveProfile()">💾 Sauvegarder</button>
+  <select id="lookingFor">
+   <option value="">Je cherche...</option>
+   <option value="amour">❤️ Amour</option>
+   <option value="amitié">😊 Amitié</option>
+   <option value="fun">🔥 Fun</option>
+  </select><br><br>
+
+  <input type="file" id="photoInput" multiple><br><br>
+
+  <button onclick="saveProfile()">💾 Sauvegarder</button>
+  <button onclick="improveProfile()">🧠 Améliorer avec IA</button>
+ </div>
 </div>
 
-<!-- qui ma like  -->
-<div id="likesPage" class="page">
- <h3>❤️ Qui t’a liké</h3>
- <div id="likesList"></div>
+<!-- admin -->
+<div id="adminPage" class="page">
+ <div class="box">
+  <h3>📊 Dashboard Admin</h3>
+<hr>
+  <p>
+   👉 Gère les utilisateurs et modère les contenus<br>
+   🚨 Surveille les signalements
+  </p>
+
+  <button onclick="loadReports()">🚨 Signalements</button>
+  <button onclick="loadUsers()">👤 Utilisateurs</button>
+  <button onclick="loadStats()">📊 Stats</button>
+  <button onclick="loadRevenue()">📊</button>
+ </div>
+
+ <div id="adminContent"></div>
 </div>
 
-<!-- SUPABASE -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script>
-const supabaseClient = supabase.createClient(
- "https://YOUR_PROJECT.supabase.co",
- "YOUR_PUBLIC_KEY"
-);
-</script>
+<!-- revenu -->
+<div id="revenuePage" class="page">
 
-<!-- AUTH -->
+ <div class="box">
+  <h2>📊 Revenus</h2>
+
+  <p id="totalRevenue">Chargement...</p>
+  <p id="todayRevenue"></p>
+ </div>
+
+ <div class="box">
+  <h3>💰 Derniers paiements</h3>
+  <div id="paymentsList"></div>
+ </div>
+
+</div>
+
+<div class="box">
+ <h3>📊 Conversion</h3>
+ <p id="conversionRate"></p>
+ <div id="funnel"></div>
+</div>
+
+<div class="box">
+ <h3>💰 Revenus Mensuels</h3>
+ <p id="mrr"></p>
+</div>
+
+<!-- JS -->
 <script>
 function showPage(id){
  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
  document.getElementById(id).classList.add('active');
-}
-
-async function login(){
- const { error } = await supabaseClient.auth.signInWithPassword({
-  email: logEmail.value,
-  password: logPass.value
- });
- if(error) return alert(error.message);
- loadSwipe();
-}
-
-async function register(){
- const { error } = await supabaseClient.auth.signUp({
-  email: regEmail.value,
-  password: regPass.value
- });
- if(error) return alert(error.message);
- alert("Compte créé !");
 }
 </script>
 
