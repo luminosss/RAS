@@ -53,6 +53,15 @@ async function initApp(){
 
 initApp();
 
+async function init(){
+
+ if(currentUser){
+  await loadProfiles();
+ }
+
+}
+
+init();
 
 // AUTH
 async function initAuth(){
@@ -467,6 +476,16 @@ async function loadMyProfile(){
  interests.value = data.interests?.join(", ") || "";
  lookingFor.value = data.looking_for || "";
 }
+
+async function loadProfiles(){
+
+ const { data } = await supabaseClient
+  .from('profiles')
+  .select('*');
+
+ console.log(data);
+}
+
 function showPage(id){
 
  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -609,10 +628,9 @@ async function verifyUser(id){
 async function loadStats(){
 
  const container = document.getElementById("adminContent");
-
- const { data: users } = await supabaseClient.from('profiles').select('*');
- const { data: reports } = await supabaseClient.from('reports').select('*');
- const { data: messages } = await supabaseClient.from('messages').select('*');
+// const { data: users } = await supabaseClient.from('profiles').select('*');
+//const { data: reports } = await supabaseClient.from('reports').select('*');
+//const { data: messages } = await supabaseClient.from('messages').select('*');
 
  container.innerHTML = `
   <div class="box">
@@ -622,6 +640,7 @@ async function loadStats(){
   </div>
  `;
 }
+
 async function checkAdmin(){
 
  const { data } = await supabaseClient
@@ -1009,6 +1028,7 @@ async function loadMRR(){
 }
 let monthlyUsers = data.filter(p=>p.type==="premium").length;
 let mrr = monthlyUsers * 10.00;
+
 async function loadAnalytics(){
 
  await loadConversion();
