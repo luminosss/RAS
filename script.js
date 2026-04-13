@@ -91,13 +91,22 @@ if(!(await canLike())){
 
 // CHAT
 function openChat(id){
+
+ // ⚠️ vérifie premium AVANT d’ouvrir le chat
+if(!currentUser?.premium){
+ alert("💎 Passe Premium pour discuter");
+ showPage("premiumPage");
+ return;
+}
+
  currentChatUser = id;
  showPage("chatPage");
  loadMessages(id);
 }
-if(!me.premium){
- alert("💎 Passe Premium pour discuter");
- showPage("premiumPage");
+
+
+
+function test(){
  return;
 }
 
@@ -1011,16 +1020,10 @@ const steps = [
 function nextIntro(){
 
  introStep++;
- updateIntro();
-
- if(introStep >= steps.length){
-  hideIntro();
-  
-  return;
- }
 
  updateIntro();
 }
+
 function updateIntro(){
 
  const step = steps[introStep];
@@ -1078,6 +1081,18 @@ document.getElementById("introScreen")
 }
 let soundStarted = false;
 
+
+function handleStart(){
+
+ console.log("CLICK OK");
+
+ if(!soundStarted){
+  startIntroSound();
+  soundStarted = true;
+ }
+
+ nextIntro();
+}
 function nextIntro(){
 
  if(!soundStarted){
