@@ -19,12 +19,12 @@ nav {
  display: flex;
  justify-content: space-around;
  padding: 10px;
- background: rgba(0,0,0,0.3);
+ background: rgba(0, 0, 0, 0.3);
 }
 
 nav button {
  background: white;
- color: #ff416c;
+ color: #ff0000;
  border: none;
  border-radius: 20px;
  padding: 10px;
@@ -55,7 +55,7 @@ nav button {
  padding:10px;
  border-radius:10px;
 }
-h1 {
+h2{
    margin: 0;
    font-family: Arial;
    text-align: center;
@@ -151,7 +151,11 @@ button {
 button:hover {
  transform: scale(1.05);
 }
-
+p {
+   margin: 0;
+   font-family: Arial;
+   text-align: center;
+}
 .box {
  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
 }
@@ -275,13 +279,18 @@ button {
 
 .me {
  background:#ff416c;
- color:white;
+ color:#ff0000;
  margin-left:auto;
 }
 
 .other {
  background:#eee;
 }
+
+h2{
+  color:#002fff;
+}
+
 </style>
 </head>
 
@@ -290,14 +299,11 @@ button {
 <!-- NAV -->
 <nav>
  <button onclick="showPage('homePage')">🏠</button>
-  <button onclick="showPage('authPage')">👤</button>
- <button onclick="showPage('profilePage')">🔥👤</button>
- <button onclick="showPage(profiles)">🔥</button>
+ <button onclick="showPage('profilePage')">👤</a>
+ <button onclick="showPage('profiles')">🔥</button>
  <button onclick="showPage('chatPage')">💬</button>
  <button onclick="showPage('adminPage')">🛠️</button>
  <button onclick="showPage('premiumPage')">💎</button>
- <button onclick="logout()">🚪</button>
- 
 </nav>
 
 <!-- home -->
@@ -312,7 +318,7 @@ button {
    Trouve des personnes compatibles 🔥
   </p>
 
-  <button onclick="showPage('authPage')" style="
+  <button onclick="showPage('Auth')" style="
    padding:15px 25px;
    border:none;
    border-radius:30px;
@@ -320,9 +326,11 @@ button {
    color:#ff416c;
    font-size:18px;
   ">Commencer</button>
-
+  <hr>
+<br>
 <img src="images/logo.png" width="400">
   <div style="margin-top:30px;font-size:14px;">
+    <lin>
    ❤️ +50 utilisateurs<br>
    🔥 +3 à 4 matchs / jour
   </div>
@@ -354,37 +362,27 @@ button {
   <br>
   Pour pouvoir discuté avec les profils faudrat avoir un match avec un autre profil et un abonnement 
 </p>
-
-</div>
-<!-- ONBOARDING -->
-<div id="onboardingPage" class="page">
-
- <div class="box" id="slideContent"></div>
-
- <div style="text-align:center;margin-top:20px">
-  <button onclick="nextSlide()">Suivant ➡️</button>
- </div>
-
 </div>
 
 <!-- AUTH -->
-<div id="authPage">
+<div id="Auth">
+<div class="box" style="max-width:500px;margin:50px auto;text-align:center">
+ <h2 style="font-size:25px">💘 Inscription et connexion</h2>
+<hr>
+ <input id="email" placeholder="Email">
+ <input id="password" type="password" placeholder="Mot de passe">
 
- <div class="card">
-  <h2>💘 Créer un compte</h2>
+ <button onclick="register()">S’inscrire</button>
+ <button onclick="login()">Connexion</button>
 
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Mot de passe">
-
-  <button onclick="register()">S’inscrire 🚀</button>
-  <button onclick="login()" class="secondary">Se connecter</button>
- </div>
-
+</div>
+<div id="app" style="display:none">
+ <h2>App chargée 🚀</h2>
+ <button onclick="logout()">Logout</button>
 </div>
 
 <!-- SWIPE -->
 <div id="profiles" class="page">
-
  <div class="box">
   <h3>🔥 Découvre des profils</h3>
   <p>
@@ -399,18 +397,17 @@ button {
 </div>
 
 <!-- CHAT -->
-<div id="chatPage">
 
+<div id="chatPage" class="page">
  <div id="chatBox"></div>
-
  <div id="typingIndicator"></div>
-
  <div class="inputBox">
   <input id="msgInput" placeholder="Message...">
   <button onclick="sendMessage()">Envoyer</button>
  </div>
 
 </div>
+
 <!--PROFILS VIEW -->
 <div id="profileView" style="display:none">
 
@@ -420,8 +417,8 @@ button {
  <p id="viewBio"></p>
 
  <button onclick="likeUser()">❤️ Like</button>
-
 </div>
+
 <!-- MONETISATION -->
  
 <div id="premiumPage" class="page">
@@ -429,37 +426,27 @@ button {
  <div class="box">
   <h2>💎 Passe Premium</h2>
   <p>
+    <br>
    🔥 Multiplie tes matchs par 3<br><br>
 
+   ✔ 7 jour essaie gratuit<br>
    ✔ Likes illimités<br>
    ✔ Voir qui t’a liké ❤️<br>
    ✔ Chat illimité 💬<br>
-   ✔ Boost profil 🚀
-  </p>
-  
-  <button onclick="buyPremium()">💎 Devenir Premium</button>
-</div>
-
- <div class="box">
-  <h3>🚀 Boost</h3>
-<hr>
-  <p>
-   👉 Ton profil est montré à plus de personnes pendant 24h.<br>
-   🎯 Idéal pour avoir plus de matchs rapidement.
   </p>
 
-  <button onclick="buy('boost')">🚀 Booster</button>
- </div>
+<div class="container">
+<from class="form-section">
+<h1 class="title">Carte Banquaire</h1>
+  <div class="card-number-section">
+  </div>
+  <div class="card-name-section">
+  </div>
+  <div class="input-row">
+  </div>
+<button class="paiement-btn">Paiement Premium</button>
+</button>
 
- <div class="box">
-  <h3>⭐ Super Like</h3>
-<hr>
-  <p>
-   👉 Ton profil est mis en avant chez la personne.<br>
-   💘 Augmente fortement tes chances de match.
-  </p>
-
-  <button onclick="buy('superlikes')">⭐ Acheter</button>
  </div>
 </div>
 

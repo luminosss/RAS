@@ -11,7 +11,6 @@ subscribeAdminAlerts();
 subscribeRevenue();
 fadeOutMusic();
 
-let currentUser = null;
 let currentChatUser = null;
 let soundStarted = false;
 let introStep = 0;
@@ -28,10 +27,13 @@ function openProfile(user){
  document.getElementById("viewBio").innerText = user.bio;
 
 }
-const supabaseClient = supabase.createClient(
-"https://ngxrsfntupkrpuzaffov.supabase.co",
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHJzZm50dXBrcnB1emFmZm92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3Mzk0MTEsImV4cCI6MjA5MTMxNTQxMX0.rferAxInyPefZ6e_gqlemLOlAkRowu_gmSazEQDH96w"
-);
+
+const supabaseUrl = "https://ngxrsfntupkrpuzaffov.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHJzZm50dXBrcnB1emFmZm92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3Mzk0MTEsImV4cCI6MjA5MTMxNTQxMX0.rferAxInyPefZ6e_gqlemLOlAkRowu_gmSazEQDH96w";
+
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+let currentUser = null;
 
 function handleStart(){
  console.log("CLICK OK");
@@ -73,6 +75,42 @@ async function initApp(){
 
 initApp();
 
+async function initAuth(){
+
+ const { data: { session } } = await supabaseClient.auth.getSession();
+
+ if(session){
+  currentUser = session.user;
+ } else {
+  showPage("authPage");
+ }
+}
+function startRecording(){
+ alert("🎤 Fonction vocal bientôt dispo");
+}
+// supabase.js
+import { createClient } from '@supabase/supabase-js';
+
+function computeScore(a, b){
+
+ let score = 0;
+
+ // âge proche
+ if(Math.abs(a.age - b.age) < 5) score += 30;
+
+ // même ville
+ if(a.ville === b.ville) score += 30;
+
+ // intérêts communs
+ if(a.interests && b.interests){
+  const common = a.interests.filter(i => b.interests.includes(i));
+  score += common.length * 10;
+ }
+
+ if(score > 100) score = 100;
+
+ return score;
+}
 async function init(){
 
  if(currentUser){
@@ -83,14 +121,6 @@ async function init(){
 
 init();
 
-// AUTH
-async function initAuth(){
- const { data: { session } } = await supabaseClient.auth.getSession();
- if(session){
-  currentUser = session.user;
-  loadSwipe();
- }
-}
 
 // SWIPE TINDER
 async function loadSwipe(){
@@ -334,7 +364,7 @@ async function generateBio(){
  bio.value = data.bio;
 }
 
-// STRIPE
+// STRIPE ou Autre
 async function goPremium(){
  const res = await fetch("/create-checkout-session",{method:"POST"});
  const data = await res.json();
@@ -401,7 +431,7 @@ async function saveProfile(){
  }
 }
 
- async function register(){
+async function register(){
 
  const email = document.getElementById("email").value;
  const password = document.getElementById("password").value;
@@ -413,9 +443,29 @@ async function saveProfile(){
 
  if(error){
   alert(error.message);
- } else {
-  alert("✅ Inscription réussie !");
+  return;
  }
+
+ alert("✅ Compte créé !");
+
+ // 🔥 créer profil auto
+ await createProfile(data.user);
+
+}
+async function createProfile(user){
+
+ await supabaseClient.from('profiles').insert({
+  id: user.id,
+  email: user.email,
+  prenom: "",
+  age: null,
+  ville: "",
+  bio: "",
+  photo_url: "",
+  premium: false,
+  admin: false
+ });
+
 }
 
 async function login(){
@@ -430,10 +480,12 @@ async function login(){
 
  if(error){
   alert(error.message);
- } else {
-  alert("✅ Connecté !");
-  showApp();
+  return;
  }
+
+ currentUser = data.user;
+
+ showApp();
 }
 function showApp(){
 
@@ -528,33 +580,6 @@ async function analyzePhoto(file){
  alert(data.feedback);
 }
 
-async function autoBoostProfile(){
-
- const { data: me } = await supabaseClient
-  .from('profiles')
-  .select('*')
-  .eq('id', currentUser.id)
-  .single();
-
- let score = 0;
-
- if(me.bio) score++;
- if(me.photos?.length) score++;
- if(me.interests?.length) score++;
-
- if(score < 2){
-
-  const res = await fetch("/boost-profile", {
-   method:"POST",
-   headers:{ "Content-Type":"application/json" },
-   body: JSON.stringify(me)
-  });
-
-  const data = await res.json();
-
-  bio.value = data.bio;
- }
-}
 import { View, Text, Image, PanResponder } from "react-native";
 
 export default function SwipeCard({ user }) {
@@ -600,42 +625,6 @@ async function canLike(){
  if(me.premium) return true;
 
  return todayLikes.length < 10; // limite gratuite
-}
-async function activateBoost(){
-
- const until = new Date(Date.now() + 24*60*60*1000);
-
- await supabaseClient
-  .from('profiles')
-  .update({ boost_until: until })
-  .eq('id', currentUser.id);
-
- alert("🚀 Boost activé !");
-}
-async function superLike(id){
-
- const { data: me } = await supabaseClient
-  .from('profiles')
-  .select('super_likes')
-  .eq('id', currentUser.id)
-  .single();
-
- if(me.super_likes <= 0){
-  return alert("⭐ Plus de super likes");
- }
-
- await supabaseClient.from('likes').insert({
-  from_user: currentUser.id,
-  to_user: id,
-  super: true
- });
-
- await supabaseClient
-  .from('profiles')
-  .update({ super_likes: me.super_likes - 1 })
-  .eq('id', currentUser.id);
-
- alert("⭐ Super Like !");
 }
 async function buyPremium(){
 
@@ -708,42 +697,7 @@ function showPage(id){
   loadMyProfile();
  }
 }
-async function initAuth(){
 
- const { data: { session } } = await supabaseClient.auth.getSession();
-
- if(session){
-  currentUser = session.user;
- } else {
-  showPage("authPage");
- }
-}
-function startRecording(){
- alert("🎤 Fonction vocal bientôt dispo");
-}
-// supabase.js
-import { createClient } from '@supabase/supabase-js';
-
-function computeScore(a, b){
-
- let score = 0;
-
- // âge proche
- if(Math.abs(a.age - b.age) < 5) score += 30;
-
- // même ville
- if(a.ville === b.ville) score += 30;
-
- // intérêts communs
- if(a.interests && b.interests){
-  const common = a.interests.filter(i => b.interests.includes(i));
-  score += common.length * 10;
- }
-
- if(score > 100) score = 100;
-
- return score;
-}
 
 async function verifyPhoto(){
 
@@ -995,10 +949,6 @@ if(isMatch){
  card.appendChild(badge);
 }
 
-async function initApp(){
-
- const { data: { session } } = await supabaseClient.auth.getSession();
-
 async function checkUser(){
 
  const { data } = await supabaseClient.auth.getSession();
@@ -1007,13 +957,11 @@ async function checkUser(){
   currentUser = data.session.user;
   showApp();
  } else {
-  showPage("loginPage");
+  showAuth();
  }
 }
 
 checkUser();
- // cacher splash après chargement
- setTimeout(hideSplash, 1500);
 
 async function login(){
 
@@ -1029,11 +977,20 @@ async function login(){
  toggleNav(true);
  loadHome();
 }
+function showApp(){
+ document.getElementById("authPage").style.display = "none";
+ document.getElementById("app").style.display = "block";
+}
+
+function showAuth(){
+ document.getElementById("authPage").style.display = "block";
+ document.getElementById("app").style.display = "none";
+}
 async function logout(){
 
  await supabaseClient.auth.signOut();
 
- showPage("loginPage");
+ showAuth();
 }
 
 supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -1411,45 +1368,23 @@ document.getElementById("introScreen")
 }
 let soundStarted = false;
 
+await supabaseClient.auth.signInWithPassword({
+ email,
+ password
+});
+app.use((req,res,next)=>{
 
-function handleStart(){
+ const allowed = ["http://localhost:5500"];
 
- console.log("CLICK OK");
-
- if(!soundStarted){
-  startIntroSound();
-  soundStarted = true;
+ if(req.headers.origin && !allowed.includes(req.headers.origin)){
+  return res.status(403).send("Blocked");
  }
 
- nextIntro();
-}
-function nextIntro(){
+ next();
+});
 
- if(!soundStarted){
-  startIntroSound();
-  soundStarted = true;
- }
 
- playClick();
 
- introStep++;
-
- if(introStep >= steps.length){
-  hideIntro();
-  return;
- }
-
- updateIntro();
-}
-function playClick(){
-
- const click = document.getElementById("clickSound");
-
- click.currentTime = 0;
- click.volume = 0.6;
-
- click.play().catch(()=>{});
-}
 function hideIntro(){
 
  const intro = document.getElementById("introScreen");
@@ -1482,16 +1417,7 @@ function fadeOutMusic(){
 
  }, 100);
 }
-function handleStart(){
- console.log("CLICK OK"); // test
 
- if(!soundStarted){
-  startIntroSound();
-  soundStarted = true;
- }
-
- nextIntro();
-}
 document.addEventListener("DOMContentLoaded", () => {
 
  const input = document.getElementById("photoInput");
@@ -1509,8 +1435,6 @@ document.addEventListener("DOMContentLoaded", () => {
   reader.onload = () => {
    preview.src = reader.result;
   };
-
   reader.readAsDataURL(file);
- });
+  }
 
-});
