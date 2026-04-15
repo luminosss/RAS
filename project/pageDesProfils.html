@@ -1,18 +1,22 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Connexion</title>
+  <title>Les profils</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/profile.js"></script>
 <link rel="stylesheet" href="css/style.css">
 <link rel="icon" href="favicon.ico">
-<script src="js/app.js"></script>
-<script src="js/config.js"></script>
 <hr>
 </head>
 <body>
 
-<nav>
+<!-- SWIPE -->
+ <nav>
  <a href="index.html">🏠</a>
   <a href="auth.html">🔐</a>
   <a href="profile.html">👤</a>
@@ -23,23 +27,32 @@
  <button onclick="window.location.href='adminPage.html'"">⚙️ Admin</button>
 </nav>
 <hr>
-<div id="profiles"></div>
-<div id="premiumPage" class="page">
+<div id="profilesGrid"></div>
  <div class="box">
-  <h2>💎 Passe Premium</h2>
+  <br>
+  <h3>🔥 Découvre des profils</h3>
+  <br>
   <p>
+    1) 📝 connecte toi ou inscris toi !
     <br>
-   🔥 Multiplie tes matchs par 3<br><br>
-
-   ✔ 7 jour essaie gratuit<br>
-   ✔ Likes illimités<br>
-   ✔ Voir qui ta liké ❤️<br>
-   ✔ Chat illimité 💬<br>
+    <br>
+   💡 Astuce : plus ton profil est complet, plus tu auras de matchs !
   </p>
-  
-  <button onclick="buyPremium()">💎 Premium</button>
+  <div id="profiles"></div>
+<div id="profileView" style="display:none">
+<div id="profileModal" class="modal" style="display:none"></div>
+
+ <img id="viewPhoto" width="200">
+
+ <h2 id="viewName"></h2>
+ <p id="viewBio"></p>
+
+ <button onclick="likeUser()">❤️ Like</button>
  </div>
 </div>
+
+
+
 
 </body>
 </html>

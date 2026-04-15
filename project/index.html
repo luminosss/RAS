@@ -6,8 +6,10 @@
 <title>🔥 App rencontre</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="icon" href="favicon.ico">
+<!-- JS -->
+<script src="js/app.js"></script>
+<script src="js/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 </head>
 
 <body>
@@ -17,8 +19,9 @@
   <a href="index.html">🏠</a>
   <a href="auth.html">🔐</a>
   <a href="profile.html">👤</a>
-  <a href="swipe.html">🔥</a>
+  <a href="pageDesProfils.html" onclick="loadProfile()">🔥</a>
    <a href="premiumPage.html">💎</a>
+  <a href="auth.html" onclick="logout()">🚪Logout</a>
  <a href="app.html" id="chatBtn" style="display:none" onclick="showPage('chatPage')">💬</a>
  <button onclick="window.location.href='adminPage.html'"">⚙️ Admin</button>
 </nav>
@@ -64,16 +67,14 @@
   2) 👤 créer votre profil !
   <br>
   <br>
-  3) 🔥 swiper pour voir tous les profils !
-  <br>
+    3) 👤 visité les profils disponible !
+    <br>
     <br>
 📢 Pour pouvoir discuté avec les profils faudrat avoir un match avec un autre profil et un abonnement 
 </p>
 </div>
 </div>
 </div>
-<!-- JS -->
-<script src="script.js"></script>
 
 </body>
 </html>

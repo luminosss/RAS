@@ -3,20 +3,25 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>App</title>
+<title>Chat</title>
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
+<script src="js/app.js"></script>
 </head>
 
 <body>
 
 <nav>
-  <a href="index.html">🏠</a>
- <a href="#" onclick="loadProfiles()">🔥</a>
- <a href="#" onclick="logout()">🚪</a>
+   <a href="index.html">🏠</a>
+  <a href="auth.html">🔐</a>
+  <a href="profile.html">👤</a>
+  <a href="pageDesProfils.html" onclick="loadProfile()">🔥</a>
+   <a href="premiumPage.html">💎</a>
+  <a href="auth.html" onclick="logout()">🚪Logout</a>
+ <a href="app.html" id="chatBtn" style="display:none" onclick="showPage('chatPage')">💬</a>
+ <button onclick="window.location.href='adminPage.html'"">⚙️ Admin</button>
 </nav>
-
 <div id="profiles"></div>
 
 <hr>
@@ -30,6 +35,21 @@
  <button onclick="buyPremium()">Devenir Premium</button>
 </div>
 <ul>
+  <div class="filters">
+
+ <input id="searchVille" placeholder="Ville">
+
+ <select id="searchAge">
+  <option value="">Âge</option>
+  <option value="18-25">18-25</option>
+  <option value="25-35">25-35</option>
+ </select>
+
+ <button onclick="loadProfiles()">🔍 Rechercher</button>
+
+</div>
+
+<div id="profilesGrid"></div>
 <input id="msgInput">
 <button onclick="sendMessage()">Envoyer</button>
   </div>
@@ -48,7 +68,5 @@
     <button onclick="buyPremium()">Devenir Premium</button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/app.js"></script>
 </body>
 </html>

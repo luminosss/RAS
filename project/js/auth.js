@@ -1,4 +1,3 @@
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function register(){
  const email = document.getElementById("email").value;
@@ -15,7 +14,7 @@ async function register(){
  }
 
  alert("Compte créé !");
- window.location.href = "app.html";
+ window.location.href = "profile.html";
 }
 
 async function login(){
@@ -32,5 +31,5 @@ async function login(){
   return;
  }
 
- window.location.href = "app.html";
+ window.location.href = "profile.html";
 }

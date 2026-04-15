@@ -6,8 +6,19 @@
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
+<script src="js/admin.js"></script>
 </head>
-
+<!-- NAV -->
+<nav>
+  <a href="index.html">🏠</a>
+  <a href="auth.html">🔐</a>
+  <a href="profile.html">👤</a>
+  <a href="pageDesProfils.html" onclick="loadProfile()">🔥</a>
+   <a href="premiumPage.html">💎</a>
+  <a href="auth.html" onclick="logout()">🚪Logout</a>
+ <a href="app.html" id="chatBtn" style="display:none" onclick="showPage('chatPage')">💬</a>
+ <button onclick="window.location.href='adminPage.html'"">⚙️ Admin</button>
+</nav>
 <body>
 
 <h1 style="text-align:center">📊 Dashboard Admin</h1>
@@ -41,6 +52,5 @@
  <div id="reportsList"></div>
 </div>
 
-<script src="js/admin.js"></script>
 </body>
 </html>

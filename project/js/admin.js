@@ -11,7 +11,7 @@ async function loadAdmin(){
 
  if(!me?.is_admin){
   alert("Accès refusé");
-  window.location.href = "app.html";
+  window.location.href = "index.html";
   return;
  }
 

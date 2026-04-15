@@ -21,51 +21,91 @@ init();
 // LOAD PROFILES
 async function loadProfiles(){
 
- const container = document.getElementById("profiles");
- container.innerHTML = "";
+ const ville = document.getElementById("searchVille").value;
+ const ageRange = document.getElementById("searchAge").value;
 
- const { data } = await supabaseClient
+ let query = supabaseClient
   .from('profiles')
   .select('*')
   .neq('id', currentUser.id);
 
+ if(ville){
+  query = query.ilike('ville', `%${ville}%`);
+ }
+
+ const { data } = await query;
+
+ const grid = document.getElementById("profilesGrid");
+ grid.innerHTML = "";
+
  data.forEach(u => {
 
   const card = document.createElement("div");
-  card.className = "card";
+  card.className = "profile-card";
 
   card.innerHTML = `
    <img src="${u.photo_url || 'https://picsum.photos/300'}">
-   <h3>${u.prenom || "Utilisateur"}</h3>
+   <h3>${u.prenom}</h3>
+   <p>${u.age || ""} ans</p>
    <p>${u.ville || ""}</p>
-
-   <button onclick="likeUser('${u.id}')">❤️ Like</button>
-   <button onclick="openChat('${u.id}')">💬 Chat</button>
   `;
 
-  container.appendChild(card);
-  enableSwipe(card, u.id);
- });
-}
-function loadProfiles(users){
+  card.onclick = () => openProfile(u);
 
- const stack = document.getElementById("cardStack");
- stack.innerHTML = "";
-
- users.forEach(u => {
-  const card = createSwipeCard(u);
-  stack.appendChild(card);
+  grid.appendChild(card);
  });
 }
 
+function openProfile(user){
+
+ const modal = document.getElementById("profileModal");
+
+ modal.style.display = "flex";
+
+ modal.innerHTML = `
+  <div class="modal-content">
+
+   <img src="${user.photo_url}" style="width:100%;border-radius:10px">
+
+   <h2>${user.prenom}</h2>
+   <p>${user.age} ans - ${user.ville}</p>
+
+   <p>${user.bio || ""}</p>
+
+   <button onclick="likeUser('${user.id}')">❤️ Like</button>
+   <button onclick="openChat('${user.id}')">💬 Message</button>
+
+   <button onclick="closeModal()">❌</button>
+
+  </div>
+  ${user.premium ? "💎 Premium" : ""}
+ `;
+ data.sort((a,b)=> 
+ computeMatchScore(currentUserProfile, b) -
+ computeMatchScore(currentUserProfile, a)
+);
+if(!data.user){
+  window.location.href = "auth.html";
+}
+}
+
+
+function closeModal(){
+ document.getElementById("profileModal").style.display = "none";
+}
 // LIKE
 async function likeUser(targetId){
 
- // 1. envoyer like
+ const { data } = await supabaseClient.auth.getUser();
+ const user = data.user;
+
  await supabaseClient.from('likes').insert({
-  from_user: currentUser.id,
+  from_user: user.id,
   to_user: targetId
  });
+
+ alert("❤️ Like envoyé");
+}
 
  // 2. vérifier si match
  const { data } = await supabaseClient
@@ -84,10 +124,7 @@ async function likeUser(targetId){
 
   alert("💘 MATCH !");
  }
-}
-async function likeUser(id){
-
- if(!isUserPremium){
+  if(!isUserPremium){
   alert("💎 Premium requis pour liker sans limite");
  }
 
@@ -95,7 +132,7 @@ async function likeUser(id){
   from_user: currentUser.id,
   to_user: id
  });
-}
+
 
   //JS SWIPE
 
@@ -130,13 +167,14 @@ function enableSwipe(card, userId){
    card.style.transform = "";
   }
  });
-}
-if(diff > 50){
+ if(diff > 50){
  card.style.background = "#d4edda"; // vert
 }
 if(diff < -50){
  card.style.background = "#f8d7da"; // rouge
 }
+}
+
 
 function createSwipeCard(user){
 
@@ -322,6 +360,7 @@ async function logout(){
  await supabaseClient.auth.signOut();
  window.location.href = "auth.html";
 }
+
 // SYSTÈME PREMIUM
 
 //limiter à 10 likes par jour pour les non-premium
