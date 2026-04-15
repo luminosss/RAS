@@ -1,0 +1,42 @@
+<!-- admin -->
+<div id="adminPage" style="display:none">
+ <h2>📊 Dashboard Admin</h2>
+
+ <button onclick="loadUsers()">Voir utilisateurs</button>
+<hr>
+  <p>
+   👉 Gère les utilisateurs et modère les contenus<br>
+   🚨 Surveille les signalements
+  </p>
+   <button onclick="loadReports()">🚨 Signalements</button>
+  <button onclick="loadUsers()">👤 Utilisateurs</button>
+  <button onclick="loadStats()">📊 Stats</button>
+  <button onclick="loadRevenue()">📊</button>
+
+  <div class="box">
+ <h3>📊 Conversion</h3>
+ <p id="conversionRate"></p>
+ <div id="funnel"></div>
+</div>
+
+<div class="box">
+ <h3>💰 Revenus Mensuels</h3>
+ <p id="mrr"></p>
+</div>
+</div>
+<div id="revenuePage" class="page">
+
+ <div class="box">
+  <h2>📊 Revenus</h2>
+
+  <p id="totalRevenue">Chargement...</p>
+  <p id="todayRevenue"></p>
+ </div>
+
+ <div class="box">
+  <h3>💰 Derniers paiements</h3>
+  <div id="paymentsList"></div>
+ </div>
+ <div id="adminContent"></div>
+</div>
+ </div>

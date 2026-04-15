@@ -1,0 +1,13 @@
+{
+ "name": "Rencontre",
+ "short_name": "Dating",
+ "start_url": ".",
+ "display": "standalone",
+ "background_color": "#ff758c",
+ "theme_color": "#ff4d6d",
+ "icons": [{
+  "src": "logo.png",
+  "sizes": "192x192",
+  "type": "image/png"
+ }]
+}

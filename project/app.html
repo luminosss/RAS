@@ -1,0 +1,35 @@
+
+<body>
+
+<nav>
+ <a href="app.html">🏠</a>
+ <a href="#" onclick="loadProfiles()">🔥</a>
+ <a href="profile.html">👤</a>
+</nav>
+<hr>
+<div id="profiles"></div>
+
+<h2>Chat</h2>
+
+<hr>
+<div id="chatBox"></div>
+  <div id="premiumBlock">
+    <h3>💎 Passe Premium pour discuter</h3>
+    <button onclick="buyPremium()">Devenir Premium</button>
+<input id="msgInput">
+<div id="chatBox"></div>
+ <div id="typingIndicator"></div>
+
+    <div class="inputBox">
+      <input id="msgInput" placeholder="Message...">
+      <button onclick="sendMessage()">Envoyer</button>
+    </div>
+  </div>
+
+  <div id="notPremium" style="display:none">
+    <h3>💎 Passe Premium pour discuter</h3>
+    <button onclick="buyPremium()">Devenir Premium</button>
+  </div>
+
+<script src="js/app.js"></script>
+</body>

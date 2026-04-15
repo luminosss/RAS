@@ -1,0 +1,40 @@
+<nav>
+ <a href="index.html">🏠</a>
+ <a href="#" onclick="loadProfiles()">🔥</a>
+  <a href="profile.html">👤</a>
+</nav>
+<hr>
+<div id="profiles"></div>
+<div id="profilePage" class="page">
+
+ <div class="box">
+  <h3>👤 Mon profil</h3>
+
+  <hr>
+  
+  <p>
+   👉 Complète ton profil pour avoir plus de matchs 💘<br>
+   💡 Plus tu ajoutes d infos, plus l IA te propose de bons profils
+  </p>
+
+  <input id="prenom" placeholder="Prénom"><br>
+  <input id="age" type="number" placeholder="Âge"><br>
+  <input id="ville" placeholder="Ville"><br>
+
+  <textarea id="bio" placeholder="Ta bio..."></textarea><br>
+
+  <input id="interests" placeholder="Centres d’intérêt (sport, musique...)"><br>
+
+  <select id="lookingFor">
+   <option value="">Je cherche...</option>
+   <option value="amour">❤️ Amour</option>
+   <option value="amitié">😊 Amitié</option>
+   <option value="fun">🔥 Fun</option>
+  </select><br><br>
+  <input type="file" id="photoInput" multiple><br><br>
+ <img id="preview" width="150">
+ <button onclick="saveProfile()">Enregistrer</button>
+  <button onclick="improveProfile()">🧠 Améliorer avec IA</button>
+ </div>
+ <script src="js/profile.js"></script>
+</div>
