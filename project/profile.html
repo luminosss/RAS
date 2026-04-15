@@ -1,3 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="favicon.ico">
+<hr>
+</head>
+<body>
+
 <nav>
  <a href="index.html">🏠</a>
  <a href="#" onclick="loadProfiles()">🔥</a>
@@ -20,6 +32,7 @@
   <input id="prenom" placeholder="Prénom"><br>
   <input id="age" type="number" placeholder="Âge"><br>
   <input id="ville" placeholder="Ville"><br>
+  <input type="file" id="photos" multiple>
 
   <textarea id="bio" placeholder="Ta bio..."></textarea><br>
 
@@ -38,3 +51,6 @@
  </div>
  <script src="js/profile.js"></script>
 </div>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+🔁 renouvellement auto abonnement
+🚫 désactivation auto si paiement échoue
+
+
+🔐 4. FICHIER .env
+PORT=3000
+
+SUPABASE_URL=ton_url
+SUPABASE_SERVICE_KEY=ta_service_key
+
+PAYPAL_CLIENT_ID=ton_id
+PAYPAL_SECRET=ton_secret
+
+
+
+
+▶️ 6. LANCER LE BACKEND
+node server.js
+
+👉 tu dois voir :
+
+🚀 Server running on port 3000
+
+
+🔥 8. TEST RAPIDE
+
+👉 va sur :
+
+http://localhost:3000
+
+👉 tu dois voir :
+
+Backend OK 🚀
+
+
+
+🚀 9. METTRE EN LIGNE (plus tard)
+
+Tu pourras deploy sur :
+
+Railway
+Render
+Vercel (frontend surtout)
+

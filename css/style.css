@@ -1,18 +1,30 @@
 body {
- margin:0;
  font-family: 'Segoe UI', sans-serif;
- background: linear-gradient(135deg,#ff416c,#ff4b2b);
  color:white;
+  max-width: 500px;
+ margin: auto;
+  padding-bottom: env(safe-area-inset-bottom);
+ background: linear-gradient(-45deg,#ff416c,#ff4b2b,#ff6a88,#ff99ac);
+ background-size: 400% 400%;
+ animation: gradient 10s ease infinite;
 }
+
+@keyframes gradient {
+ 0% { background-position: 0% 50%; }
+ 50% { background-position: 100% 50%; }
+ 100% { background-position: 0% 50%; }
+}
+
 
 /* NAV */
 nav {
  display:flex;
  justify-content:space-around;
  padding:12px;
- background:rgba(0,0,0,0.3);
  position:sticky;
  top:0;
+  backdrop-filter: blur(10px);
+ background: rgba(0,0,0,0.2);
 }
 
 nav a {
@@ -23,13 +35,15 @@ nav a {
 
 /* CARD */
 .card {
- background:white;
- color:black;
+background: rgba(255,255,255,0.1);
+ backdrop-filter: blur(15px);
  border-radius:20px;
- padding:15px;
- margin:15px;
- box-shadow:0 10px 25px rgba(0,0,0,0.2);
- text-align:center;
+ padding:20px;
+ margin:20px;
+ box-shadow:0 8px 32px rgba(0,0,0,0.2);
+ color:white;
+  transition: 0.3s;
+
 }
 
 .card img {
@@ -37,16 +51,38 @@ nav a {
  border-radius:15px;
 }
 
+#cardStack {
+ position: relative;
+ height: 500px;
+}
+
+.swipe-card {
+ position: absolute;
+ width: 100%;
+ border-radius: 20px;
+ transition: transform 0.2s ease;
+ will-change: transform;
+}
+
+.like {
+ border: 3px solid #00ff88;
+}
+
+.nope {
+ border: 3px solid #ff4b4b;
+}
 /* BUTTON */
 button {
  padding:12px;
  border:none;
  border-radius:25px;
- background:#ff416c;
  color:white;
  font-weight:bold;
  cursor:pointer;
  transition:0.3s;
+ width: 90%;
+ margin:10px;
+  background: linear-gradient(135deg,#ff416c,#ff4b2b);
 }
 
 button:hover {
@@ -72,4 +108,32 @@ input {
  padding:10px;
  border-radius:10px;
  margin:10px;
+}
+.swipe-card {
+ position: absolute;
+ width: 90%;
+ left:5%;
+ transition: 0.3s;
+}
+.msg {
+ padding:10px;
+ margin:5px;
+ border-radius:15px;
+ max-width:70%;
+}
+
+.me {
+ background:#ff416c;
+ color:white;
+ margin-left:auto;
+}
+
+.other {
+ background:#eee;
+ color:black;
+}
+#typingIndicator {
+ font-style: italic;
+ opacity: 0.7;
+ margin: 5px;
 }

@@ -1,42 +1,46 @@
-<!-- admin -->
-<div id="adminPage" style="display:none">
- <h2>📊 Dashboard Admin</h2>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+</head>
 
- <button onclick="loadUsers()">Voir utilisateurs</button>
-<hr>
-  <p>
-   👉 Gère les utilisateurs et modère les contenus<br>
-   🚨 Surveille les signalements
-  </p>
-   <button onclick="loadReports()">🚨 Signalements</button>
-  <button onclick="loadUsers()">👤 Utilisateurs</button>
-  <button onclick="loadStats()">📊 Stats</button>
-  <button onclick="loadRevenue()">📊</button>
+<body>
 
-  <div class="box">
- <h3>📊 Conversion</h3>
- <p id="conversionRate"></p>
- <div id="funnel"></div>
+<h1 style="text-align:center">📊 Dashboard Admin</h1>
+
+<div class="card">
+ <h2 id="totalUsers">👤 Utilisateurs: ...</h2>
+ <h2 id="premiumUsers">💎 Premium: ...</h2>
 </div>
 
-<div class="box">
- <h3>💰 Revenus Mensuels</h3>
- <p id="mrr"></p>
+<div class="card">
+ <h2 id="totalRevenue">💰 Total: ...</h2>
+ <h3 id="todayRevenue">🔥 Aujourd’hui: ...</h3>
+</div>
+
+<div class="card">
+ <h2>📈 Activité</h2>
+ <p id="totalLikes"></p>
+ <p id="totalMessages"></p>
+ <button onclick="banUser('USER_ID')">🚨 Bannir</button>
+ <div class="card">
+ <h2>💬 Conversations</h2>
+ <div id="adminMessages"></div>
 </div>
 </div>
-<div id="revenuePage" class="page">
-
- <div class="box">
-  <h2>📊 Revenus</h2>
-
-  <p id="totalRevenue">Chargement...</p>
-  <p id="todayRevenue"></p>
- </div>
-
- <div class="box">
-  <h3>💰 Derniers paiements</h3>
-  <div id="paymentsList"></div>
- </div>
- <div id="adminContent"></div>
+<div class="card">
+ <h2>🏆 Top profils</h2>
+ <div id="topProfiles"></div>
 </div>
- </div>
+<div class="card">
+ <h2>🚨 Signalements</h2>
+ <div id="reportsList"></div>
+</div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>
