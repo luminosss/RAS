@@ -15,32 +15,33 @@ body {
  100% { background-position: 0% 50%; }
 }
 
+* {
+ box-sizing: border-box;
+ padding: 0;
+} 
 
 /* NAV */
 nav {
-
-
-display:flex;
-
+display: flex;
 justify-content: center;
-
-padding:20px;
-
+padding:0 30px;
 position:sticky;
-
 top:0;
-
-backdrop-filter: blur(10px);
-
+backdrop-filter: blur(20px);
 background: rgba(0,0,0,0.2);
-
-flex-wrap: nowrap;
-
+overflow: hidden;
 align-content: center;
-
-flex-direction: column-reverse;
-
 align-items: center;
+line-height: 9px;
+flex-wrap:nowrap;
+}
+a:hover {
+  background-color: gold;
+}
+
+ul{
+float: right;
+
 }
 
 nav a {
@@ -48,6 +49,26 @@ nav a {
  text-decoration:none;
  font-size:20px;
   padding:12px;
+}
+ul li{
+  list-style-type:none;  
+  display: inline-block;
+  font-size: 15px ;
+  text-transform: uppercase;
+  font-family: Arial, sans-serif;
+}
+ul li a{
+  color: rgb(255, 255, 255);
+  text-decoration: none;
+  padding: 10px 20px;
+  display: block;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+  border: 2px solid rgb(216, 216, 216);
+}
+
+.logo{
+width: 255px;
 }
 
 /* CARD */

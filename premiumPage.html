@@ -12,15 +12,21 @@
 </head>
 <body>
 
+<!-- NAV -->
 <nav>
-  <a href="index.html">Accueil</a>
-  <a href="auth.html">Authentification</a>
-  <a href="profile.html">Profil</a>
-  <a href="pageDesProfils.html" onclick="loadProfile()">Recherche</a>
-   <a href="premiumPage.html">Premium</a>
-  <a href="auth.html" onclick="logout()">Déconnexion</a>
- <a href="app.html" id="chatBtn" style="display:none" onclick="showPage('chatPage')">💬</a>
+  <div class="logo">
+    <img src="images/logo.png" width="400">
+  <ul>
+  <li><a href="index.html">Accueil</a></li>
+  <li><a href="auth.html">Authentification</a></li>
+  <li><a href="profile.html">Profil</a></li>
+  <li><a href="pageDesProfils.html" onclick="loadProfile()">Recherche</a></li>
+  <li><a href="premiumPage.html">Premium</a></li>
+  <li><a href="auth.html" onclick="logout()">Déconnexion</a></li>
+  <a href="app.html" id="chatBtn" style="display:none" onclick="showPage('chatPage')">💬</a>
  <button onclick="window.location.href='adminPage.html'"">⚙️ Admin</button>
+  </ul>
+   </div>
 </nav>
 <hr>
 <div id="profiles"></div>
