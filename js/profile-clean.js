@@ -35,7 +35,6 @@ async function loadMyProfile(){
   // VIEW MODE
 const photo = document.getElementById("viewPhoto");
 if(photo) photo.src = data.photo_url || "...";
-    data.photo_url || "https://via.placeholder.com/120";
 
   document.getElementById("viewName").innerText =
     data.prenom;

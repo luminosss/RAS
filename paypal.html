@@ -1,12 +1,41 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PayPal</title>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Page</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="favicon.ico">
+
+  <!-- JS -->
+<!-- 1. Supabase AVANT -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- 2. config -->
+<script src="js/config.js"></script>
+
+<!-- 3. tes scripts -->
+<script src="js/auth.js" defer></script>
+<script src="js/app.js" defer></script>
+<script src="js/profile-clean.js" defer></script>
+</head>
+
+<body>
+
+<nav>
+  <ul>
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="profile.html">Mon profil</a></li>
+    <li><a href="pageDesProfils.html">Recherche</a></li>
+    <li><a href="premiumPage.html">Premium</a></li>
+  </ul>
+
+  <button id="authBtn" onclick="goToAuth()">Se connecter</button>
+  <button id="logoutBtn" onclick="logout()" style="display:none;">Se déconnecter</button>
+</nav>
         <script 
   src="https://www.paypal.com/sdk/js?client-id=BAAcwRkEgBGh_RD4Xm5UkO7ZzRHO-nd-3uOJM_2lDV3EbNzCUaO9iFSNQ6NNAtZkZEJ5l7NEiPILhwYJFE&components=hosted-buttons&disable-funding=venmo&currency=EUR">
-<sript>
+</script>
 <div id="paypal-button-container-P-35P930338C9428627NHQYFBI"></div>
 <script src="https://www.paypal.com/sdk/js?client-id=AR30eGC6I67S3OPaJU7yGsrzoFFKd7-KF6-N2zXimQOvbDkTx2ZqimtixedXJ7E2PEkx6Qtx98x1aE_9&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
 <script>

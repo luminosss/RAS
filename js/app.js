@@ -105,7 +105,7 @@ function getStatus(user){
 }
 
 // =============================
-// LOAD PROFILES + SWIPE
+// LOAD PROFILES 
 // =============================
 async function loadProfiles(){
   const grid = document.getElementById("profilesGrid");
@@ -113,15 +113,6 @@ async function loadProfiles(){
 
   grid.innerHTML = "";
 
-const { data: existing } = await supabaseClient
-  .from("likes")
-  .select("*")
-  .eq("from_user", currentUser.id)
-  .eq("to_user", targetId);
-
-if(existing.length > 0){
-  return;
-}
 
   if(!data) return;
 
@@ -136,7 +127,10 @@ if(existing.length > 0){
 }
 
 // =============================
-// SWIPE SYSTEM (Tinder-like)
+// INIT PROFILE
+// =============================
+async function initProfile(){
+  const { data } = await supabaseClient.auth.getUser();
 // =============================
 function createSwipeCard(user){
   const card = document.createElement("div");
@@ -218,16 +212,17 @@ function computeMatchScore(me, user){
 // =============================
 function openChat(userId){
   if(!isUserPremium){
-    alert("💎 Premium requis pour discuter");
+    alert("💎 Premium requis");
     return;
   }
 
   currentChatUser = userId;
-
   document.getElementById("chatInterface").style.display = "block";
-
   loadMessages();
 }
+function openProfile(user){
+  const modal = document.getElementById("profileModal");
+  if(!modal) return;
 
 function closeModal(){
   const modal = document.getElementById("profileModal");
@@ -260,34 +255,22 @@ async function checkMatch(targetId){
     .select("*")
     .eq("from_user", targetId)
     .eq("to_user", currentUser.id);
-
+const { data: matchExist } = await supabaseClient .from("matches") .select("*") .or(`and(user1.eq.${currentUser.id},user2.eq.${targetId}),and(user1.eq.${targetId},user2.eq.${currentUser.id})`) .single(); 
+    showToast("💘 MATCH !");
+  }
+}
   if(data.length > 0){
     await supabaseClient.from("matches").insert({
       user1: currentUser.id,
       user2: targetId
     });
 
-    showToast("💘 MATCH !");
-  }
-}
-const { data: matchExist } = await supabaseClient
-  .from("matches")
-  .select("*")
-  .or(`and(user1.eq.${currentUser.id},user2.eq.${targetId}),and(user1.eq.${targetId},user2.eq.${currentUser.id})`);
 
 if(matchExist.length > 0) return;
 
 // =============================
 // CHAT + TYPING
 // =============================
-function openChat(userId){
-  if(!isUserPremium){
-  alert("💎 Premium pour likes illimités");
-}
-  currentChatUser = userId;
-  loadMessages();
-}
-
 async function loadMessages(){
   const box = document.getElementById("chatBox");
   if(!box) return;
@@ -312,6 +295,11 @@ function displayMessage(m){
   div.className = m.from_user === currentUser.id ? "me" : "other";
   div.innerText = m.text;
 
+const { data, error } = await supabaseClient
+  .from("profiles")
+  .select("*");
+
+if(error || !data) return;
   box.appendChild(div);
 }
 
@@ -381,21 +369,21 @@ async function checkPremium(){
 
   const now = new Date();
 
- if(data.premium && data.premium_until){
-  const expire = new Date(data.premium_until);
+  if(data.premium && data.premium_until){
+    const expire = new Date(data.premium_until);
 
-  if(expire > now){
-    isUserPremium = true;
-  } else {
-    // abonnement expiré → reset
-    await supabaseClient
-      .from("profiles")
-      .update({ premium: false })
-      .eq("id", currentUser.id);
+    if(expire > now){
+      isUserPremium = true;
+    } else {
+      await supabaseClient
+        .from("profiles")
+        .update({ premium: false })
+        .eq("id", currentUser.id);
 
-    isUserPremium = false;
+      isUserPremium = false;
+    }
   }
-  }
+}
 
 async function buyPremium(){
 

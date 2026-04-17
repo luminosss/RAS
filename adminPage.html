@@ -1,35 +1,36 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Admin Dashboard</title>
+  <meta charset="UTF-8">
+  <title>Page</title>
 
-<!-- JS -->
-<script src="js/app.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/profile-clean.js"></script>
-<script src="js/admin.js"></script>
-<script src="js/config.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="favicon.ico">
+
+<!-- 1. Supabase AVANT -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="css/style.css">
-<link rel="icon" href="favicon.ico">  
-<hr>
+
+<!-- 2. config -->
+<script src="js/config.js"></script>
+
+<!-- 3. tes scripts -->
+<script src="js/auth.js" defer></script>
+<script src="js/app.js" defer></script>
+<script src="js/profile-clean.js" defer></script>
 </head>
-<!-- NAV -->
+
+<body>
+
 <nav>
-    <ul>
-  <li><a href="index.html">Accueil</a></li>
-  <li><a href="profile.html">Mon profil</a></li>
-  <li><a href="pageDesProfils.html" onclick="loadProfile()">Recherche</a></li>
-  <li><a href="premiumPage.html">Premium</a></li>
-  <button id="authBtn" onclick="goToAuth()">Se connecter</button>
-<button id="logoutBtn" onclick="logout()" style="display:none;">Se déconnecter</button>
-  <a href="app.html" id="chatBtn" style="display:none" onclick="showPage('chatPage')">💬</a>
- <button onclick="window.location.href='adminPage.html'"">⚙️ Admin</button>
+  <ul>
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="profile.html">Mon profil</a></li>
+    <li><a href="pageDesProfils.html">Recherche</a></li>
+    <li><a href="premiumPage.html">Premium</a></li>
   </ul>
-    <div class="logo">
-    <img src="images/logo.png" width="400">
-   </div>
+
+  <button id="authBtn" onclick="goToAuth()">Se connecter</button>
+  <button id="logoutBtn" onclick="logout()" style="display:none;">Se déconnecter</button>
 </nav>
 <body>
 
