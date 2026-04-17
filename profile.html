@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>Connexion</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
+<!-- JS -->
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/profile.js"></script>
+<script src="js/profile-clean.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="css/style.css">
 <link rel="icon" href="favicon.ico">
 <hr>
@@ -16,18 +18,18 @@
 
 <!-- NAV -->
 <nav>
-  <div class="logo">
-    <img src="images/logo.png" width="400">
-  <ul>
+    <ul>
   <li><a href="index.html">Accueil</a></li>
-  <li><a href="auth.html">Authentification</a></li>
-  <li><a href="profile.html">Profil</a></li>
+  <li><a href="profile.html">Mon profil</a></li>
   <li><a href="pageDesProfils.html" onclick="loadProfile()">Recherche</a></li>
   <li><a href="premiumPage.html">Premium</a></li>
-  <li><a href="auth.html" onclick="logout()">Déconnexion</a></li>
+  <button id="authBtn" onclick="goToAuth()">Se connecter</button>
+<button id="logoutBtn" onclick="logout()" style="display:none;">Se déconnecter</button>
   <a href="app.html" id="chatBtn" style="display:none" onclick="showPage('chatPage')">💬</a>
  <button onclick="window.location.href='adminPage.html'"">⚙️ Admin</button>
   </ul>
+    <div class="logo">
+    <img src="images/logo.png" width="400">
    </div>
 </nav>
 <hr>
@@ -50,21 +52,25 @@
   <input id="age" type="number" placeholder="Âge"><br>
   <input id="ville" placeholder="Ville"><br>
   <textarea id="bio" placeholder="Ta bio..."style="width: 100%; height: 100px;"></textarea><br>
-  <input id="interests" placeholder="Centres d’intérêt (sport, musique...)"style="width: 100%;"><br>
-  <select id="lookingFor">
+  <select id="lookingFor" style="width: 100%;">
    <option value=""style="width: 100%;">Je cherche...</option>
    <option value="amour"style="width: 100%;">❤️ Amour</option>
    <option value="amitié"style="width: 100%;">😊 Amitié</option>
    <option value="fun"style="width: 100%;">🔥 Fun</option>
   </select><br><br>
   <input type="file" id="photoInput" multiple><br><br>
-   <img id="preview" width="200" style="display:none"><br>
    <br>
-   <br>
-   <button onclick="saveProfile()">Enregistrer</button>
-
+      <button onclick="saveProfile()">Enregistrer</button>
+<img id="preview" style="width:120px;border-radius:50%;margin-top:10px;">
  </div>
 </div>
 
 </body>
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadMyProfile();
+});
+
+</script>
 </html>

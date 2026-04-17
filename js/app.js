@@ -1,621 +1,487 @@
+// =============================
+// APP.JS — VERSION PRO COMPLETE
+// =============================
+
 let currentUser = null;
 let currentChatUser = null;
-
+let isUserPremium = false;
+let dailyLikes = 0;
+// =============================
 // INIT
+// =============================
 async function init(){
+  const { data } = await supabaseClient.auth.getUser();
 
- const { data } = await supabaseClient.auth.getUser();
+  if(!data.user){
+    window.location.href = "auth.html";
+    return;
+  }
 
- if(!data.user){
-  window.location.href = "auth.html";
-  return;
- }
+  currentUser = data.user;
 
- currentUser = data.user;
+  // ✅ CHECK BAN
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("banned")
+    .eq("id", currentUser.id)
+    .single();
 
- loadProfiles();
+  if(profile?.banned){
+    alert("🚫 Compte banni");
+    await logout();
+    return;
+  }
+
+  await checkPremium();
+  await updateOnlineStatus();
+  setupRealtime();
+  loadProfiles();
 }
 
-init();
+document.addEventListener("DOMContentLoaded", init);
 
-// LOAD PROFILES
+// =============================
+// REALTIME (messages + profiles + matches)
+// =============================
+function setupRealtime(){
+  // nouveaux messages
+  supabaseClient
+    .channel('messages-live')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages'
+    }, payload => {
+      const msg = payload.new;
+
+      if(
+        currentChatUser &&
+        ((msg.from_user === currentUser.id && msg.to_user === currentChatUser) ||
+        (msg.to_user === currentUser.id && msg.from_user === currentChatUser))
+      ){
+        displayMessage(msg);
+      }
+    })
+    .subscribe();
+
+  // nouveaux matchs
+  supabaseClient
+    .channel('matches-live')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'matches'
+    }, payload => {
+      if(payload.new.user2 === currentUser.id){
+        showToast("💘 Nouveau match !");
+      }
+    })
+    .subscribe();
+}
+
+// =============================
+// ONLINE STATUS
+// =============================
+async function updateOnlineStatus(){
+  if(!currentUser) return;
+
+  await supabaseClient
+    .from("profiles")
+    .update({ last_seen: new Date().toISOString() })
+    .eq("id", currentUser.id);
+}
+
+setInterval(updateOnlineStatus, 15000);
+
+function getStatus(user){
+  if(!user.last_seen) return "⚫ Hors ligne";
+
+  const diff = (new Date() - new Date(user.last_seen)) / 1000;
+
+  if(diff < 60) return "🟢 En ligne";
+  if(diff < 300) return "🟡 Actif";
+
+  return "⚫ Hors ligne";
+}
+
+// =============================
+// LOAD PROFILES + SWIPE
+// =============================
 async function loadProfiles(){
+  const grid = document.getElementById("profilesGrid");
+  if(!grid) return;
 
- const ville = document.getElementById("searchVille").value;
- const ageRange = document.getElementById("searchAge").value;
+  grid.innerHTML = "";
 
- let query = supabaseClient
-  .from('profiles')
-  .select('*')
-  .neq('id', currentUser.id);
+const { data: existing } = await supabaseClient
+  .from("likes")
+  .select("*")
+  .eq("from_user", currentUser.id)
+  .eq("to_user", targetId);
 
- if(ville){
-  query = query.ilike('ville', `%${ville}%`);
- }
+if(existing.length > 0){
+  return;
+}
 
- const { data } = await query;
+  if(!data) return;
 
- const grid = document.getElementById("profilesGrid");
- grid.innerHTML = "";
+  const me = data.find(u => u.id === currentUser.id);
 
- data.forEach(u => {
+  data.sort((a,b)=> computeMatchScore(me,b) - computeMatchScore(me,a));
 
+  data.forEach(user => {
+    const card = createSwipeCard(user);
+    grid.appendChild(card);
+  });
+}
+
+// =============================
+// SWIPE SYSTEM (Tinder-like)
+// =============================
+function createSwipeCard(user){
   const card = document.createElement("div");
-  card.className = "profile-card";
+  card.className = "card swipe-card";
 
-  card.innerHTML = `
-   <img src="${u.photo_url || 'https://picsum.photos/300'}">
-   <h3>${u.prenom}</h3>
-   <p>${u.age || ""} ans</p>
-   <p>${u.ville || ""}</p>
-  `;
+card.innerHTML = `
+  <img src="${user.photo_url || 'https://picsum.photos/300'}">
+  <div class="card-content">
+    <h3>${user.prenom}</h3>
+    <p>${user.age || ''} ans • ${user.ville || ''}</p>
+    <p class="bio">${user.bio || ''}</p>
+    ${user.premium ? '<span class="premium">💎 Premium</span>' : ''}
 
-  card.onclick = () => openProfile(u);
-
-  grid.appendChild(card);
- });
-}
-
-function openProfile(user){
-
- const modal = document.getElementById("profileModal");
-
- modal.style.display = "flex";
-
- modal.innerHTML = `
-  <div class="modal-content">
-
-   <img src="${user.photo_url}" style="width:100%;border-radius:10px">
-
-   <h2>${user.prenom}</h2>
-   <p>${user.age} ans - ${user.ville}</p>
-
-   <p>${user.bio || ""}</p>
-
-   <button onclick="likeUser('${user.id}')">❤️ Like</button>
-   <button onclick="openChat('${user.id}')">💬 Message</button>
-
-   <button onclick="closeModal()">❌</button>
-
+    <div class="actions">
+      <button onclick="likeUser('${user.id}')">❤️</button>
+      <button onclick="openChat('${user.id}')">💬</button>
+    </div>
   </div>
-  ${user.premium ? "💎 Premium" : ""}
- `;
- data.sort((a,b)=> 
- computeMatchScore(currentUserProfile, b) -
- computeMatchScore(currentUserProfile, a)
-);
-if(!data.user){
-  window.location.href = "auth.html";
-}
-}
+`;
 
+  let startX = 0;
 
-function closeModal(){
- document.getElementById("profileModal").style.display = "none";
-}
-// LIKE
-async function likeUser(targetId){
-
- const { data } = await supabaseClient.auth.getUser();
- const user = data.user;
-
- await supabaseClient.from('likes').insert({
-  from_user: user.id,
-  to_user: targetId
- });
-
- alert("❤️ Like envoyé");
-}
-
- // 2. vérifier si match
- const { data } = await supabaseClient
-  .from('likes')
-  .select('*')
-  .eq('from_user', targetId)
-  .eq('to_user', currentUser.id);
-
- if(data.length > 0){
-
-  // MATCH 🎉
-  await supabaseClient.from('matches').insert({
-   user1: currentUser.id,
-   user2: targetId
+  card.addEventListener("touchstart", e => {
+    startX = e.touches[0].clientX;
   });
 
-  alert("💘 MATCH !");
- }
+  card.addEventListener("touchmove", e => {
+    let moveX = e.touches[0].clientX - startX;
+    card.style.transform = `translateX(${moveX}px) rotate(${moveX/10}deg)`;
+  });
+
+  card.addEventListener("touchend", async e => {
+    let diff = e.changedTouches[0].clientX - startX;
+
+    if(diff > 100){
+      await likeUser(user.id);
+      card.remove();
+    }
+    else if(diff < -100){
+      card.remove();
+    }
+    else{
+      card.style.transform = "";
+    }
+  });
+
+  card.onclick = () => openProfile(user);
+
+  return card;
+}
+
+// =============================
+// MATCH SCORE
+// =============================
+function computeMatchScore(me, user){
+  if(!me) return 0;
+
+  let score = 0;
+
+  if(me.ville === user.ville) score += 30;
+
+  if(me.age && user.age){
+    const diff = Math.abs(me.age - user.age);
+    score += Math.max(0, 30 - diff * 2);
+  }
+
+  if(me.bio && user.bio){
+    const a = me.bio.toLowerCase().split(" ");
+    const b = user.bio.toLowerCase().split(" ");
+    const overlap = a.filter(w => b.includes(w));
+    score += overlap.length * 2;
+  }
+
+  return Math.min(100, score);
+}
+
+// =============================
+// PROFILE MODAL
+// =============================
+function openChat(userId){
   if(!isUserPremium){
-  alert("💎 Premium requis pour liker sans limite");
- }
-
- await supabaseClient.from('likes').insert({
-  from_user: currentUser.id,
-  to_user: id
- });
-
-
-  //JS SWIPE
-
-function enableSwipe(card, userId){
-
- let startX = 0;
-
- card.addEventListener("touchstart", e => {
-  startX = e.touches[0].clientX;
- });
-
- card.addEventListener("touchmove", e => {
-  let moveX = e.touches[0].clientX - startX;
-  card.style.transform = `translateX(${moveX}px) rotate(${moveX/10}deg)`;
- });
-
- card.addEventListener("touchend", async e => {
-
-  let endX = e.changedTouches[0].clientX;
-  let diff = endX - startX;
-
-  if(diff > 100){
-   // LIKE
-   await likeUser(userId);
-   card.remove();
+    alert("💎 Premium requis pour discuter");
+    return;
   }
-  else if(diff < -100){
-   // PASS
-   card.remove();
-  }
-  else{
-   card.style.transform = "";
-  }
- });
- if(diff > 50){
- card.style.background = "#d4edda"; // vert
-}
-if(diff < -50){
- card.style.background = "#f8d7da"; // rouge
-}
+
+  currentChatUser = userId;
+
+  document.getElementById("chatInterface").style.display = "block";
+
+  loadMessages();
 }
 
-
-function createSwipeCard(user){
-
- const card = document.createElement("div");
- card.className = "card swipe-card";
-
- card.innerHTML = `
-  <img src="${user.photo_url || 'https://picsum.photos/400'}">
-  <h2>${user.prenom}</h2>
- `;
-
- let startX = 0;
- let currentX = 0;
- let velocity = 0;
-
- card.addEventListener("touchstart", e => {
-  startX = e.touches[0].clientX;
- });
-
- card.addEventListener("touchmove", e => {
-
-  currentX = e.touches[0].clientX - startX;
-  velocity = currentX;
-
-  card.style.transform =
-   `translateX(${currentX}px) rotate(${currentX/12}deg)`;
-
-  // feedback visuel
-  if(currentX > 80){
-   card.classList.add("like");
-   card.classList.remove("nope");
-  }
-  else if(currentX < -80){
-   card.classList.add("nope");
-   card.classList.remove("like");
-  }
-
- });
-
- card.addEventListener("touchend", async () => {
-
-  // inertie réaliste
-  if(currentX > 120){
-   card.style.transform = "translateX(1000px) rotate(30deg)";
-   await likeUser(user.id);
-   card.remove();
-  }
-  else if(currentX < -120){
-   card.style.transform = "translateX(-1000px) rotate(-30deg)";
-   card.remove();
-  }
-  else{
-   // retour smooth
-   card.style.transition = "transform 0.3s ease";
-   card.style.transform = "";
-  }
-
- });
-
- return card;
-}
-// 🔔 MATCH LIVE
-supabaseClient
- .channel('matches-live')
- .on('postgres_changes', {
-  event: 'INSERT',
-  schema: 'public',
-  table: 'matches'
- }, payload => {
-
-  if(payload.new.user2 === currentUser.id){
-   showToast("💘 Nouveau match !");
-  }
-
- })
- .subscribe();
-
-
-// 💬 MESSAGE LIVE
-supabaseClient
- .channel('messages-live')
- .on('postgres_changes', {
-  event: 'INSERT',
-  schema: 'public',
-  table: 'messages'
- }, payload => {
-
-  if(payload.new.to_user === currentUser.id){
-   showToast("💬 Nouveau message !");
-   loadMessages(); // refresh auto
-  }
-
- })
- .subscribe();
-
-// notification toast
- function showToast(text){
-
- const toast = document.createElement("div");
-
- toast.innerText = text;
- toast.style = `
- position:fixed;
- bottom:20px;
- left:50%;
- transform:translateX(-50%);
- background:rgba(0,0,0,0.7);
- color:white;
- padding:12px 20px;
- border-radius:20px;
- backdrop-filter: blur(10px);
- `;
-
- document.body.appendChild(toast);
-
- setTimeout(()=> toast.remove(), 3000);
+function closeModal(){
+  const modal = document.getElementById("profileModal");
+  if(modal) modal.style.display = "none";
 }
 
-// CHAT
-function openChat(id){
-
- if(!isUserPremium){
-  alert("💎 Passe Premium pour discuter");
-  return;
- }
-
- currentChatUser = id;
- loadMessages();
+// =============================
+// LIKE + MATCH
+// =============================
+async function likeUser(targetId){
+if(!isUserPremium){
+  if(dailyLikes >= 5){
+    alert("💎 Passe Premium pour plus de likes");
+    return;
+  }
+  dailyLikes++;
 }
-function subscribeMessages(){
 
- supabaseClient
-  .channel('chat-' + currentChatUser)
-  .on('postgres_changes', {
-   event: 'INSERT',
-   schema: 'public',
-   table: 'messages'
-  }, payload => {
+  await supabaseClient.from("likes").insert({
+    from_user: currentUser.id,
+    to_user: targetId
+  });
 
-   const m = payload.new;
+  checkMatch(targetId);
+}
 
-   if(
-    (m.from_user === currentUser.id && m.to_user === currentChatUser) ||
-    (m.to_user === currentUser.id && m.from_user === currentChatUser)
-   ){
-    displayMessage(m);
-   }
+async function checkMatch(targetId){
+  const { data } = await supabaseClient
+    .from("likes")
+    .select("*")
+    .eq("from_user", targetId)
+    .eq("to_user", currentUser.id);
 
-  })
-  .subscribe();
+  if(data.length > 0){
+    await supabaseClient.from("matches").insert({
+      user1: currentUser.id,
+      user2: targetId
+    });
+
+    showToast("💘 MATCH !");
+  }
+}
+const { data: matchExist } = await supabaseClient
+  .from("matches")
+  .select("*")
+  .or(`and(user1.eq.${currentUser.id},user2.eq.${targetId}),and(user1.eq.${targetId},user2.eq.${currentUser.id})`);
+
+if(matchExist.length > 0) return;
+
+// =============================
+// CHAT + TYPING
+// =============================
+function openChat(userId){
+  if(!isUserPremium){
+  alert("💎 Premium pour likes illimités");
+}
+  currentChatUser = userId;
+  loadMessages();
+}
+
+async function loadMessages(){
+  const box = document.getElementById("chatBox");
+  if(!box) return;
+
+  box.innerHTML = "";
+
+  const { data, error } = await supabaseClient
+    .from("messages")
+    .select("*")
+    .or(`and(from_user.eq.${currentUser.id},to_user.eq.${currentChatUser}),and(from_user.eq.${currentChatUser},to_user.eq.${currentUser.id})`)
+    .order("created_at", { ascending: true });
+
+  if(error) return console.error(error);
+
+  data.forEach(displayMessage);
 }
 
 function displayMessage(m){
+  const box = document.getElementById("chatBox");
 
- const div = document.createElement("div");
+  const div = document.createElement("div");
+  div.className = m.from_user === currentUser.id ? "me" : "other";
+  div.innerText = m.text;
 
- const me = m.from_user === currentUser.id;
-
- div.className = "msg " + (me ? "me" : "other");
-
- div.innerText = m.text;
-
- document.getElementById("chatBox").appendChild(div);
+  box.appendChild(div);
 }
 
 async function sendMessage(){
+  const input = document.getElementById("msgInput");
+  if(!input || !currentChatUser) return;
 
- const text = document.getElementById("msgInput").value;
+  const text = input.value;
+if(!text.trim()) return;
 
- await supabaseClient.from('messages').insert({
-  from_user: currentUser.id,
-  to_user: currentChatUser,
-  text
- });
+  await supabaseClient.from("messages").insert({
+    from_user: currentUser.id,
+    to_user: currentChatUser,
+    text
+  });
+const spamWords = ["crypto", "invest", "bitcoin", "cashapp"];
 
- document.getElementById("msgInput").value = "";
+if(spamWords.some(w => text.toLowerCase().includes(w))){
+  await supabaseClient
+    .from("profiles")
+    .update({
+      fake_score: 80,
+      is_suspect: true
+    })
+    .eq("id", currentUser.id);
 
- loadMessages();
+  alert("🚨 Message suspect détecté");
 }
 
-// LOGOUT
-async function logout(){
- await supabaseClient.auth.signOut();
- window.location.href = "auth.html";
+  input.value = "";
 }
 
-// SYSTÈME PREMIUM
+// =============================
+// TOAST
+// =============================
+function showToast(text){
+  const div = document.createElement("div");
 
-//limiter à 10 likes par jour pour les non-premium
-async function canLike(){
+  div.innerText = text;
+  div.style = `
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    background:black;
+    color:white;
+    padding:10px 20px;
+    border-radius:20px;
+  `;
 
- const { data } = await supabaseClient
-  .from('likes')
-  .select('*')
-  .eq('from_user', currentUser.id);
+  document.body.appendChild(div);
 
- return data.length < 10;
+  setTimeout(()=> div.remove(), 3000);
 }
-if(!(await canLike())){
- alert("💎 Passe Premium !");
- return;
-}
 
-if(!isUserPremium){
- alert("💎 Premium requis pour discuter");
- return;
-}
+// =============================
+// PREMIUM
+// =============================
+async function checkPremium(){
+  const { data } = await supabaseClient
+    .from("profiles")
+    .select("premium, premium_until")
+    .eq("id", currentUser.id)
+    .single();
+
+  if(!data) return;
+
+  const now = new Date();
+
+ if(data.premium && data.premium_until){
+  const expire = new Date(data.premium_until);
+
+  if(expire > now){
+    isUserPremium = true;
+  } else {
+    // abonnement expiré → reset
+    await supabaseClient
+      .from("profiles")
+      .update({ premium: false })
+      .eq("id", currentUser.id);
+
+    isUserPremium = false;
+  }
+  }
 
 async function buyPremium(){
 
- const user = (await supabaseClient.auth.getUser()).data.user;
+  if(isUserPremium){
+    alert("Déjà premium");
+    return;
+  }
 
- const res = await fetch("http://localhost:3000/create-checkout-session",{
-  method:"POST",
-  headers:{ "Content-Type":"application/json" },
-  body: JSON.stringify({
-   userId: user.id,
-   email: user.email
-  })
- });
+  // simulation paiement
+  const confirmPay = confirm("Payer 10€ pour Premium ?");
 
- const data = await res.json();
+  if(!confirmPay) return;
 
- window.location.href = data.url;
-}
+  const { data } = await supabaseClient.auth.getUser();
 
-// UPLOAD PHOTOS
-async function uploadPhotos(){
-
- const files = document.getElementById("photos").files;
- const user = (await supabaseClient.auth.getUser()).data.user;
-
- let urls = [];
-
- for(const file of files){
-
-  const name = user.id + "_" + Date.now() + "_" + file.name;
-
-  await supabaseClient.storage
-   .from('photos')
-   .upload(name, file);
-
-  const { data } = supabaseClient.storage
-   .from('photos')
-   .getPublicUrl(name);
-
-  urls.push(data.publicUrl);
- }
-
- // sauvegarde en DB
- await supabaseClient
-  .from('profiles')
-  .update({ photos: urls })
-  .eq('id', user.id);
-
- alert("📸 Photos upload !");
-}
-// AUTRES FONCTIONS
-function computeMatchScore(me, user){
-
- let score = 0;
-
- // 🎯 distance (ville)
- if(me.ville === user.ville) score += 25;
-
- // 🎯 âge
- if(me.age && user.age){
-  const diff = Math.abs(me.age - user.age);
-  score += Math.max(0, 25 - diff * 2);
- }
-
- // 🎯 intérêts
- if(me.interests && user.interests){
-  const common = me.interests.filter(i =>
-   user.interests.includes(i)
-  );
-  score += common.length * 10;
- }
-
- // 🎯 bio similaire (texte)
- if(me.bio && user.bio){
-  const wordsA = me.bio.toLowerCase().split(" ");
-  const wordsB = user.bio.toLowerCase().split(" ");
-
-  const overlap = wordsA.filter(w => wordsB.includes(w));
-  score += overlap.length * 2;
- }
-
- // 🎯 bonus premium
- if(user.premium) score += 5;
-
- return Math.min(100, Math.round(score));
-}
-const percent = computeMatchScore(currentUserProfile, u);
-
-card.innerHTML += `<p>💘 ${percent}% match</p>`;
-
-// INDICATEUR DE TYPING
-document.getElementById("msgInput")
- .addEventListener("input", async () => {
-
- await supabaseClient
-  .from('typing')
-  .upsert({
-   user_id: currentUser.id,
-   to_user: currentChatUser,
-   typing: true
+  const res = await fetch("https://www.paypal.com/ncp/payment/DAZH6Y75U8WJA/create-order", {  
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      user_id: data.user.id
+    })
   });
-});
 
-// reset typing status every 5s
-supabaseClient
- .channel('typing-live')
- .on('postgres_changes', {
-  event: 'UPDATE',
-  schema: 'public',
-  table: 'typing'
- }, payload => {
+  const result = await res.json();
 
-  if(payload.new.to_user === currentUser.id){
-   document.getElementById("typingIndicator").innerText =
-    "✍️ En train d’écrire...";
+  if(result.success){
+    alert("💎 Paiement réussi !");
+    location.reload();
+  } else {
+    alert("Erreur paiement");
   }
-
- })
- .subscribe();
-
- // reset typing status after 2s of inactivity
- setTimeout(async () => {
-
- await supabaseClient
-  .from('typing')
-  .update({ typing:false })
-  .eq('user_id', currentUser.id);
-
-}, 2000);
-
-// CHECK PREMIUM STATUS
-let isUserPremium = false;
-
-async function checkPremium(){
-
- const user = (await supabaseClient.auth.getUser()).data.user;
-
- const { data } = await supabaseClient
-  .from('profiles')
-  .select('premium, premium_until')
-  .eq('id', user.id)
-  .single();
-
- if(!data) return;
-
- const now = new Date();
-
- if(data.premium && (!data.premium_until || new Date(data.premium_until) > now)){
-  isUserPremium = true;
- } else {
-  isUserPremium = false;
- }
 }
-fetch("http://localhost:3000/verify-paypal",{
- method:"POST",
- headers:{ "Content-Type":"application/json" },
- body: JSON.stringify({
-  subscriptionID: data.subscriptionID,
-  userId: currentUser.id
- })
-});
-// ADMIN - REVENUE DASHBOARD
-async function loadRevenue(){
 
- const { data } = await supabaseClient
-  .from('payments')
-  .select('*');
-
- let total = 0;
- let today = 0;
-
- const todayDate = new Date().toDateString();
-
- data.forEach(p => {
-  total += p.amount;
-
-  if(new Date(p.created_at).toDateString() === todayDate){
-   today += p.amount;
-  }
- });
-
- document.getElementById("totalRevenue").innerText =
-  "💰 Total: " + total + "€";
-
- document.getElementById("todayRevenue").innerText =
-  "🔥 Aujourd’hui: " + today + "€";
-}
-// PAYPAL WEBHOOK
-onApprove: function(data) {
-
- fetch("http://localhost:3000/verify-paypal",{
-  method:"POST",
-  headers:{ "Content-Type":"application/json" },
-  body: JSON.stringify({
-   subscriptionID: data.subscriptionID,
-   userId: currentUser.id
-  })
- });
-
- alert("💎 Premium activé !");
-}
-// CHECK PREMIUM STATUS ON LOAD
-checkPremium();
-if(isUserPremium){
- document.body.insertAdjacentHTML("afterbegin",
-  "<div style='position:fixed;top:10px;right:10px'>💎 Premium</div>"
- );
-}
-// SIGNALER UN PROFIL
+// =============================
+// REPORT
+// =============================
 async function reportUser(userId){
+  const reason = prompt("Pourquoi signaler ?");
+  if(!reason) return;
 
- const reason = prompt("Pourquoi signaler ce profil ?");
+  await supabaseClient.from("reports").insert({
+    from_user: currentUser.id,
+    reported_user: userId,
+    reason
+  });
 
- if(!reason) return;
-
- await supabaseClient.from('reports').insert({
-  from_user: currentUser.id,
-  reported_user: userId,
-  reason
- });
-
- alert("🚨 Signalement envoyé");
+  showToast("🚨 Signalement envoyé");
 }
-// ADMIN - ALERTES DE SIGNALEMENTS
-supabaseClient
- .channel('reports-live')
- .on('postgres_changes', {
-  event: 'INSERT',
-  schema: 'public',
-  table: 'reports'
- }, payload => {
 
-  showAdminAlert("🚨 Nouveau signalement !");
-  loadReports(); // refresh auto
-autoBanCheck();
- })
- .subscribe();
+// =============================
+// LOGOUT
+// =============================
+async function logout(){
+  await supabaseClient.auth.signOut();
+  window.location.href = "auth.html";
+}
+
+
+async function analyzeProfile(user){
+
+  let score = 0;
+
+  if(!user.photo_url) score += 30;
+  if(!user.bio) score += 20;
+  if(!user.age) score += 10;
+
+  // mots suspects
+  const suspiciousWords = ["crypto", "bitcoin", "onlyfans", "telegram", "argent"];
+
+  if(user.bio){
+    const bio = user.bio.toLowerCase();
+
+    suspiciousWords.forEach(word => {
+      if(bio.includes(word)) score += 40;
+    });
+  }
+
+  // update DB
+  await supabaseClient
+    .from("profiles")
+    .update({
+      fake_score: score,
+      is_suspect: score > 60
+    })
+    .eq("id", user.id);
+}
+  }

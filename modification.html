@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔥 App rencontre</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="favicon.ico">
+<!-- JS -->
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/profile-clean.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+<!  -- NAV -->
+<nav>
+    <ul>
+  <li><a href="index.html">Accueil</a></li>
+  <li><a href="profile.html">Mon profil</a></li>
+  <li><a href="pageDesProfils.html" onclick="loadProfile()">Recherche</a></li>
+  <li><a href="premiumPage.html">Premium</a></li>
+  <button id="authBtn" onclick="goToAuth()">Se connecter</button>
+<button id="logoutBtn" onclick="logout()" style="display:none;">Se déconnecter</button>
+  <a href="app.html" id="chatBtn" style="display:none" onclick="showPage('chatPage')">💬</a>
+ <button onclick="window.location.href='adminPage.html'"">⚙️ Admin</button>
+  </ul>
+    <div class="logo">
+    <img src="images/logo.png" width="400">
+   </div>
+</nav>
+
+<hr>
+<div class="profile-container">
+
+  <!-- VIEW MODE -->
+  <div id="profileView" class="profile-card">
+
+    <img id="viewPhoto" class="profile-photo">
+
+    <h2 id="viewName"></h2>
+    <p id="viewAgeVille"></p>
+
+    <p id="viewBio" class="bio"></p>
+    <p id="viewLooking"></p>
+
+    <button onclick="enableEdit()">✏️ Modifier</button>
+
+  </div>
+
+  <!-- EDIT MODE -->
+  <div id="profileEdit" class="profile-card" style="display:none;">
+
+    <h3>Modifier mon profil</h3>
+
+    <input id="prenom" placeholder="Prénom">
+    <input id="nom" placeholder="Nom">
+    <input id="age" type="number" placeholder="Âge">
+    <input id="ville" placeholder="Ville">
+
+    <textarea id="bio" placeholder="Ta bio..."></textarea>
+
+    <select id="lookingFor">
+      <option value="">Je cherche...</option>
+      <option value="amour">❤️ Amour</option>
+      <option value="amitié">😊 Amitié</option>
+      <option value="fun">🔥 Fun</option>
+    </select>
+
+    <input type="file" id="photoInput">
+    <img id="preview">
+
+    <button onclick="saveProfile()">💾 Enregistrer</button>
+    <button onclick="cancelEdit()">❌ Annuler</button>
+
+  </div>
+
+</div>
