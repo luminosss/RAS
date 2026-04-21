@@ -6,17 +6,11 @@
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
-
   <!-- JS -->
-<!-- 1. Supabase AVANT -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- 2. config -->
 <script src="js/config.js"></script>
-
-<!-- 3. tes scripts -->
 <script src="js/auth.js" defer></script>
-<script src="js/app.js" defer></script>
+<script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
 <script src="js/profile-clean.js" defer></script>
 </head>
 
@@ -30,12 +24,18 @@
     <li><a href="premiumPage.html">Premium</a></li>
   </ul>
 
-  <button id="authBtn" onclick="goToAuth()">Se connecter</button>
-  <button id="logoutBtn" onclick="logout()" style="display:none;">Se déconnecter</button>
 </nav>
+<center>
+<button id="authBtn" onclick="login()">Se connecter</button>
+<button id="logoutBtn" style="display:none;" onclick="logout()">Se déconnecter</button>
+  <a href="auth.html">Compte</a>
+</center>
 <hr>
 <div id="profiles"></div>
-
+<div style="text-align:center;padding:40px">
+  <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
+  <hr>
+   <br>
 <h2>Connexion / Inscription</h2>
  <br>
 <input id="email" placeholder="Email">
@@ -44,6 +44,16 @@
 <button onclick="register()">S’inscrire</button>
 <button onclick="login()">Connexion</button>
 
+<button onclick="deleteAccount()">Delete Compte</button>
+</div>
 
+<script>document.addEventListener("DOMContentLoaded", () => {
+  redirectIfLogged();
+  updateAuthUI();
+});
+document.body.style.visibility = "visible";
+
+
+</script>
 </body>
 </html>

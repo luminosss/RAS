@@ -1,129 +1,81 @@
 // =============================
-// AUTH.JS — VERSION CLEAN
+// AUTH.JS CLEAN FIX
 // =============================
 
-// =============================
 // REGISTER
-// =============================
 async function register(){
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
 
+  if(password !== confirmPassword){
+    alert("Les mots de passe ne correspondent pas");
+    return;
+  }
   if(!email || !password){
     alert("Remplis tous les champs");
     return;
   }
 
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password
-  });
+  const { data, error } = await supabaseClient.auth.signUp({ email, password });
 
   if(error){
     alert("❌ " + error.message);
     return;
   }
-
-  // créer profil de base
-  if(data.user){
-    await supabaseClient.from("profiles").insert({
-      id: data.user.id,
-      prenom: "",
-      created_at: new Date().toISOString()
-    });
-  }
-
   alert("✅ Compte créé !");
   window.location.href = "profile.html";
 }
 
-// =============================
 // LOGIN
-// =============================
 async function login(){
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
 
-  if(!email || !password){
+
+  if(!emailInput || !passwordInput ){
+    console.error("Champs introuvables");
+    return;
+  }
+
+  const email = emailInput.value;
+  const password = passwordInput.value;
+
+
+  if(!email || !password ){
     alert("Remplis tous les champs");
     return;
   }
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
+  const { error } = await supabaseClient.auth.signInWithPassword({
     email,
     password
   });
 
   if(error){
-    alert("❌ " + error.message);
+    alert(error.message);
     return;
   }
 
-  alert("✅ Connecté !");
   window.location.href = "profile.html";
 }
-
-// =============================
 // LOGOUT
-// =============================
 async function logout(){
   await supabaseClient.auth.signOut();
-  alert("👋 Déconnecté");
+  // redirection vers la page d'accueil ou de connexion
   window.location.href = "auth.html";
+
 }
-
 // =============================
-// CHECK SESSION (auto redirect)
-// =============================
-async function checkUser(){
-  const { data } = await supabaseClient.auth.getUser();
-
-  // ❌ on bloque plus l'accès à auth.html
-  // ✔ on affiche juste info console
-  if(data.user){
-    console.log("Utilisateur déjà connecté");
-  }
-}
-
-// =============================
-// PASSWORD RESET (bonus)
-// =============================
-async function resetPassword(){
-  const email = document.getElementById("email").value;
-
-  if(!email){
-    alert("Entre ton email");
-    return;
-  }
-
-  const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
-
-  if(error){
-    alert("❌ " + error.message);
-    return;
-  }
-
-  alert("📩 Email de réinitialisation envoyé !");
-}
-
-
+// MATCHES PAGE
+// =============================  
 function goToAuth(){
   window.location.href = "auth.html";
 }
-// UI UPDATE (au chargement)
-// =============================
-updateAuthUI();
 
 // =============================
-// LISTENER AUTH (TRÈS IMPORTANT)
+// UI UPDATE
 // =============================
-
-supabaseClient.auth.onAuthStateChange((event, session) => {
-  console.log("Auth change:", event);
-  updateAuthUI();
-});
-
-let isUIReady = false;
 let loading = false;
 
 async function updateAuthUI(){
@@ -135,42 +87,30 @@ async function updateAuthUI(){
 
   const authBtn = document.getElementById("authBtn");
   const logoutBtn = document.getElementById("logoutBtn");
-  const userBox = document.getElementById("userBox");
 
-  if(!authBtn || !logoutBtn || !userBox){
+  if(!authBtn || !logoutBtn){
     loading = false;
     return;
   }
 
   if(user){
-    const { data: profile } = await supabaseClient
-      .from("profiles")
-      .select("prenom, photo_url")
-      .eq("id", user.id)
-      .single();
-
     authBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
-    userBox.style.display = "flex";
-
-    document.getElementById("navName").innerText =
-      profile?.prenom || "Utilisateur";
-
-    document.getElementById("navAvatar").src =
-      profile?.photo_url || "https://via.placeholder.com/40";
-
   } else {
     authBtn.style.display = "inline-block";
     logoutBtn.style.display = "none";
-    userBox.style.display = "none";
   }
 
-  console.log("updateAuthUI called");
-console.log("user =", user);
+  // 👇 affichage FINAL (anti-clignotement)
+  document.body.style.visibility = "visible";
 
   loading = false;
 }
-document.addEventListener("DOMContentLoaded", () => {
+
+// ✅ EN DEHORS
+supabaseClient.auth.onAuthStateChange(() => {
   updateAuthUI();
-  
 });
+
+document.addEventListener("DOMContentLoaded", updateAuthUI);
+

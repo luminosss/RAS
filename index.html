@@ -7,17 +7,13 @@
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
-
+<style>
+</style>
   <!-- JS -->
-<!-- 1. Supabase AVANT -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- 2. config -->
 <script src="js/config.js"></script>
-
-<!-- 3. tes scripts -->
-<script src="js/auth.js" defer></script>
-<script src="js/app.js" defer></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
 <script src="js/profile-clean.js" defer></script>
 </head>
 
@@ -29,18 +25,39 @@
     <li><a href="profile.html">Mon profil</a></li>
     <li><a href="pageDesProfils.html">Recherche</a></li>
     <li><a href="premiumPage.html">Premium</a></li>
+    <li><a href="report.html">Signaler un problème</a></li>
+    
+
   </ul>
 
-  <button id="authBtn" onclick="goToAuth()">Se connecter</button>
-  <button id="logoutBtn" onclick="logout()" style="display:none;">Se déconnecter</button>
+
+<div id="userBox" style="display:none;">
+  <img id="navAvatar" width="40" style="border-radius:50%;">
+  <span id="navName"></span>
+</div>
+
 </nav>
-<hr>
+<center>
+<button id="authBtn" onclick="login()">Se connecter</button>
+<button id="logoutBtn" style="display:none;" onclick="logout()">Se déconnecter</button>
+  <a href="auth.html">Compte</a>
+</center>
 <!-- home -->
 <div id="homePage" class="page active">
  <div style="text-align:center;padding:40px">
   <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
+  <hr>
+   <br>
 <div class="box"style="font-size:25px"> Bienvenue !</div>
-  <p>Site de rencontre où vous trouverais votre veritable Amour !</p>
+  <p>        Bienvenue sur notre application de rencontre amoureuse !<br><br>
+    
+        Crée ton profil, découvre des profils compatibles, et trouve l'amour de ta vie ! 💘<br><br>
+    
+        👉 Commence par créer ton profil en cliquant sur "Mon profil" en haut. C'est gratuit et rapide !<br><br>
+    
+        🔥 Pour une expérience optimale, deviens Premium et multiplie tes chances de trouver l'amour !<br><br>
+    
+        Bonne chance dans ta recherche amoureuse ! 🍀</p>
  </div>
 <div class="hero">
  <a href="auth.html" class="btn">Commencer</a>
@@ -56,22 +73,19 @@
    <h2 style="font-size:25px"> Comment ça marche ?</h2>
     <hr>
 <p> Je vous explique c'est tous simple.
-  <br>
-  <br>
-  1) inscrivez-vous et connectez-vous !
-  <br>
-  <br>
-  2) 👤 créer votre profil !
-  <br>
-  <br>
-    3) 👤 visité les profils disponible !
     <br>
-    <br>
+      <br>
+  1. Créer votre profil en complétant vos information et en ajoutant une photo de vous.<br>
+  2. Découvrir les profils des autres célibataires et liker ceux qui vous plaisent.<br>
+  3. Si un profil que vous avez liké vous like aussi, c'est un match ! Vous pourrez alors discuter ensemble et apprendre à mieux vous connaître.<br>
 📢 Pour pouvoir discuté avec les profils faudrat avoir un match avec un autre profil et un abonnement 
 </p>
-</div>
-</div>
-</div>
 
+</div>
+</div>
+</div>
+<script>
+  document.body.style.visibility = "visible";
+</script>
 </body>
 </html>

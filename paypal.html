@@ -6,17 +6,16 @@
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
-
+<style>
+  body {
+    visibility: hidden;
+  }
+</style>
   <!-- JS -->
-<!-- 1. Supabase AVANT -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- 2. config -->
 <script src="js/config.js"></script>
-
-<!-- 3. tes scripts -->
-<script src="js/auth.js" defer></script>
-<script src="js/app.js" defer></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
 <script src="js/profile-clean.js" defer></script>
 </head>
 
@@ -29,10 +28,21 @@
     <li><a href="pageDesProfils.html">Recherche</a></li>
     <li><a href="premiumPage.html">Premium</a></li>
   </ul>
-
-  <button id="authBtn" onclick="goToAuth()">Se connecter</button>
-  <button id="logoutBtn" onclick="logout()" style="display:none;">Se déconnecter</button>
+      
+  <div id="userBox" style="display:none;">
+  <img id="navAvatar" width="40" style="border-radius:50%;">
+  <span id="navName"></span>
+</div>
 </nav>
+<center>
+<button id="authBtn" onclick="login()">Se connecter</button>
+<button id="logoutBtn" style="display:none;" onclick="logout()">Se déconnecter</button>
+  <a href="auth.html">Compte</a>
+</center>
+  <div style="text-align:center;padding:40px">
+  <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
+  <hr>
+  <br
         <script 
   src="https://www.paypal.com/sdk/js?client-id=BAAcwRkEgBGh_RD4Xm5UkO7ZzRHO-nd-3uOJM_2lDV3EbNzCUaO9iFSNQ6NNAtZkZEJ5l7NEiPILhwYJFE&components=hosted-buttons&disable-funding=venmo&currency=EUR">
 </script>
@@ -58,5 +68,15 @@
   }).render('#paypal-button-container-P-35P930338C9428627NHQYFBI'); // Renders the PayPal button
 </script>
 
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const { data } = await supabaseClient.auth.getUser();
+
+  if(!data.user){
+    window.location.href = "auth.html";
+  }
+});
+document.body.style.visibility = "visible";
+</script>
     </body>
 </html>

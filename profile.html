@@ -6,18 +6,18 @@
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
-
+<style>
+  body {
+    visibility: hidden;
+  }
+</style>
   <!-- JS -->
- <!-- 1. Supabase AVANT -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- 2. config -->
 <script src="js/config.js"></script>
-
-<!-- 3. tes scripts -->
-<script src="js/auth.js" defer></script>
-<script src="js/app.js" defer></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
 <script src="js/profile-clean.js" defer></script>
+
 </head>
 
 <body>
@@ -30,48 +30,111 @@
     <li><a href="premiumPage.html">Premium</a></li>
   </ul>
 
-  <button id="authBtn" onclick="goToAuth()">Se connecter</button>
-  <button id="logoutBtn" onclick="logout()" style="display:none;">Se déconnecter</button>
+
+      <div id="userBox" style="display:none;">
+      <img id="navAvatar" width="40" style="border-radius:50%;">
+      <span id="navName"></span>
+</div>
+
 </nav>
+<center>
+<button id="authBtn" onclick="login()">Se connecter</button>
+<button id="logoutBtn" style="display:none;" onclick="logout()">Se déconnecter</button>
+  <a href="auth.html">Compte</a>
+</center>
 <hr>
 <div id="profiles"></div>
 <div id="profilePage" class="page">
 
- <div class="box">
-  <h3>👤 Mon profil</h3>
+<!-- ===================== -->
+<!-- PROFIL -->
+<!-- ===================== -->
 
-  <hr>
-  <br>
-  <p>
-   👉 Complète ton profil pour avoir plus de matchs 💘<br>
-   💡 Plus tu ajoutes d infos, plus l IA te propose de bons profils
-  </p>
-<br>
-  <input id="prenom" placeholder="Prénom"><br>
-  <input id="nom" placeholder="Nom"><br>
-  
-  <input id="age" type="number" placeholder="Âge"><br>
-  <input id="ville" placeholder="Ville"><br>
-  <textarea id="bio" placeholder="Ta bio..."style="width: 100%; height: 100px;"></textarea><br>
-  <select id="lookingFor" style="width: 100%;">
-   <option value=""style="width: 100%;">Je cherche...</option>
-   <option value="amour"style="width: 100%;">❤️ Amour</option>
-   <option value="amitié"style="width: 100%;">😊 Amitié</option>
-   <option value="fun"style="width: 100%;">🔥 Fun</option>
-  </select><br><br>
-  <input type="file" id="photoInput" multiple><br><br>
-   <br>
-      <button onclick="saveProfile()">Enregistrer</button>
-<img id="preview" style="width:120px;border-radius:50%;margin-top:10px;">
- </div>
+<div class="box">
+
+  <div style="text-align:center;padding:40px">
+    <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
+    <hr><br>
+
+    <h3>👤 Mon profil</h3>
+    <hr><br>
+
+    <p>
+      👉 Complète ton profil pour avoir plus de matchs 💘<br>
+      💡 Plus tu ajoutes d’infos, plus l’IA te propose de bons profils
+    </p>
+  </div>
+
+  <!-- 🔵 CREATION -->
+  <div id="profileCreate"style="text-align:center;>
+    <img id="createPhoto" style="width:120px;border-radius:50%; display:block;margin:auto;margin-bottom:20px;">
+    <input id="prenom" placeholder="Prénom"><br>
+    <input id="nom" placeholder="Nom"><br>
+    <input id="age" type="number" placeholder="Âge"><br>
+    <input id="ville" placeholder="Ville"><br>
+    <textarea id="bio" placeholder="Bio"></textarea><br>
+    <input id="photo" type="file"><br>
+    <select id="lookingFor">
+      <option value="">Je cherche...</option>
+      <option value="amour">❤️ Amour</option>
+      <option value="amitié">😊 Amitié</option>
+      <option value="fun">🔥 Fun</option>
+    </select><br><br>
+
+    <button onclick="saveProfile()">💾 Créer mon profil</button>
+  </div>
+
+  <!-- 🟢 VIEW -->
+  <div id="profileView" style="text-align:center;" >
+    <img id="viewPhoto" style="width:120px;border-radius:50%; display:block;margin:auto;margin-bottom:20px">
+    <h2 id="viewName"></h2>
+    <p id="viewAgeVille"></p>
+    <p id="viewBio"></p>
+    <p id="viewLooking"></p>
+    <button onclick="enableEdit()">✏️ Modifier mon profil</button>
+     <br>
+      <button onclick="deleteProfile()">🗑️ Supprimer mon profil</button >
+          <br>
+      <button onclick="adminPanel()">⚠️ Admin</button>
+        <br> 
+       <button onclick="reportIssue()">🚨 Signaler un problème</button>
+  </div>
+
+  <!-- 🟡 EDIT -->
+  <div id="profileEdit" style="display:none;"text-align:center">
+    <input id="edit_prenom" placeholder="prenom"><br>
+    <input id="edit_nom" placeholder="Nom"><br>
+    <input id="edit_age" type="number" placeholder="Age"><br>
+    <input id="edit_ville" placeholder="Ville"><br>
+    <textarea id="edit_bio" placeholder="Bio"></textarea><br>
+    <select id="edit_lookingFor">
+       <option value="">Je cherche...</option>
+      <option value="amour">❤️ Amour</option>
+      <option value="amitié">😊 Amitié</option>
+      <option value="fun">🔥 Fun</option>
+    </select><br><br>
+
+    <button onclick="updateProfile()">💾 Sauvegarder</button>
+  </div>
+
 </div>
 
 </body>
 <script>
+document.addEventListener("DOMContentLoaded", async () => {
 
-document.addEventListener("DOMContentLoaded", () => {
+  const { data } = await supabaseClient.auth.getUser();
+
+  if(!data.user){
+    window.location.href = "auth.html";
+    return;
+  }
+
+  // 🔥 UNE SEULE fonction
   loadMyProfile();
+
 });
 
+  document.body.style.visibility = "visible";
 </script>
 </html>

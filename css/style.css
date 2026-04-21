@@ -4,7 +4,7 @@ body {
   max-width: 700px;
  margin: auto;
   padding-bottom: env(safe-area-inset-bottom);
- background: linear-gradient(-45deg,#ff416c,#ff4b2b,#ff6a88,#ff99ac);
+ background: linear-gradient(-45deg,#d400ff,#f52500);
  background-size: 400% 400%;
  animation: gradient 10s ease infinite;
 }
@@ -19,7 +19,9 @@ body {
  box-sizing: border-box;
  padding: 0;
 } 
-
+a {
+ background: rgb(250, 182, 239);
+}
 a:hover {
   background-color: gold;
 }
@@ -34,9 +36,10 @@ nav {
   justify-content: space-between;
   align-items: center;
   padding: 15px 50px;
-  background: rgb(12, 149, 228);
+  background: rgb(0, 162, 255);
   color: black;
-  border-bottom: 1px solid #eee;
+  border-bottom: 2px solid #dfb7b7;
+
 }
 
 nav ul {
