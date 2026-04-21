@@ -6,14 +6,10 @@
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
-<style>
-  body {
-    visibility: hidden;
-  }
-</style>
+  <!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
-<script src="js/auth.js"></script>
+<script src="js/auth.js" defer></script>
 <script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
 <script src="js/profile-clean.js" defer></script>
 </head>
@@ -28,43 +24,34 @@
     <li><a href="premiumPage.html">Premium</a></li>
   </ul>
 
-  <div id="userBox" style="display:none;">
-  <img id="navAvatar" width="40" style="border-radius:50%;">
-  <span id="navName"></span>
-</div>
 </nav>
    <center>
     <a href="registre.html">Inscription</a>
       <a href="login.html">Connection</a>
 </center>
-<body>
+<hr>
+<div id="profiles"></div>
 <div style="text-align:center;padding:40px">
   <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
+  <hr>
    <br>
-<div class="container">
-  <h1>👑 Admin Dashboard</h1>
+<h2>Connexion</h2>
+ <br>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Mot de passe">
 
-  <h2>👥 Utilisateurs</h2>
-  <div id="usersList"></div>
+<button onclick="login()">Connexion</button>
 
-  <h2>🚨 Signalements</h2>
-  <div id="reportsList"></div>
-
-  <h2>📊 Stats</h2>
-  <div id="stats"></div>
+<button onclick="deleteAccount()">Delete Compte</button>
 </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-  const { data } = await supabaseClient.auth.getUser();
-
-  if(!data.user){
-    window.location.href = "auth.html";
-  }
+<script>document.addEventListener("DOMContentLoaded", () => {
+  redirectIfLogged();
+  updateAuthUI();
 });
-</script>
-<script>
 document.body.style.visibility = "visible";
+
+
 </script>
 </body>
 </html>

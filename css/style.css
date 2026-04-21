@@ -20,7 +20,8 @@ body {
  padding: 0;
 } 
 a {
- background: rgb(250, 182, 239);
+ background: rgb(255, 117, 37);
+   padding: 15px 50px;
 }
 a:hover {
   background-color: gold;

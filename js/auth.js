@@ -24,7 +24,7 @@ async function register(){
     return;
   }
   alert("✅ Compte créé !");
-  window.location.href = "profile.html";
+  window.location.href = "login.html";
 }
 
 // LOGIN
@@ -63,7 +63,7 @@ async function login(){
 async function logout(){
   await supabaseClient.auth.signOut();
   // redirection vers la page d'accueil ou de connexion
-  window.location.href = "auth.html";
+  window.location.href = "registre.html";
 
 }
 // =============================
