@@ -1,5 +1,7 @@
 let cachedUser = null;
 let timeout;
+const PAGE_SIZE = 20;
+let page = 0;
 // =============================
 // AUTH
 // =============================  
@@ -225,10 +227,7 @@ if(window.location.pathname.includes("matches.html")){
   });
 }
 
-let page = 0;
-const PAGE_SIZE = 20;
-
-async function loadProfiles(){
+async function loadMoreProfiles(){
   const { data } = await supabaseClient
     .from("profiles")
     .select("id, prenom, age, ville, photo_url")

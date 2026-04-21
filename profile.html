@@ -65,7 +65,7 @@
   </div>
 
   <!-- 🔵 CREATION -->
-  <div id="profileCreate"style="text-align:center;>
+ <div id="profileCreate" style="text-align:center;">
     <img id="createPhoto" style="width:120px;border-radius:50%; display:block;margin:auto;margin-bottom:20px;">
     <input id="prenom" placeholder="Prénom"><br>
     <input id="nom" placeholder="Nom"><br>
@@ -90,17 +90,16 @@
     <p id="viewAgeVille"></p>
     <p id="viewBio"></p>
     <p id="viewLooking"></p>
+
     <button onclick="enableEdit()">✏️ Modifier mon profil</button>
      <br>
       <button onclick="deleteProfile()">🗑️ Supprimer mon profil</button >
           <br>
-      <button onclick="adminPanel()">⚠️ Admin</button>
         <br> 
-       <button onclick="reportIssue()">🚨 Signaler un problème</button>
   </div>
 
   <!-- 🟡 EDIT -->
-  <div id="profileEdit" style="display:none;"text-align:center">
+ <div id="profileEdit" style="display:none; text-align:center;">
     <input id="edit_prenom" placeholder="prenom"><br>
     <input id="edit_nom" placeholder="Nom"><br>
     <input id="edit_age" type="number" placeholder="Age"><br>
@@ -125,7 +124,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const { data } = await supabaseClient.auth.getUser();
 
   if(!data.user){
-    window.location.href = "auth.html";
+    window.location.href = "index.html";
     return;
   }
 

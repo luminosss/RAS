@@ -43,6 +43,7 @@
   <br>
    
   <h3>🔥 Découvre des profils</h3>
+
 <div id="profilesGrid"></div>
  <div class="box">
   <div id="profiles"></div> 
@@ -77,7 +78,6 @@
     <p id="modalBio"></p>
 
     <div style="display:flex;gap:10px;margin-top:15px">
-    c
       <button onclick="messageFromModal()">💬 Message</button>
     </div>
     </div>
@@ -85,16 +85,12 @@
     <br>
     <button onclick="closeModal()">Fermer</button>
   </div>
-</div>
-</div>
- </div>
-</div>
-
 </body>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   loadMyProfiles();
+    updateAuthUI();
 });
 </script>
 
