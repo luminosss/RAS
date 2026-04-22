@@ -25,7 +25,7 @@ async function loadMyProfile(){
   const { data: { user } } = await supabaseClient.auth.getUser();
  console.log("OK fonction appelée");
   if(!user){
-    window.location.href = "auth.html";
+    window.location.href = "login.html";
     return;
   }
 
@@ -72,6 +72,8 @@ if(!createBox || !viewBox){
   document.getElementById("edit_ville").value = data.ville || "";
   document.getElementById("edit_bio").value = data.bio || "";
   document.getElementById("edit_lookingFor").value = data.looking_for || "";
+  document.getElementById("edit_photo").value = data.photo || "";
+
 }
 
 
@@ -100,6 +102,7 @@ async function updateProfile(){
   const ville = document.getElementById("edit_ville").value;
   const bio = document.getElementById("edit_bio").value;
   const lookingFor = document.getElementById("edit_lookingFor").value;
+
   if(!userData.user){
     alert("Erreur utilisateur");
     return;
@@ -142,6 +145,7 @@ function cancelEdit(){
   document.getElementById("profileView").style.display = "block";
 }
 
+
 // LIKE COUNT
 async function loadLikeCount(){
   const { data: userData } = await supabaseClient.auth.getUser();
@@ -173,7 +177,7 @@ async function deleteAccount(){
   await supabaseClient.from("profiles").delete().eq("id", userData.user.id);
   await supabaseClient.auth.signOut();
   alert("Compte supprimé");
-  window.location.href = "auth.html";
+  window.location.href = "index.html";
 }
 
 // =============================
@@ -210,18 +214,17 @@ async function goToAdmin(){
       nom: edit_nom.value,
       age: edit_age.value,
       ville: edit_ville.value,
-      bio: edit_bio.value,
+      bio: edit_bio.value, 
       lookingfor: edit_lookingFor.value
     })
     .eq("id", user.id);
+    
 
   alert("Profil mis à jour !");
   loadMyProfile();
   cancelEdit();
     }   
 
-
-cancelEdit  
 
 deleteProfile = async () => {
   if(!confirm("Es-tu sûr de vouloir supprimer ton profil ? Cette action est irréversible.")){
@@ -234,7 +237,7 @@ deleteProfile = async () => {
   }
   await supabaseClient.from("profiles").delete().eq("id", user.id);
   alert("Profil supprimé");
-  window.location.href = "profile.html";
+  window.location.href = "index.html";
       } 
 
 adminPanel = async () => {

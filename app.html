@@ -13,7 +13,7 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
-<script src="js/auth.js"></script>
+<script src="js/auth.js" defer></script>
 <script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
 <script src="js/profile-clean.js" defer></script>
 </head>
@@ -90,6 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if(!data.user){
     window.location.href = "index.html";
+    updateAuthUI();
   }
 });
 </script>

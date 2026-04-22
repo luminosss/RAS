@@ -2,19 +2,15 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Page</title>
+  <title>Page creation profil</title>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
-<style>
-  body {
-    visibility: hidden;
-  }
-</style>
+
   <!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
-<script src="js/auth.js"></script>
+<script src="js/auth.js" defer></script>
 <script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
 <script src="js/profile-clean.js" defer></script>
 
@@ -25,7 +21,7 @@
 <nav>
   <ul>
     <li><a href="index.html">Accueil</a></li>
-    <li><a href="profile.html">Mon profil</a></li>
+    <li><a href="profile.html" defer>Mon profil</a></li>
     <li><a href="pageDesProfils.html">Recherche</a></li>
     <li><a href="premiumPage.html">Premium</a></li>
   </ul>
@@ -90,13 +86,8 @@
     <p id="viewAgeVille"></p>
     <p id="viewBio"></p>
     <p id="viewLooking"></p>
-
     <button onclick="enableEdit()">✏️ Modifier mon profil</button>
      <br>
-      <button onclick="deleteProfile()">🗑️ Supprimer mon profil</button >
-          <br>
-        <br> 
-  </div>
 
   <!-- 🟡 EDIT -->
  <div id="profileEdit" style="display:none; text-align:center;">
@@ -111,7 +102,7 @@
       <option value="amitié">😊 Amitié</option>
       <option value="fun">🔥 Fun</option>
     </select><br><br>
-    <button onclick="updateProfile()">💾 Sauvegarder</button>
+   <button onclick="updateProfile()">Sauvegarder</button>
   </div>
 
 </div>
@@ -123,13 +114,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const { data } = await supabaseClient.auth.getUser();
 
   if(!data.user){
-    window.location.href = "index.html";
+    window.location.href = "login.html";
     return;
   }
 
   // 🔥 UNE SEULE fonction
   loadMyProfile();
-
+updateAuthUI();
 });
 
   document.body.style.visibility = "visible";

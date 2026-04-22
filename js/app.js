@@ -2,6 +2,7 @@ let cachedUser = null;
 let timeout;
 const PAGE_SIZE = 20;
 let page = 0;
+
 // =============================
 // AUTH
 // =============================  
@@ -103,6 +104,27 @@ async function likeFromModal(){
   alert("❤️ Like envoyé !");
   closeModal();
 }
+async function likeUser(targetUserId){
+
+  // enregistrer le like
+  await supabaseClient.from("likes").insert({
+    from_user: currentUser.id,
+    to_user: targetUserId
+  });
+
+  // 🔍 vérifier match
+  const { data: existing } = await supabaseClient
+    .from("likes")
+    .select("*")
+    .eq("from_user", targetUserId)
+    .eq("to_user", currentUser.id)
+    .single();
+
+  if(existing){
+    await createMatch(targetUserId);
+    showMatchAnimation();
+  }
+}
 
 function messageFromModal(){
   if(!selectedUser) return;
@@ -165,7 +187,12 @@ async function loadLikesMe(){
     container.appendChild(card);
   });
 }
-
+async function createMatch(userId){
+  await supabaseClient.from("matches").insert({
+    user1: currentUser.id,
+    user2: userId
+  });
+}
 
 async function loadMatches(){
 

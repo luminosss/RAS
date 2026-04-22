@@ -70,7 +70,7 @@ async function logout(){
 // MATCHES PAGE
 // =============================  
 function goToAuth(){
-  window.location.href = "auth.html";
+  window.location.href = "login.html";
 }
 
 // =============================
