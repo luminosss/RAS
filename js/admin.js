@@ -76,13 +76,32 @@ async function loadUsers(){
 // =============================
 // BAN USER
 // =============================
-async function toggleBan(userId, isBanned){
-  await supabaseClient
+async function blockUser(userId){
+  const current = await getUser();
+
+  // 🔒 vérifier admin
+  const { data: me } = await supabaseClient
     .from("profiles")
-    .update({ banned: !isBanned })
+    .select("is_admin")
+    .eq("id", current.id)
+    .single();
+
+  if(!me?.is_admin){
+    alert("Accès refusé");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .update({ is_blocked: true })
     .eq("id", userId);
 
-  loadUsers();
+  if(error){
+    alert("Erreur blocage");
+    return;
+  }
+
+  alert("🚫 Utilisateur bloqué");
 }
 
 // =============================

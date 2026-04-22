@@ -10,9 +10,9 @@
   <!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
+<script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
 <script src="js/auth.js" defer></script>
 <script src="js/profile-clean.js" defer></script>
-<script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
 
 </head>
 
@@ -40,7 +40,16 @@
    
   <h3>🔥 Découvre plusieurs profils :</h3>
 <br>
- 
+ <div class="filters">
+ <select id="searchAge">
+  <option value="">Âge</option>
+  <option value="20-25">20-25</option>
+  <option value="25-35">25-35</option>
+   <option value="35-50">35-50</option>
+ </select>
+ <button onclick="loadProfile()">🔍 Rechercher</button>
+</div>
+
 <div id="profilesGrid"></div>
  <div class="box">
 <div id="profileView" style="display:none">
@@ -57,9 +66,9 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  if (typeof loadProfile === "function") {
+  if (typeof loadProfiles === "function") {
     loadProfiles();
-     loadLikesMe();
+    loadMyProfiles();
   } else {
     console.error("❌ loadProfiles non trouvé");
   }

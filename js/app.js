@@ -11,7 +11,7 @@ let selectedUser = null;
 function searchUsers(value){
   clearTimeout(timeout);
   timeout = setTimeout(() => {
-    loadProfile(value);
+    loadProfiles(value);
   }, 300);
 }
 
@@ -33,20 +33,25 @@ async function loadProfiles() {
   const { data: profiles, error } = await supabaseClient
     .from("profiles")
     .select("*");
+ 
 
   if (error) {
     console.error(error);
     return;
   }
 
+}
+
   const grid = document.getElementById("profilesGrid");
   if(!grid) return;
 
   grid.innerHTML = "";
+  
 
   profiles.forEach(profile => {
     const card = document.createElement("div");
     card.className = "profile-card";
+    
 
 card.innerHTML = `
   <img src="${profile.photo_url || "https://picsum.photos/200"}" alt="photo">
@@ -61,8 +66,11 @@ card.innerHTML = `
   <button onclick="likeUser('${profile.id}')">❤️ Like</button>
 `;
     grid.appendChild(card);
-  });
-}
+    })
+    
+    
+
+
 
 // =============================
 // PROFILE VIEW
@@ -305,7 +313,3 @@ async function loadMatches(){
     grid.appendChild(card);
   });
 }
-
-window.addEventListener("load", () => {
-  loadProfiles();
-});

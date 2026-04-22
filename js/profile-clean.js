@@ -15,7 +15,6 @@ async function loadProfile() {
     .select("*")
     .eq("id", user.id)
     .single();
-    
 
   const createBox = document.getElementById("profileCreate");
   const viewBox = document.getElementById("profileView");
@@ -50,10 +49,6 @@ async function loadProfile() {
 async function saveProfile(){
   const user = await getUser();
 
-  if(!user){
-    alert("Connecte-toi");
-    return;
-  }
 
   const prenom = document.getElementById("prenom").value;
   const nom = document.getElementById("nom").value;
@@ -103,6 +98,10 @@ async function saveProfile(){
     alert("Erreur : " + error.message);
     return;
   }
+    if(!user){
+    alert("Connecte-toi");
+    return;
+  }
 
   alert("✅ Profil mis à jour");
 }
@@ -137,6 +136,7 @@ async function updateProfile(){
 
   alert("✅ Profil modifié !");
 }
+
 // =============================
 // UPDATE photo
 // =============================
@@ -236,7 +236,7 @@ async function adminPanel() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
 
-  const { data: profile } = await supabaseClient
+  const { data: profile } = await supabaseClient()
     .from("profiles")
     .select("is_admin")
     .eq("id", user.id)
@@ -246,18 +246,18 @@ async function adminPanel() {
     alert("Accès refusé");
     return;
   }
-
-  window.location.href = "adminPage.html";
+ window.location.href = "adminPage.html";
+ 
 }
 
 window.addEventListener("load", () => {
-  loadProfiles();
-  
+  loadProfile(); 
 });
+
 // =============================
 // Mon profil
 // =============================
-async function loadMyProfile(){
+async function loadMyProfiles(){
   const user = await getUser();
 
   if(!user) return;

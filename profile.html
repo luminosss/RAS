@@ -53,14 +53,18 @@
 
     <h3>👤 Mon profil</h3>
     <hr><br>
+   
 
     <p>
+    👉  En premier créer votre profil<br>
       👉 Complète ton profil pour avoir plus de matchs 💘<br>
-      💡 Plus tu ajoutes d’infos, plus l’IA te propose de bons profils
+     👉 Plus tu ajoutes d’infos, plus l’IA te propose de bons profils<br>
+         👉 Vous pourrez faire des modifications à tout moment si besoin.<br>
+         Et en suite faudrat revenir sur mon profil pour modifier le votre.
     </p>
   </div>
 
-  <!-- 🔵 CREATION -->
+  <!-- 🔵 CREATION et edit-->
  <div id="profileCreate" style="text-align:center;">
     <img id="createPhoto" style="width:120px;border-radius:50%; display:block;margin:auto;margin-bottom:20px;">
     <input id="prenom" placeholder="Prénom"><br>
@@ -73,8 +77,8 @@
       <option value="amour">❤️ Amour</option>
       <option value="amitié">😊 Amitié</option>
       <option value="fun">🔥 Fun</option>
+      <input type="file" id="photoInput">
     </select><br><br>
-<input type="file" id="photoInput">
     <button onclick="saveProfile()">💾 Créer mon profil</button>
   </div>
 
@@ -87,20 +91,9 @@
     <p id="viewLooking"></p>
      <br>
 
-  <!-- 🟡 EDIT -->
- <br>
-<h2>Modifier son profil</h2>
+ 
 
-<input type="text" id="edit_prenom" placeholder="Prénom">
-<input type="text" id="edit_nom" placeholder="Nom">
-<input type="number" id="edit_age" placeholder="Âge">
-<input type="text" id="edit_ville" placeholder="Ville">
-<textarea id="edit_bio" placeholder="Bio"></textarea>
-
-<input type="file" id="edit_photoInput">
-
-<button onclick="updateProfile()">💾 Enregistrer la modification</button>
-
+  </div>
 </body>
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
@@ -111,8 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "login.html";
     return;
   }
-  loadProfiles();
-  loadMyProfile();
+  loadMyProfiles();
   updateAuthUI();
 });
 
