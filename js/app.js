@@ -2,6 +2,7 @@ let cachedUser = null;
 let timeout;
 const PAGE_SIZE = 20;
 let page = 0;
+let selectedUser = null;
 
 // =============================
 // AUTH
@@ -9,9 +10,8 @@ let page = 0;
 
 function searchUsers(value){
   clearTimeout(timeout);
-
   timeout = setTimeout(() => {
-    loadMyProfile(value);
+    loadProfile(value);
   }, 300);
 }
 
@@ -20,153 +20,200 @@ async function getUser(){
 
   const { data } = await supabaseClient.auth.getUser();
   cachedUser = data.user;
-
   return cachedUser;
 }
-async function loadProfiles(){
-  const grid = document.getElementById("profilesGrid");
-  if(!grid) return;
 
-const fragment = document.createDocumentFragment();
+// =============================
+// PROFILES
+// =============================  
 
-data.forEach(user => {
-  const card = document.createElement("div");
-  card.className = "card";
+async function loadProfiles() {
+  currentUser = await getUser();
 
-  card.innerHTML = `
-    <img loading="lazy" src="${user.photo_url || 'https://picsum.photos/300'}">
-    <h3>${user.prenom || "Sans nom"}</h3>
-    <p>${user.age || ""} ans • ${user.ville || ""}</p>
-  `;
-
-  fragment.appendChild(card);
-});
-
-grid.appendChild(fragment);
-
-  const { data, error } = await supabaseClient
+  const { data: profiles, error } = await supabaseClient
     .from("profiles")
     .select("*");
 
-  if(error || !data){
-    grid.innerHTML = "Erreur chargement";
+  if (error) {
+    console.error(error);
     return;
   }
 
-  data.forEach(user => {
+  const grid = document.getElementById("profilesGrid");
+  if(!grid) return;
 
-    if(user.id === currentUser.id) return;
+  grid.innerHTML = "";
 
+  profiles.forEach(profile => {
     const card = document.createElement("div");
-    card.className = "card";
-  card.onclick = () => openProfile(user);
-    card.innerHTML = `
-      <img src="${user.photo_url || 'https://picsum.photos/300'}">
-      <h3>${user.prenom || "Sans nom"}</h3>
-      <p>${user.age || ""} ans • ${user.ville || ""}</p>
-    `;
+    card.className = "profile-card";
 
+card.innerHTML = `
+  <img src="${profile.photo_url || "https://picsum.photos/200"}" alt="photo">
+
+  <h3>${profile.prenom || "Sans nom"}</h3>
+
+  <p>
+    ${profile.age || "?"} ans 
+    ${profile.ville ? "• " + profile.ville : ""}
+  </p>
+  <button onclick="viewProfile('${profile.id}')">Voir</button>
+  <button onclick="likeUser('${profile.id}')">❤️ Like</button>
+`;
     grid.appendChild(card);
-    
   });
-
-  
-}
-function openProfile(user){
-  selectedUser = user; // 🔥 IMPORTANT
-
-  const modal = document.getElementById("profileModal");
-
-  document.getElementById("modalPhoto").src =
-    user.photo_url || "https://picsum.photos/300";
-
-  document.getElementById("modalName").innerText =
-    user.prenom || "Sans nom";
-
-  document.getElementById("modalAgeVille").innerText =
-    `${user.age || ""} ans • ${user.ville || ""}`;
-
-  document.getElementById("modalBio").innerText =
-    user.bio || "";
-
-  modal.style.display = "flex";
 }
 
-function closeModal(){
-  document.getElementById("profileModal").style.display = "none";
-}
+// =============================
+// PROFILE VIEW
+// =============================  
 
-async function likeFromModal(){
-  if(!selectedUser) return;
-
-  await likeUser(selectedUser.id);
-
-  alert("❤️ Like envoyé !");
-  closeModal();
-}
-async function likeUser(targetUserId){
-
-  // enregistrer le like
-  await supabaseClient.from("likes").insert({
-    from_user: currentUser.id,
-    to_user: targetUserId
-  });
-
-  // 🔍 vérifier match
-  const { data: existing } = await supabaseClient
-    .from("likes")
+async function viewProfile(userId) {
+  const { data: profile } = await supabaseClient
+    .from("profiles")
     .select("*")
-    .eq("from_user", targetUserId)
-    .eq("to_user", currentUser.id)
+    .eq("id", userId)
     .single();
 
-  if(existing){
-    await createMatch(targetUserId);
-    showMatchAnimation();
-  }
+  if (!profile) return;
+
+  document.getElementById("profileView").style.display = "block";
+
+  document.getElementById("viewName").innerText =
+    `${profile.prenom} ${profile.nom}`;
+
+  document.getElementById("viewAgeVille").innerText =
+    `${profile.age} ans - ${profile.ville}`;
+
+  document.getElementById("viewBio").innerText = profile.bio || "";
+  document.getElementById("viewLooking").innerText = profile.lookingfor || "";
+
+  document.getElementById("viewPhoto").src =
+    `${profile.photo_url || "https://picsum.photos/200"}`;
 }
 
-function messageFromModal(){
-  if(!selectedUser) return;
+// =============================
+// LIKE SYSTEM
+// =============================  
 
+async function likeUser(targetUserId){
+  try {
+    const user = await getUser();
+
+    if(!user){
+      alert("Connecte-toi");
+      return;
+    }
+
+    // 🔥 éviter double like
+    const { data: already } = await supabaseClient
+      .from("likes")
+      .select("*")
+      .eq("from_user", user.id)
+      .eq("to_user", targetUserId)
+      .maybeSingle();
+
+    if(already){
+      alert("Tu as déjà liké 😅");
+      return;
+    }
+
+    // ❤️ enregistrer like
+    const { error } = await supabaseClient
+      .from("likes")
+      .insert({
+        from_user: user.id,
+        to_user: targetUserId
+      });
+
+    if(error){
+      console.error(error);
+      alert("Erreur like");
+      return;
+    }
+
+    // 🔍 vérifier si match
+    const { data: matchLike } = await supabaseClient
+      .from("likes")
+      .select("*")
+      .eq("from_user", targetUserId)
+      .eq("to_user", user.id)
+      .maybeSingle();
+
+    if(matchLike){
+      await createMatch(user.id, targetUserId);
+      alert("💖 MATCH !");
+    } else {
+      alert("❤️ Like envoyé");
+    }
+    if(matchLike){
+  await createMatch(user.id, targetUserId);
+
+  alert("💖 MATCH !");
+
+  // 🔥 ouverture auto du chat
+  openChat(targetUserId);
+}
+
+  } catch(err){
+    console.error(err);
+  }
+}
+// =============================
+//  CHAT BLOQUÉ SI PAS PREMIUM
+// =============================
+
+async function messageUser(userId){
   if(!isUserPremium){
-    alert("💎 Premium requis");
+    alert("💎 Premium requis pour envoyer un message");
     return;
   }
 
-  openChat(selectedUser.id);
-  closeModal();
+  openChat(userId);
 }
-
+// =============================
+// tchat
+// ============================= 
+function openChat(userId){
+  window.location.href = `app.html?user=${userId}`;
+}
+// =============================
+//  voir qui ta like
+// =============================
 async function loadLikesMe(){
-
   const container = document.getElementById("likesMeGrid");
   if(!container) return;
 
   container.innerHTML = "Chargement...";
 
-  // récupérer les likes reçus
+  const user = await getUser();
+  if(!user){
+    container.innerHTML = "Connecte-toi";
+    return;
+  }
+
+  // 🔍 récupérer les likes reçus
   const { data: likes, error } = await supabaseClient
     .from("likes")
     .select("from_user")
-    .eq("to_user", currentUser.id);
+    .eq("to_user", user.id);
 
-  if(error || !likes){
+  if(error){
+    console.error(error);
     container.innerHTML = "Erreur";
     return;
   }
 
-  if(likes.length === 0){
-    container.innerHTML = "Personne ne t’a liké pour l’instant 😢";
+  if(!likes || likes.length === 0){
+    container.innerHTML = "Personne ne t’a liké 😢";
     return;
   }
 
   const userIds = likes.map(l => l.from_user);
 
-  // récupérer les profils
+  // 👤 récupérer profils
   const { data: users } = await supabaseClient
     .from("profiles")
-    .limit(20)
     .select("id, prenom, age, ville, photo_url")
     .in("id", userIds);
 
@@ -177,31 +224,47 @@ async function loadLikesMe(){
     card.className = "card";
 
     card.innerHTML = `
-      <img src="${user.photo_url || 'https://picsum.photos/300'}">
+    <img src="${profile.photo_url || "https://picsum.photos/200"}">
       <h3>${user.prenom}</h3>
-      <p>${user.age || ""} ans • ${user.ville || ""}</p>
-    `;
+      <p>${user.age || "?"} ans • ${user.ville || ""}</p>
 
-    card.onclick = () => openProfile(user);
+      <button onclick="likeUser('${user.id}')">❤️ Like retour</button>
+    `;
 
     container.appendChild(card);
   });
 }
-async function createMatch(userId){
+
+// =============================
+// MATCHES
+// ============================= 
+async function createMatch(user1, user2){
+
+  // éviter doublon match
+  const { data: existing } = await supabaseClient
+    .from("matches")
+    .select("*")
+    .or(`and(user1.eq.${user1},user2.eq.${user2}),and(user1.eq.${user2},user2.eq.${user1})`)
+    .maybeSingle();
+
+  if(existing) return;
+
   await supabaseClient.from("matches").insert({
-    user1: currentUser.id,
-    user2: userId
+    user1,
+    user2
   });
 }
 
+ 
+
 async function loadMatches(){
+  currentUser = await getUser();
 
   const grid = document.getElementById("matchesGrid");
   if(!grid) return;
 
   grid.innerHTML = "Chargement...";
 
-  // récupérer les matchs
   const { data: matches, error } = await supabaseClient
     .from("matches")
     .select("*")
@@ -213,28 +276,22 @@ async function loadMatches(){
   }
 
   if(matches.length === 0){
-    grid.innerHTML = "Aucun match pour l’instant 😢";
+    grid.innerHTML = "Aucun match 😢";
     return;
   }
-  const userIds = [...new Set(matches.map(m =>
-  m.user1 === currentUser.id ? m.user2 : m.user1
-))];
 
-  // récupérer les IDs des autres users
-  const userIds = matches.map(m =>
+  const userIds = [...new Set(matches.map(m =>
     m.user1 === currentUser.id ? m.user2 : m.user1
-  );
+  ))];
 
   const { data: users } = await supabaseClient
-     .from("profiles")
-  .select("id, prenom, age, ville, photo_url")
-  .limit(20)
+    .from("profiles")
+    .select("id, prenom, age, ville, photo_url")
     .in("id", userIds);
 
   grid.innerHTML = "";
 
   users.forEach(user => {
-
     const card = document.createElement("div");
     card.className = "card";
 
@@ -248,24 +305,7 @@ async function loadMatches(){
     grid.appendChild(card);
   });
 }
-if(window.location.pathname.includes("matches.html")){
-  document.addEventListener("DOMContentLoaded", () => {
-    loadMatches();
-  });
-}
 
-async function loadMoreProfiles(){
-  const { data } = await supabaseClient
-    .from("profiles")
-    .select("id, prenom, age, ville, photo_url")
-    .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
-
-  page++;
-}
-
-async function login(){
-  const emailInput = document.getElementById("email");
-  const passwordInput = document.getElementById("password");  
-const passwordconfirmInput = document.getElementById("password_confirm");
-const telUserInput = document.getElementById("tel_user"); 
-}
+window.addEventListener("load", () => {
+  loadProfiles();
+});

@@ -6,12 +6,8 @@
 async function register(){
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  const confirmPassword = document.getElementById("confirmPassword").value;
+  
 
-  if(password !== confirmPassword){
-    alert("Les mots de passe ne correspondent pas");
-    return;
-  }
   if(!email || !password){
     alert("Remplis tous les champs");
     return;

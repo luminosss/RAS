@@ -12,7 +12,7 @@
 <script src="js/config.js"></script>
 <script src="js/auth.js" defer></script>
 <script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
-<script src="js/profile-clean.js" defer></script>
+<script src="js/profile-clean.js" ></script>
 
 </head>
 
@@ -68,14 +68,13 @@
     <input id="age" type="number" placeholder="Âge"><br>
     <input id="ville" placeholder="Ville"><br>
     <textarea id="bio" placeholder="Bio"></textarea><br>
-    <input id="photo" type="file"><br>
     <select id="lookingFor">
       <option value="">Je cherche...</option>
       <option value="amour">❤️ Amour</option>
       <option value="amitié">😊 Amitié</option>
       <option value="fun">🔥 Fun</option>
     </select><br><br>
-
+<input type="file" id="photoInput">
     <button onclick="saveProfile()">💾 Créer mon profil</button>
   </div>
 
@@ -86,26 +85,21 @@
     <p id="viewAgeVille"></p>
     <p id="viewBio"></p>
     <p id="viewLooking"></p>
-    <button onclick="enableEdit()">✏️ Modifier mon profil</button>
      <br>
 
   <!-- 🟡 EDIT -->
- <div id="profileEdit" style="display:none; text-align:center;">
-    <input id="edit_prenom" placeholder="prenom"><br>
-    <input id="edit_nom" placeholder="Nom"><br>
-    <input id="edit_age" type="number" placeholder="Age"><br>
-    <input id="edit_ville" placeholder="Ville"><br>
-    <textarea id="edit_bio" placeholder="Bio"></textarea><br>
-    <select id="edit_lookingFor">
-       <option value="">Je cherche...</option>
-      <option value="amour">❤️ Amour</option>
-      <option value="amitié">😊 Amitié</option>
-      <option value="fun">🔥 Fun</option>
-    </select><br><br>
-   <button onclick="updateProfile()">Sauvegarder</button>
-  </div>
+ <br>
+<h2>Modifier son profil</h2>
 
-</div>
+<input type="text" id="edit_prenom" placeholder="Prénom">
+<input type="text" id="edit_nom" placeholder="Nom">
+<input type="number" id="edit_age" placeholder="Âge">
+<input type="text" id="edit_ville" placeholder="Ville">
+<textarea id="edit_bio" placeholder="Bio"></textarea>
+
+<input type="file" id="edit_photoInput">
+
+<button onclick="updateProfile()">💾 Enregistrer la modification</button>
 
 </body>
 <script>
@@ -117,10 +111,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "login.html";
     return;
   }
-
-  // 🔥 UNE SEULE fonction
+  loadProfiles();
   loadMyProfile();
-updateAuthUI();
+  updateAuthUI();
 });
 
   document.body.style.visibility = "visible";

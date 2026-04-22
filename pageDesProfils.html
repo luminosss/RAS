@@ -26,10 +26,6 @@
     <li><a href="premiumPage.html">Premium</a></li>
   </ul>
       
-  <div id="userBox" style="display:none;">
-  <img id="navAvatar" width="40" style="border-radius:50%;">
-  <span id="navName"></span>
-</div>
 </nav>
    <center>
     <a href="registre.html">Inscription</a>
@@ -42,57 +38,35 @@
   <hr>
   <br>
    
-  <h3>🔥 Découvre des profils</h3>
-
+  <h3>🔥 Découvre plusieurs profils :</h3>
+<br>
+ 
 <div id="profilesGrid"></div>
  <div class="box">
-  <div id="profiles"></div> 
 <div id="profileView" style="display:none">
  <img id="viewPhoto" width="200">
  <h2 id="viewName"></h2>
   <p id="viewAgeVille"></p>
  <p id="viewBio"></p>
   <p id="viewLooking"></p>
-   <p id="likeCount">❤️ 0 likes</p>
-  <button id="likeBtn">❤️ Like</button>
-  <button onclick="closeProfileView()">Fermer</button>
+   <br>
 </div>
 </div>
 
-<div id="profileModal" style="
-  display:none;
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.8);
-  z-index:999;
-">
-</div>
-</div>
-
-  <div style="background:rgb(1, 90, 255);padding:20px;border-radius:10px;max-width:400px;width:90%">
-    
-    <img id="modalPhoto" style="width:100%;border-radius:10px;">
-    <h2 id="modalName"></h2>
-    <p id="modalAgeVille"></p>
-    <p id="modalBio"></p>
-
-    <div style="display:flex;gap:10px;margin-top:15px">
-      <button onclick="messageFromModal()">💬 Message</button>
-    </div>
-    </div>
-
-    <br>
-    <button onclick="closeModal()">Fermer</button>
-  </div>
 </body>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  loadMyProfiles();
+  if (typeof loadProfile === "function") {
+    loadProfiles();
+     loadLikesMe();
+  } else {
+    console.error("❌ loadProfiles non trouvé");
+  }
+
+  if (typeof updateAuthUI === "function") {
     updateAuthUI();
+  }
 });
 </script>
 
