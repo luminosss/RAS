@@ -13,44 +13,10 @@
 
   <!-- JS -->
   <script src="js/auth.js" defer></script>
-  <script src="js/header-loader.js" defer></script>
   <script src="js/app.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/profile-clean.js" defer></script>
 
-  <style>
-    body {
-      visibility: hidden;
-    }
-
-    .filters {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 20px;
-    }
-
-    select, button {
-      padding: 10px;
-      cursor: pointer;
-    }
-
-    #profilesGrid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-top: 30px;
-    }
-
-    .box {
-      text-align: center;
-      margin-top: 30px;
-    }
-
-    #viewPhoto {
-      border-radius: 10px;
-      margin-bottom: 10px;
-    }
-  </style>
 </head>
 <nav class="header">
   <a href="index.html">🏠 Accueil</a>
@@ -61,10 +27,11 @@
 
   <span id="userInfo"></span>
 </nav>
-<center>
-    <button id="authBtn">Connexion</button>
-    <button id="adminPage">Admin</button>
-</center>
+ <button id="authBtn">Connexion</button>
+ <center>
+    <a href= "adminPage.html">👤 Admin</a>
+    </center>
+
 <body>
 
   <!-- HEADER -->
@@ -147,6 +114,9 @@
         console.error("loadProfiles non trouvé");
       }
 
+    });
+       document.addEventListener("DOMContentLoaded", () => {
+      document.body.style.visibility = "visible";
     });
   </script>
 

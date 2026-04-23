@@ -313,7 +313,14 @@ async function loadMatches() {
 window.addEventListener("load", () => {
   loadProfiles();
 });
-
+document.addEventListener("DOMContentLoaded", () => {
+  const authBtn = document.getElementById("authBtn");
+  if (authBtn) {
+    authBtn.onclick = () => {
+       window.location.href = "login.html";
+    };
+  }
+});
 
 // =============================
 // GLOBAL EXPORTS

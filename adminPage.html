@@ -9,13 +9,17 @@
 
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
+  <script src="js/config.js" defer></script>
 
   <!-- Modules -->
-  <script src="js/auth.js" defer></script>
-  <script src="js/header-loader.js" defer></script>
-  <script src="js/app.js" defer></script>
-  <script src="js/profile-clean.js" defer></script>
+<script src="js/admin/users.js"></script>
+
+
+</head>
+
+<body>
+
+<!-- NAV -->
 <nav class="header">
   <a href="index.html">🏠 Accueil</a>
   <a href="profile.html">👤 Profil</a>
@@ -25,63 +29,56 @@
 
   <span id="userInfo"></span>
 </nav>
-<center>
-    <button id="authBtn">Connexion</button>
-    <button id="adminPage">Admin</button>
-</center>
-  <style>
-    body {
-      visibility: hidden;
-    }
-  </style>
-</head>
+ <button id="authBtn">Connexion</button>
+ <center>
+    <a href= "adminPage.html">👤 Admin</a>
+    </center>
 
-<body>
+<!-- TITLE -->
+<div style="text-align:center;padding:40px">
+  <h1 style="font-size:40px">👑 Admin Dashboard</h1>
+</div>
 
-  <!-- HEADER -->
-  <div id="header"></div>
+<!-- ADMIN DASHBOARD -->
+<div class="container">
 
-  <!-- TITLE -->
-  <div style="text-align:center;padding:40px">
-    <h1 style="font-size:40px">💘 Rencontre Amoureuse</h1>
-  </div>
+  <h2>👥 Utilisateurs</h2>
+<button onclick="loadUsers()">Charger users</button>
 
-  <!-- ADMIN DASHBOARD -->
-  <div class="container">
+<div id="usersList"></div>
 
-    <h1>👑 Admin Dashboard</h1>
+  <h2>🚨 Signalements</h2>
+  <div id="reportsList"></div>
 
-    <h2>👥 Utilisateurs</h2>
-    <div id="usersList"></div>
+  <h2>📊 Stats</h2>
+  <div id="stats"></div>
 
-    <h2>🚨 Signalements</h2>
-    <div id="reportsList"></div>
+</div>
 
-    <h2>📊 Stats</h2>
-    <div id="stats"></div>
+<!-- SCRIPT -->
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
 
-  </div>
+  // sécurité admin
+  await requireAdmin();
 
-  <!-- AUTH CHECK -->
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        const { data, error } = await supabaseClient.auth.getUser();
+  // charger données
+  if (typeof loadUsers === "function") {
+    loadUsers();
+  }
 
-        if (error || !data?.user) {
-          window.location.href = "index.html";
-          return;
-        }
+  if (typeof loadReports === "function") {
+    loadReports();
+  }
 
-        // afficher la page seulement si connecté
-        document.body.style.visibility = "visible";
+  if (typeof loadStats === "function") {
+    loadStats();
+  }
 
-      } catch (e) {
-        console.error(e);
-        window.location.href = "index.html";
-      }
-    });
-  </script>
+  // afficher page
+  document.body.style.visibility = "visible";
+});
+</script>
 
 </body>
 </html>
