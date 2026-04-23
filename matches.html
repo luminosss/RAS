@@ -6,32 +6,38 @@
 
   <link rel="stylesheet" href="css/style.css">
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/auth.js" defer></script>
-  <script src="js/app.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js" defer></script>
+<script src="js/header-loader.js" defer></script>
+<script src="js/app.js" defer></script>
 
   <style>
     body { visibility:hidden; }
   </style>
 </head>
+<nav class="header">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="profile.html">👤 Profil</a>
+  <a href="pageDesProfils.html">🔍 Recherche</a>
+  <a href="premiumPage.html">💎 Premium</a>
+  <a href="signup.html">👤 Inscription</a>
 
+  <span id="userInfo"></span>
+</nav>
+<center>
+    <button id="authBtn">Connexion</button>
+    <button id="adminPage">Admin</button>
+</center>
 <body>
 
-<nav>
-  <a href="index.html">Accueil</a>
-  <a href="matches.html">Matchs</a>
-</nav>
-   <center>
-    <a href="registre.html">Inscription</a>
-      <a href="login.html">Connection</a>
-</center>
 <h2 style="text-align:center">💘 Mes Matchs</h2>
 
 <div id="matchesGrid" class="grid"></div>
 
 </body>
 <script>
+
   document.body.style.visibility = "visible";
 </script>
 </html>

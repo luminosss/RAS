@@ -2,70 +2,86 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Page</title>
+  <title>Admin Dashboard</title>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
-<style>
-  body {
-    visibility: hidden;
-  }
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
-<script src="js/profile-clean.js" defer></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+
+  <!-- Modules -->
+  <script src="js/auth.js" defer></script>
+  <script src="js/header-loader.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/profile-clean.js" defer></script>
+<nav class="header">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="profile.html">👤 Profil</a>
+  <a href="pageDesProfils.html">🔍 Recherche</a>
+  <a href="premiumPage.html">💎 Premium</a>
+  <a href="signup.html">👤 Inscription</a>
+
+  <span id="userInfo"></span>
+</nav>
+<center>
+    <button id="authBtn">Connexion</button>
+    <button id="adminPage">Admin</button>
+</center>
+  <style>
+    body {
+      visibility: hidden;
+    }
+  </style>
 </head>
 
 <body>
 
-<nav>
-  <ul>
-    <li><a href="index.html">Accueil</a></li>
-    <li><a href="profile.html">Mon profil</a></li>
-    <li><a href="pageDesProfils.html">Recherche</a></li>
-    <li><a href="premiumPage.html">Premium</a></li>
-  </ul>
+  <!-- HEADER -->
+  <div id="header"></div>
 
-  <div id="userBox" style="display:none;">
-  <img id="navAvatar" width="40" style="border-radius:50%;">
-  <span id="navName"></span>
-</div>
-</nav>
-   <center>
-    <a href="registre.html">Inscription</a>
-      <a href="login.html">Connection</a>
-</center>
-<body>
-<div style="text-align:center;padding:40px">
-  <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
-   <br>
-<div class="container">
-  <h1>👑 Admin Dashboard</h1>
+  <!-- TITLE -->
+  <div style="text-align:center;padding:40px">
+    <h1 style="font-size:40px">💘 Rencontre Amoureuse</h1>
+  </div>
 
-  <h2>👥 Utilisateurs</h2>
-  <div id="usersList"></div>
+  <!-- ADMIN DASHBOARD -->
+  <div class="container">
 
-  <h2>🚨 Signalements</h2>
-  <div id="reportsList"></div>
+    <h1>👑 Admin Dashboard</h1>
 
-  <h2>📊 Stats</h2>
-  <div id="stats"></div>
-</div>
+    <h2>👥 Utilisateurs</h2>
+    <div id="usersList"></div>
 
+    <h2>🚨 Signalements</h2>
+    <div id="reportsList"></div>
 
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-  const { data } = await supabaseClient.auth.getUser();
+    <h2>📊 Stats</h2>
+    <div id="stats"></div>
 
-  if(!data.user){
-    window.location.href = "index.html";
-  }
-});
-</script>
-<script>
-document.body.style.visibility = "visible";
-</script>
+  </div>
+
+  <!-- AUTH CHECK -->
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const { data, error } = await supabaseClient.auth.getUser();
+
+        if (error || !data?.user) {
+          window.location.href = "index.html";
+          return;
+        }
+
+        // afficher la page seulement si connecté
+        document.body.style.visibility = "visible";
+
+      } catch (e) {
+        console.error(e);
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+
 </body>
 </html>

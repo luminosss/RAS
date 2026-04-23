@@ -4,7 +4,7 @@ body {
   max-width: 700px;
  margin: auto;
   padding-bottom: env(safe-area-inset-bottom);
- background: linear-gradient(-45deg,#d400ff,#f52500);
+ background: linear-gradient(-45deg,#d400ff,#ff64cb);
  background-size: 400% 400%;
  animation: gradient 10s ease infinite;
 }
@@ -20,7 +20,7 @@ body {
  padding: 0;
 } 
 a {
- background: rgb(255, 117, 37);
+ background: rgb(255, 115, 0);
    padding: 15px 50px;
 }
 a:hover {
@@ -39,7 +39,7 @@ nav {
   padding: 15px 50px;
   background: rgb(0, 162, 255);
   color: black;
-  border-bottom: 2px solid #dfb7b7;
+  border-bottom: 2px solid #ffffff;
 
 }
 
@@ -49,9 +49,9 @@ nav ul {
 }
 
 nav a {
-  color: #333;
-  font-weight: 500;
-  font-size: 15px;
+  color: #000000;
+  font-weight: 600;
+  font-size: 14px;
 }
 
 nav a:hover {
@@ -69,7 +69,7 @@ ul li{
   font-family: Arial, sans-serif;
 }
 ul li a{
-  color: rgb(230, 67, 67);
+  color: rgb(255, 255, 255);
   text-decoration: none;
   padding: 10px 20px;
   display: block;
@@ -198,7 +198,7 @@ button {
   font-weight: 600;
   cursor: pointer;
   background: linear-gradient(135deg, #ff416c, #ff4b2b);
-  color: white;
+  color: rgb(255, 255, 255);
   transition: 0.2s;
 }
 

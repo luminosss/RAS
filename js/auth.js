@@ -1,45 +1,41 @@
+const supabaseClient = supabase; // IMPORTANT si ton config utilise supabase
+
 // =============================
-// AUTH.JS CLEAN FIX
+// AUTH FUNCTIONS
 // =============================
 
-// REGISTER
-async function register(){
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  
+// 🔐 SIGNUP
+async function signup() {
+  const email = document.getElementById("email")?.value;
+  const password = document.getElementById("password")?.value;
 
-  if(!email || !password){
-    alert("Remplis tous les champs");
+  if (!email || !password) {
+    alert("Email ou mot de passe manquant");
     return;
   }
 
-  const { data, error } = await supabaseClient.auth.signUp({ email, password });
+  const { error } = await supabaseClient.auth.signUp({
+    email,
+    password
+  });
 
-  if(error){
-    alert("❌ " + error.message);
+  if (error) {
+    alert("Erreur inscription : " + error.message);
     return;
   }
-  alert("✅ Compte créé !");
+
+  alert("Compte créé !");
   window.location.href = "login.html";
 }
 
-// LOGIN
-async function login(){
-  const emailInput = document.getElementById("email");
-  const passwordInput = document.getElementById("password");
 
+// 🔑 LOGIN
+async function login() {
+  const email = document.getElementById("email")?.value;
+  const password = document.getElementById("password")?.value;
 
-  if(!emailInput || !passwordInput ){
-    console.error("Champs introuvables");
-    return;
-  }
-
-  const email = emailInput.value;
-  const password = passwordInput.value;
-
-
-  if(!email || !password ){
-    alert("Remplis tous les champs");
+  if (!email || !password) {
+    alert("Email ou mot de passe manquant");
     return;
   }
 
@@ -48,65 +44,79 @@ async function login(){
     password
   });
 
-  if(error){
-    alert(error.message);
+  if (error) {
+    alert("Erreur connexion : " + error.message);
     return;
   }
 
-  window.location.href = "profile.html";
+  window.location.href = "index.html";
 }
-// LOGOUT
-async function logout(){
-  await supabaseClient.auth.signOut();
-  // redirection vers la page d'accueil ou de connexion
-  window.location.href = "registre.html";
 
-}
-// =============================
-// MATCHES PAGE
-// =============================  
-function goToAuth(){
+
+// 🚪 LOGOUT
+async function logout() {
+  await supabaseClient.auth.signOut();
   window.location.href = "login.html";
 }
 
-// =============================
-// UI UPDATE
-// =============================
-let loading = false;
 
-async function updateAuthUI(){
-  if(loading) return;
-  loading = true;
-
+// =============================
+// HEADER UI
+// =============================
+async function initAuthUI() {
   const { data } = await supabaseClient.auth.getUser();
-  const user = data.user;
+  const user = data?.user;
 
-  const authBtn = document.getElementById("authBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
+  const btn = document.getElementById("authBtn");
+  const userInfo = document.getElementById("userInfo");
 
-  if(!authBtn || !logoutBtn){
-    loading = false;
-    return;
-  }
+  if (!btn) return;
 
-  if(user){
-    authBtn.style.display = "none";
-    logoutBtn.style.display = "inline-block";
+  if (user) {
+    btn.textContent = "Déconnexion";
+
+    btn.onclick = async (e) => {
+      e.preventDefault();
+      await logout();
+    };
+
+    if (userInfo) {
+      userInfo.style.display = "inline";
+      userInfo.textContent = user.email;
+    }
+
   } else {
-    authBtn.style.display = "inline-block";
-    logoutBtn.style.display = "none";
+    btn.textContent = "Connexion";
+    btn.onclick = () => {
+      window.location.href = "login.html";
+    };
+
+    if (userInfo) {
+      userInfo.style.display = "none";
+    }
   }
-
-  // 👇 affichage FINAL (anti-clignotement)
-  document.body.style.visibility = "visible";
-
-  loading = false;
 }
 
-// ✅ EN DEHORS
-supabaseClient.auth.onAuthStateChange(() => {
-  updateAuthUI();
+
+// =============================
+// INIT BUTTON EVENTS (SIMPLE)
+// =============================
+document.addEventListener("DOMContentLoaded", () => {
+
+  const loginBtn = document.getElementById("loginBtn");
+  if (loginBtn) loginBtn.onclick = login;
+
+  const signupBtn = document.getElementById("signupBtn");
+  if (signupBtn) signupBtn.onclick = signup;
+
+  initAuthUI();
 });
 
-document.addEventListener("DOMContentLoaded", updateAuthUI);
 
+// =============================
+// EXPORT
+// =============================
+window.login = login;
+window.signup = signup;
+window.logout = logout;
+window.initAuthUI = initAuthUI;

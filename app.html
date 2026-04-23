@@ -2,65 +2,72 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Page</title>
+  <title>Rencontre Amoureuse</title>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
-<style>
-  body {
-    visibility: hidden;
-  }
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/auth.js" defer></script>
-<script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
-<script src="js/profile-clean.js" defer></script>
-</head>
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+
+  <!-- JS -->
+  <script src="js/auth.js" defer></script>
+  <script src="js/header-loader.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/profile-clean.js" defer></script>
+
+  <style>
+    body {
+      visibility: hidden;
+    }
+  </style>
+</head>
+<nav class="header">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="profile.html">👤 Profil</a>
+  <a href="pageDesProfils.html">🔍 Recherche</a>
+  <a href="premiumPage.html">💎 Premium</a>
+  <a href="signup.html">👤 Inscription</a>
+
+  <span id="userInfo"></span>
+</nav>
+<center>
+    <button id="authBtn">Connexion</button>
+    <button id="adminPage">Admin</button>
+</center>
 <body>
 
-<nav>
-  <ul>
-    <li><a href="index.html">Accueil</a></li>
-    <li><a href="profile.html">Mon profil</a></li>
-    <li><a href="pageDesProfils.html">Recherche</a></li>
-    <li><a href="premiumPage.html">Premium</a></li>
-  </ul>
-  <div id="userBox" style="display:none;">
-  <img id="navAvatar" width="40" style="border-radius:50%;">
-  <span id="navName"></span>
-  </div>
-      
-</nav>
-   <center>
-    <a href="registre.html">Inscription</a>
-      <a href="login.html">Connection</a>
-</center>
-<div id="profiles"></div>
+  <!-- HEADER -->
+  <div id="header"></div>
 
-<hr>
-<div style="text-align:center;padding:40px">
-  <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
+  <!-- PROFILES -->
+  <div id="profiles"></div>
+  <div id="profilesGrid"></div>
+
   <hr>
-   <br>
-<h2 style="text-align:center">💬 Chat</h2>
-<hr>
 
-<div id="chatBox"></div>
-  <div id="premiumBanner">
- 💎 Passe Premium pour débloquer toutes les fonctionnalités
- <button onclick="buyPremium()">Devenir Premium</button>
-</div>
-<ul>
-  
-
-<div id="profilesGrid"></div>
-<button onclick="sendMessage()">Envoyer</button>
+  <!-- TITLE -->
+  <div style="text-align:center;padding:40px">
+    <h1 style="font-size:40px">💘 Rencontre Amoureuse</h1>
   </div>
 
-   <div id="chatInterface" style="display:none">
- <div id="typingIndicator"></div>
+  <hr>
+
+  <!-- CHAT -->
+  <h2 style="text-align:center">💬 Chat</h2>
+
+  <div id="chatBox"></div>
+
+  <!-- PREMIUM BANNER -->
+  <div id="premiumBanner">
+    💎 Passe Premium pour débloquer toutes les fonctionnalités
+    <button onclick="buyPremium()">Devenir Premium</button>
+  </div>
+
+  <!-- CHAT INTERFACE -->
+  <div id="chatInterface" style="display:none">
+    <div id="typingIndicator"></div>
 
     <div class="inputBox">
       <input id="msgInput" placeholder="Message...">
@@ -68,22 +75,31 @@
     </div>
   </div>
 
-    <div id="notPremium" style="display:none">
+  <!-- NON PREMIUM VIEW -->
+  <div id="notPremium" style="display:none">
     <h3>💎 Passe Premium pour discuter</h3>
     <button onclick="buyPremium()">Devenir Premium</button>
   </div>
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-  const { data } = await supabaseClient.auth.getUser();
 
-  if(!data.user){
-    window.location.href = "index.html";
-    updateAuthUI();
-  }
-});
-</script>
-<script>
-  document.body.style.visibility = "visible";
-</script>
+  <!-- AUTH CHECK -->
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const { data, error } = await supabaseClient.auth.getUser();
+
+        if (error || !data?.user) {
+          window.location.href = "index.html";
+          return;
+        }
+
+        document.body.style.visibility = "visible";
+
+      } catch (e) {
+        console.error(e);
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+
 </body>
 </html>

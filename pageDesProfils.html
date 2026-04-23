@@ -2,81 +2,153 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Page</title>
+  <title>Recherche profils</title>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+
   <!-- JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
-<script src="js/auth.js" defer></script>
-<script src="js/profile-clean.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/header-loader.js" defer></script>
+  <script src="js/app.js" defer></script>
 
+  <style>
+    body {
+      visibility: hidden;
+    }
+
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    select, button {
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    #profilesGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .box {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    #viewPhoto {
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
+<nav class="header">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="profile.html">👤 Profil</a>
+  <a href="pageDesProfils.html">🔍 Recherche</a>
+  <a href="premiumPage.html">💎 Premium</a>
+  <a href="signup.html">👤 Inscription</a>
 
+  <span id="userInfo"></span>
+</nav>
+<center>
+    <button id="authBtn">Connexion</button>
+    <button id="adminPage">Admin</button>
+</center>
 <body>
 
-<nav>
-  <ul>
-    <li><a href="index.html">Accueil</a></li>
-    <li><a href="profile.html">Mon profil</a></li>
-    <li><a href="pageDesProfils.html">Recherche</a></li>
-    <li><a href="premiumPage.html">Premium</a></li>
-  </ul>
-      
-</nav>
-   <center>
-    <a href="registre.html">Inscription</a>
-      <a href="login.html">Connection</a>
-</center>
-<hr>
-  <br>
-  <div style="text-align:center;padding:40px">
-  <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
-  <hr>
-  <br>
-   
-  <h3>🔥 Découvre plusieurs profils :</h3>
-<br>
- <div class="filters">
- <select id="searchAge">
-  <option value="">Âge</option>
-  <option value="20-25">20-25</option>
-  <option value="25-35">25-35</option>
-   <option value="35-50">35-50</option>
- </select>
- <button onclick="loadProfile()">🔍 Rechercher</button>
-</div>
+  <!-- HEADER -->
+  <div id="header"></div>
 
-<div id="profilesGrid"></div>
- <div class="box">
-<div id="profileView" style="display:none">
- <img id="viewPhoto" width="200">
- <h2 id="viewName"></h2>
-  <p id="viewAgeVille"></p>
- <p id="viewBio"></p>
-  <p id="viewLooking"></p>
-   <br>
-</div>
-</div>
+  <hr>
+
+  <!-- TITLE -->
+  <div style="text-align:center;padding:40px">
+
+    <h1 style="font-size:40px">💘 Rencontre Amoureuse</h1>
+
+    <hr><br>
+
+    <h3>🔥 Découvre plusieurs profils :</h3>
+
+    <!-- FILTERS -->
+    <div class="filters">
+
+      <select id="searchAge">
+        <option value="">Âge</option>
+        <option value="20-25">20-25</option>
+        <option value="25-35">25-35</option>
+        <option value="35-50">35-50</option>
+      </select>
+
+      <button id="searchBtn">🔍 Rechercher</button>
+
+    </div>
+
+    <!-- PROFILES GRID -->
+    <div id="profilesGrid"></div>
+
+    <!-- PROFILE VIEW -->
+    <div class="box">
+
+      <div id="profileView" style="display:none">
+
+        <img id="viewPhoto" width="200" alt="photo profil">
+
+        <h2 id="viewName"></h2>
+        <p id="viewAgeVille"></p>
+        <p id="viewBio"></p>
+        <p id="viewLooking"></p>
+
+        <button onclick="closeProfile()">❌ Fermer</button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- INIT SCRIPT -->
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+
+      // 🔐 sécurité simple (optionnel mais recommandé)
+      const { data } = await supabaseClient.auth.getUser();
+
+      if (!data?.user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      // 🔥 afficher page
+      document.body.style.visibility = "visible";
+
+      // 🔍 search button
+      const btn = document.getElementById("searchBtn");
+
+      if (btn && typeof loadProfiles === "function") {
+        btn.addEventListener("click", loadProfiles);
+      }
+
+      // 🚀 initial load
+      if (typeof loadProfiles === "function") {
+        loadProfiles();
+      } else {
+        console.error("loadProfiles non trouvé");
+      }
+
+    });
+  </script>
 
 </body>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  if (typeof loadProfiles === "function") {
-    loadProfiles();
-    loadMyProfiles();
-  } else {
-    console.error("❌ loadProfiles non trouvé");
-  }
-
-  if (typeof updateAuthUI === "function") {
-    updateAuthUI();
-  }
-});
-</script>
-
 </html>

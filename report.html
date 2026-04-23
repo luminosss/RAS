@@ -13,30 +13,26 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/auth.js" defer></script>
-<script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
+<script src="js/header-loader.js" defer></script>
+<script src="js/app.js" defer></script>
 <script src="js/profile-clean.js" defer></script>
 </head>
 
 <body>
+<nav class="header">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="profile.html">👤 Profil</a>
+  <a href="pageDesProfils.html">🔍 Recherche</a>
+  <a href="premiumPage.html">💎 Premium</a>
+  <a href="signup.html">👤 Inscription</a>
 
-<nav>
-    <div id="userBox" style="display:none;">
-  <img id="navAvatar" width="40" style="border-radius:50%;">
-  <span id="navName"></span>
-</div>
-  <ul>
-    <li><a href="index.html">Accueil</a></li>
-    <li><a href="profile.html">Mon profil</a></li>
-    <li><a href="pageDesProfils.html">Recherche</a></li>
-    <li><a href="premiumPage.html">Premium</a></li>
-    
-  </ul>
-
+  <span id="userInfo"></span>
 </nav>
-   <center>
-    <a href="registre.html">Inscription</a>
-      <a href="login.html">Connection</a>
+<center>
+    <button id="authBtn">Connexion</button>
+    <button id="adminPage">Admin</button>
 </center>
+<div id="header"></div>
 <hr>
 <!-- home -->
 <div id="homePage" class="page active">
@@ -61,5 +57,8 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
   // Here you would typically send the report to your backend
   document.getElementById('reportMessage').innerHTML = '<p>Signalement envoyé ! Merci pour votre retour.</p>';
   this.reset();
+});
+document.addEventListener("DOMContentLoaded", () => {
+ initAuthUI()
 });
 </script>   

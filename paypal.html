@@ -2,80 +2,106 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Page</title>
+  <title>Abonnement Premium</title>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
-<style>
-  body {
-    visibility: hidden;
-  }
-</style>
-  <!-- JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/auth.js" defer></script>
-<script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
-<script src="js/profile-clean.js" defer></script>
-</head>
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+
+  <!-- JS -->
+  <script src="js/auth.js" defer></script>
+  <script src="js/header-loader.js" defer></script>
+  <script src="js/app.js" defer></script>
+
+  <style>
+    body {
+      visibility: hidden;
+      text-align: center;
+      padding: 40px;
+    }
+
+    #paypal-button-container {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<nav class="header">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="profile.html">👤 Profil</a>
+  <a href="pageDesProfils.html">🔍 Recherche</a>
+  <a href="premiumPage.html">💎 Premium</a>
+  <a href="signup.html">👤 Inscription</a>
+
+  <span id="userInfo"></span>
+</nav>
+<center>
+    <button id="authBtn">Connexion</button>
+    <button id="adminPage">Admin</button>
+</center>
 <body>
 
-<nav>
-  <ul>
-    <li><a href="index.html">Accueil</a></li>
-    <li><a href="profile.html">Mon profil</a></li>
-    <li><a href="pageDesProfils.html">Recherche</a></li>
-    <li><a href="premiumPage.html">Premium</a></li>
-  </ul>
-      
-  <div id="userBox" style="display:none;">
-  <img id="navAvatar" width="40" style="border-radius:50%;">
-  <span id="navName"></span>
-</div>
-</nav>
-   <center>
-    <a href="registre.html">Inscription</a>
-      <a href="login.html">Connection</a>
-</center>
-  <div style="text-align:center;padding:40px">
-  <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
+  <!-- HEADER -->
+  <div id="header"></div>
+
+  <!-- TITLE -->
+  <h1 style="font-size:40px">💘 Rencontre Amoureuse</h1>
   <hr>
-  <br
-        <script 
-  src="https://www.paypal.com/sdk/js?client-id=BAAcwRkEgBGh_RD4Xm5UkO7ZzRHO-nd-3uOJM_2lDV3EbNzCUaO9iFSNQ6NNAtZkZEJ5l7NEiPILhwYJFE&components=hosted-buttons&disable-funding=venmo&currency=EUR">
-</script>
-<div id="paypal-button-container-P-35P930338C9428627NHQYFBI"></div>
-<script src="https://www.paypal.com/sdk/js?client-id=AR30eGC6I67S3OPaJU7yGsrzoFFKd7-KF6-N2zXimQOvbDkTx2ZqimtixedXJ7E2PEkx6Qtx98x1aE_9&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
-<script>
-  paypal.Buttons({
+
+  <h2>💎 Passe Premium</h2>
+  <p>Abonne-toi pour débloquer toutes les fonctionnalités</p>
+
+  <!-- PAYPAL -->
+  <div id="paypal-button-container"></div>
+
+  <!-- PAYPAL SDK (ONLY ONCE) -->
+  <script src="https://www.paypal.com/sdk/js?client-id=BAAcwRkEgBGh_RD4Xm5UkO7ZzRHO-nd-3uOJM_2lDV3EbNzCUaO9iFSNQ6NNAtZkZEJ5l7NEiPILhwYJFE&components=hosted-buttons&disable-funding=venmo&currency=EUR"></script>
+
+  <script>
+    paypal.Buttons({
       style: {
-          shape: 'pill',
-          color: 'gold',
-          layout: 'horizontal',
-          label: 'subscribe'
+        shape: 'pill',
+        color: 'gold',
+        layout: 'horizontal',
+        label: 'subscribe'
       },
-      createSubscription: function(data, actions) {
+
+      createSubscription: function (data, actions) {
         return actions.subscription.create({
-          /* Creates the subscription */
           plan_id: 'P-35P930338C9428627NHQYFBI'
         });
       },
-      onApprove: function(data, actions) {
-        alert(data.subscriptionID); // You can add optional success message for the subscriber here
+
+      onApprove: async function (data) {
+        alert("Abonnement activé ✔️ ID: " + data.subscriptionID);
+
+        // (optionnel) ici tu peux update Supabase
+        // ex: set premium = true
       }
-  }).render('#paypal-button-container-P-35P930338C9428627NHQYFBI'); // Renders the PayPal button
-</script>
+    }).render('#paypal-button-container');
+  </script>
 
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-  const { data } = await supabaseClient.auth.getUser();
+  <!-- AUTH CHECK -->
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const { data, error } = await supabaseClient.auth.getUser();
 
-  if(!data.user){
-    window.location.href = "login.html";
-  }
-});
-document.body.style.visibility = "visible";
-</script>
-    </body>
+        if (error || !data?.user) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        document.body.style.visibility = "visible";
+
+      } catch (e) {
+        console.error(e);
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+
+</body>
 </html>

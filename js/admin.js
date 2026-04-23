@@ -1,34 +1,31 @@
 let currentUser = null;
 
 // =============================
-// INIT
+// INIT ADMIN
 // =============================
-async function initAdmin(){
-  const { data } = await supabaseClient.auth.getUser();
+async function initAdmin() {
+  const { data, error } = await supabaseClient.auth.getUser();
 
-  if(!data.user){
+  if (error || !data.user) {
     window.location.href = "auth.html";
     return;
   }
 
   currentUser = data.user;
 
-  // vérifier admin
-  const { data: profile } = await supabaseClient
+  const { data: profile, error: profileError } = await supabaseClient
     .from("profiles")
     .select("is_admin")
     .eq("id", currentUser.id)
     .single();
 
-  if(!profile || !profile.is_admin){
+  if (profileError || !profile?.is_admin) {
     alert("Accès refusé");
     window.location.href = "app.html";
     return;
   }
 
-  loadUsers();
-  loadReports();
-  loadStats();
+  await Promise.all([loadUsers(), loadReports(), loadStats()]);
 }
 
 initAdmin();
@@ -36,83 +33,66 @@ initAdmin();
 // =============================
 // USERS
 // =============================
-async function loadUsers(){
+async function loadUsers() {
   const { data, error } = await supabaseClient
     .from("profiles")
     .select("*");
 
-  if(error){
-    console.error(error);
-    return;
-  }
+  if (error) return console.error(error);
 
   const container = document.getElementById("usersList");
   container.innerHTML = "";
 
-  data.forEach(u => {
-    const div = document.createElement("div");
-    div.className = "card";
+  data.forEach(user => {
+    const card = document.createElement("div");
+    card.className = "card";
 
-    div.innerHTML = `
-      <strong>${u.prenom || "Sans nom"}</strong><br>
-      ${u.premium ? "💎 Premium" : "Standard"}<br>
-      ${u.banned ? "🚫 Banni" : ""}
-      ${u.is_suspect ? "⚠️ Suspect" : ""}
-      Score: ${u.fake_score || 0}
-      <br>
-      <button onclick="toggleBan('${u.id}', ${u.banned})">
-        ${u.banned ? "Débannir" : "Bannir"}
+    card.innerHTML = `
+      <strong>${user.prenom || "Sans nom"}</strong><br>
+      ${user.premium ? "💎 Premium" : "Standard"}<br>
+      ${user.banned ? "🚫 Banni" : ""}
+      ${user.is_suspect ? "⚠️ Suspect" : ""}<br>
+      Score: ${user.fake_score || 0}
+      <br><br>
+
+      <button onclick="toggleBan('${user.id}', ${user.banned})">
+        ${user.banned ? "Débannir" : "Bannir"}
       </button>
 
-      <button onclick="makePremium('${u.id}')">
+      <button onclick="makePremium('${user.id}')">
         Donner Premium
       </button>
     `;
 
-    container.appendChild(div);
+    container.appendChild(card);
   });
 }
 
 // =============================
-// BAN USER
+// BAN / UNBAN
 // =============================
-async function blockUser(userId){
-  const current = await getUser();
-
-  // 🔒 vérifier admin
-  const { data: me } = await supabaseClient
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", current.id)
-    .single();
-
-  if(!me?.is_admin){
-    alert("Accès refusé");
-    return;
-  }
-
+async function toggleBan(userId, isBanned) {
   const { error } = await supabaseClient
     .from("profiles")
-    .update({ is_blocked: true })
+    .update({ banned: !isBanned })
     .eq("id", userId);
 
-  if(error){
-    alert("Erreur blocage");
+  if (error) {
+    alert("Erreur lors du ban/unban");
     return;
   }
 
-  alert("🚫 Utilisateur bloqué");
+  loadUsers();
 }
 
 // =============================
 // PREMIUM
 // =============================
-async function makePremium(userId){
-
+async function makePremium(userId) {
   const expireDate = new Date();
   expireDate.setDate(expireDate.getDate() + 30);
 
-  await supabaseClient
+  const { error } = await supabaseClient
     .from("profiles")
     .update({
       premium: true,
@@ -120,43 +100,55 @@ async function makePremium(userId){
     })
     .eq("id", userId);
 
+  if (error) {
+    alert("Erreur premium");
+    return;
+  }
+
   loadUsers();
 }
 
 // =============================
 // REPORTS
 // =============================
-async function loadReports(){
-  const { data } = await supabaseClient
+async function loadReports() {
+  const { data, error } = await supabaseClient
     .from("reports")
     .select("*");
+
+  if (error) return console.error(error);
 
   const container = document.getElementById("reportsList");
   container.innerHTML = "";
 
-  data.forEach(r => {
-    const div = document.createElement("div");
-    div.className = "card";
+  data.forEach(report => {
+    const card = document.createElement("div");
+    card.className = "card";
 
-    div.innerHTML = `
-      🚨 User: ${r.reported_user}<br>
-      Motif: ${r.reason}
+    card.innerHTML = `
+      🚨 Utilisateur: ${report.reported_user}<br>
+      Motif: ${report.reason}
+      <br><br>
 
-      <br>
-      <button onclick="deleteReport(${r.id})">
+      <button onclick="deleteReport(${report.id})">
         Supprimer
       </button>
     `;
 
-    container.appendChild(div);
+    container.appendChild(card);
   });
 }
 
-async function deleteReport(id){
-  await supabaseClient
+async function deleteReport(id) {
+  const { error } = await supabaseClient
     .from("reports")
     .delete()
     .eq("id", id);
+
+  if (error) {
+    alert("Erreur suppression report");
+    return;
+  }
 
   loadReports();
 }
@@ -164,17 +156,14 @@ async function deleteReport(id){
 // =============================
 // STATS
 // =============================
-async function loadStats(){
-  const { data: users } = await supabaseClient
-    .from("profiles")
-    .select("*");
-
-  const { data: matches } = await supabaseClient
-    .from("matches")
-    .select("*");
+async function loadStats() {
+  const [{ data: users }, { data: matches }] = await Promise.all([
+    supabaseClient.from("profiles").select("*"),
+    supabaseClient.from("matches").select("*")
+  ]);
 
   document.getElementById("stats").innerHTML = `
-    👥 Utilisateurs: ${users.length}<br>
-    💘 Matchs: ${matches.length}
+    👥 Utilisateurs: ${users?.length || 0}<br>
+    💘 Matchs: ${matches?.length || 0}
   `;
 }

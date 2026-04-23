@@ -2,112 +2,161 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Page creation profil</title>
+  <title>Création profil</title>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+
   <!-- JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/auth.js" defer></script>
-<script src="js/app.js" defer></script> <!-- 🔥 IMPORTANT -->
-<script src="js/profile-clean.js" ></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/header-loader.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/profile-clean.js" defer></script>
 
+  <style>
+    body {
+      visibility: hidden;
+    }
+
+    .box {
+      max-width: 600px;
+      margin: auto;
+      text-align: center;
+      padding: 20px;
+    }
+
+    input, textarea, select {
+      width: 80%;
+      max-width: 300px;
+      padding: 8px;
+      margin: 6px 0;
+    }
+
+    textarea {
+      min-height: 80px;
+    }
+
+    button {
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+  </style>
 </head>
+<nav class="header">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="profile.html">👤 Profil</a>
+  <a href="pageDesProfils.html">🔍 Recherche</a>
+  <a href="premiumPage.html">💎 Premium</a>
+  <a href="signup.html">👤 Inscription</a>
 
+  <span id="userInfo"></span>
+</nav>
+<center>
+    <button id="authBtn">Connexion</button>
+    <button id="adminPage">Admin</button>
+</center>
 <body>
 
-<nav>
-  <ul>
-    <li><a href="index.html">Accueil</a></li>
-    <li><a href="profile.html" defer>Mon profil</a></li>
-    <li><a href="pageDesProfils.html">Recherche</a></li>
-    <li><a href="premiumPage.html">Premium</a></li>
-  </ul>
+  <!-- HEADER -->
+  <div id="header"></div>
 
+  <hr>
 
-      <div id="userBox" style="display:none;">
-      <img id="navAvatar" width="40" style="border-radius:50%;">
-      <span id="navName"></span>
-</div>
+  <!-- PAGE PROFIL -->
+  <div id="profilePage" class="page">
 
-</nav>
-   <center>
-    <a href="registre.html">Inscription</a>
-      <a href="login.html">Connection</a>
-</center>
-<hr>
-<div id="profiles"></div>
-<div id="profilePage" class="page">
+    <div class="box">
 
-<!-- ===================== -->
-<!-- PROFIL -->
-<!-- ===================== -->
+      <h1 style="font-size:40px">💘 Rencontre Amoureuse</h1>
+      <hr><br>
 
-<div class="box">
+      <h3>👤 Mon profil</h3>
 
-  <div style="text-align:center;padding:40px">
-    <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
-    <hr><br>
+      <p>
+        👉 Crée ton profil pour commencer<br>
+        👉 Plus ton profil est complet, meilleurs sont les matchs 💘<br>
+        👉 Tu peux modifier ton profil à tout moment<br>
+      </p>
 
-    <h3>👤 Mon profil</h3>
-    <hr><br>
-   
+      <hr><br>
 
-    <p>
-    👉  En premier créer votre profil<br>
-      👉 Complète ton profil pour avoir plus de matchs 💘<br>
-     👉 Plus tu ajoutes d’infos, plus l’IA te propose de bons profils<br>
-         👉 Vous pourrez faire des modifications à tout moment si besoin.<br>
-         Et en suite faudrat revenir sur mon profil pour modifier le votre.
-    </p>
+      <!-- CREATE PROFILE -->
+      <div id="profileCreate">
+
+        <img id="createPhoto"
+             src="https://picsum.photos/120"
+             style="width:120px;height:120px;border-radius:50%;margin-bottom:15px;">
+
+        <br>
+
+        <input id="prenom" placeholder="Prénom"><br>
+        <input id="nom" placeholder="Nom"><br>
+        <input id="age" type="number" placeholder="Âge"><br>
+        <input id="ville" placeholder="Ville"><br>
+
+        <textarea id="bio" placeholder="Bio"></textarea><br>
+
+        <select id="lookingFor">
+          <option value="">Je cherche...</option>
+          <option value="amour">❤️ Amour</option>
+          <option value="amitié">😊 Amitié</option>
+          <option value="fun">🔥 Fun</option>
+        </select>
+
+        <br><br>
+
+        <input type="file" id="photoInput"><br><br>
+
+        <button onclick="saveProfile()">💾 Enregistrer mon profil</button>
+
+      </div>
+
+      <!-- VIEW PROFILE -->
+      <div id="profileView" style="display:none">
+
+        <img id="viewPhoto"
+             style="width:120px;height:120px;border-radius:50%;margin-bottom:20px;">
+
+        <h2 id="viewName"></h2>
+        <p id="viewAgeVille"></p>
+        <p id="viewBio"></p>
+        <p id="viewLooking"></p>
+
+      </div>
+
+    </div>
   </div>
 
-  <!-- 🔵 CREATION et edit-->
- <div id="profileCreate" style="text-align:center;">
-    <img id="createPhoto" style="width:120px;border-radius:50%; display:block;margin:auto;margin-bottom:20px;">
-    <input id="prenom" placeholder="Prénom"><br>
-    <input id="nom" placeholder="Nom"><br>
-    <input id="age" type="number" placeholder="Âge"><br>
-    <input id="ville" placeholder="Ville"><br>
-    <textarea id="bio" placeholder="Bio"></textarea><br>
-    <select id="lookingFor">
-      <option value="">Je cherche...</option>
-      <option value="amour">❤️ Amour</option>
-      <option value="amitié">😊 Amitié</option>
-      <option value="fun">🔥 Fun</option>
-      <input type="file" id="photoInput">
-    </select><br><br>
-    <button onclick="saveProfile()">💾 Créer mon profil</button>
-  </div>
+  <!-- INIT -->
+  <script>
+    window.addEventListener("DOMContentLoaded", async () => {
 
-  <!-- 🟢 VIEW -->
-  <div id="profileView" style="text-align:center;" >
-    <img id="viewPhoto" style="width:120px;border-radius:50%; display:block;margin:auto;margin-bottom:20px">
-    <h2 id="viewName"></h2>
-    <p id="viewAgeVille"></p>
-    <p id="viewBio"></p>
-    <p id="viewLooking"></p>
-     <br>
+      try {
+        const { data, error } = await supabaseClient.auth.getUser();
 
- 
+        if (error || !data?.user) {
+          window.location.href = "login.html";
+          return;
+        }
 
-  </div>
+        // load functions if exist
+        if (typeof loadProfile === "function") await loadProfile();
+        if (typeof loadMyProfiles === "function") await loadMyProfiles();
+        if (typeof initAuthUI === "function") initAuthUI();
+
+        document.body.style.visibility = "visible";
+
+      } catch (e) {
+        console.error("INIT ERROR:", e);
+        window.location.href = "login.html";
+      }
+
+    });
+  </script>
+
 </body>
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-
-  const { data } = await supabaseClient.auth.getUser();
-
-  if(!data.user){
-    window.location.href = "login.html";
-    return;
-  }
-  loadMyProfiles();
-  updateAuthUI();
-});
-
-  document.body.style.visibility = "visible";
-</script>
 </html>
