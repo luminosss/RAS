@@ -5,97 +5,140 @@
   <title>Rencontre Amoureuse</title>
 
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="favicon.ico">
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
 
-  <!-- JS -->
-     <script src="js/auth/logout.js"></script>
-  <script src="js/core/session.js"></script>
-<script src="js/ui/auth-ui.js"></script>
+  <script src="js/core/session.js" defer></script>
+  <script src="js/auth.js"></script>
+  <script type="module" src="js/ui/search-ui.js"></script>
 
-
+  <style>
+    body { visibility: hidden; }
+  </style>
 </head>
 
-<nav class="header">
-  <a href="index.html">🏠 Accueil</a>
-  <a href="profile.html">👤 Profil</a>
-  <a href="pageDesProfils.html">🔍 Recherche</a>
-  <a href="premiumPage.html">💎 Premium</a>
-  <a href="signup.html">👤 Inscription</a>
-
-  <span id="userInfo"></span>
-</nav>
- <button id="authBtn">Connexion</button>
- <center>
-    <a href= "adminPage.html">👤 Admin</a>
-    </center>
 <body>
 
-  <!-- HEADER -->
-  <div id="header"></div>
+<!-- NAV (IDENTIQUE, NON MODIFIÉE) -->
+<nav class="header">
 
-  <!-- HOME -->
-  <div id="homePage" class="page active">
-
-    <div style="text-align:center;padding:40px">
-
-      <h1 style="font-size:40px">💘 Rencontre Amoureuse</h1>
-      <hr>
-
-      <div class="box" style="font-size:25px;margin-top:20px;">
-        Bienvenue !
-      </div>
-
-      <p style="margin-top:20px; line-height:1.6;">
-        Bienvenue sur notre application de rencontre amoureuse !<br><br>
-
-        Crée ton profil, découvre des profils compatibles, et trouve l'amour de ta vie 💘<br><br>
-
-        👉 Commence par t'inscrire puis connecte-toi.<br><br>
-
-        👉 Ensuite, crée ton profil dans la section "Mon profil". C'est gratuit et rapide !<br><br>
-
-        🔥 Pour une expérience optimale, passe Premium afin de discuter et augmenter tes chances de trouver l'amour !<br><br>
-
-        Bonne chance dans ta recherche amoureuse 🍀
-      </p>
-
-    </div>
-
-    <center>
-      <a href="report.html">Signaler un problème</a>
-    </center>
-
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+    <a href="premiumPage.html">💎 Premium</a>
+    <a href="signup.html">👤 Inscription</a>
   </div>
 
-  <!-- ABOUT -->
-  <div style="padding:40px">
+<div class="nav-right">
+<button id="authBtn">Connexion</button>
+    <span class="online-dot"></span>
+  </div>
+  <!-- ADMIN (caché par défaut) -->
+    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
+</div>
+</nav>
 
-    <h2 style="font-size:25px">Qui sommes-nous ?</h2>
-    <hr>
+<!-- MAIN -->
+<main>
+
+  <h1>💘 Rencontre Amoureuse</h1>
+
+  <div class="box">
+    Bienvenue sur notre site de rencontre ! 💖
+  </div>
+
+  <div class="box">
+    <p style="text-align:center;">
+      Trouve des profils compatibles et match en temps réel ⚡
+    </p>
+  </div>
+
+  <br>
+
+  <div class="box">
+    <h2>🔥 Profils</h2>
+
+    <div id="profilesGrid"></div>
 
     <p>
-      Nous sommes un petit groupe de personnes qui aide les célibataires comme vous à trouver l'amour.
-      Si vous avez des questions ou un besoin, contactez-nous !
+      Crée ton compte → connecte-toi → crée ton profil → trouve l'amour 💘
     </p>
-
-    <br>
-
-    <h2 style="font-size:25px">Comment ça marche ?</h2>
-    <hr>
-
-    <p style="line-height:1.6;">
-      1. Crée ton profil en complétant tes informations et en ajoutant une photo.<br>
-      2. Découvre les profils des autres célibataires et like ceux qui te plaisent.<br>
-      3. Si un profil que tu as liké te like aussi, c'est un match ! Vous pouvez discuter ensemble.<br><br>
-
-      📢 Pour discuter, il faut un match + un abonnement Premium.
-    </p>
-
   </div>
+
+  <h2>💎 Premium</h2>
+
+  <div class="box">
+    Passe Premium pour discuter et booster tes matchs 💘
+  </div>
+
+</main>
+
+<!-- 🔒 ADMIN PROTECTION -->
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const { data } = await supabaseClient.auth.getUser();
+
+    if (!data?.user) {
+      document.body.style.visibility = "visible";
+      return;
+    }
+
+    const user = data.user;
+
+    // 👉 TON EMAIL ADMIN
+    const ADMIN_EMAIL = "jeffreygadal@gmail.com";
+
+    if (user.email === ADMIN_EMAIL) {
+      document.getElementById("adminLink").style.display = "inline-block";
+    }
+
+    document.body.style.visibility = "visible";
+
+  } catch (e) {
+    console.error(e);
+    document.body.style.visibility = "visible";
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const btn = document.getElementById("authBtn");
+
+  if (btn) {
+    btn.onclick = () => {
+      window.location.href = "login.html";
+    };
+  }
+
+});
+document.addEventListener("DOMContentLoaded", async () => {
+
+  const btn = document.getElementById("authBtn");
+
+  const { data } = await supabaseClient.auth.getUser();
+
+  if (data?.user) {
+    btn.textContent = "Déconnexion";
+
+    btn.onclick = async () => {
+      await supabaseClient.auth.signOut();
+      location.reload();
+    };
+
+  } else {
+    btn.textContent = "Connexion";
+
+    btn.onclick = () => {
+      window.location.href = "login.html";
+    };
+  }
+
+});
+
+</script>
 
 </body>
 </html>

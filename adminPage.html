@@ -4,22 +4,14 @@
   <meta charset="UTF-8">
   <title>Admin Dashboard</title>
 
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="favicon.ico">
-
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js" defer></script>
-
-  <!-- Modules -->
-<script src="js/admin/users.js"></script>
-
-
+  <link rel="stylesheet" href="css/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
 </head>
 
 <body>
 
-<!-- NAV -->
+<!-- NAVBAR -->
 <nav class="header">
   <a href="index.html">🏠 Accueil</a>
   <a href="profile.html">👤 Profil</a>
@@ -27,58 +19,134 @@
   <a href="premiumPage.html">💎 Premium</a>
   <a href="signup.html">👤 Inscription</a>
 
-  <span id="userInfo"></span>
+
+  <span class="online-dot"></span>
+  <button id="authBtn">Connexion</button>
 </nav>
- <button id="authBtn">Connexion</button>
- <center>
-    <a href= "adminPage.html">👤 Admin</a>
-    </center>
 
-<!-- TITLE -->
-<div style="text-align:center;padding:40px">
-  <h1 style="font-size:40px">👑 Admin Dashboard</h1>
+<center>
+  <a href="adminPage.html">👤 Admin</a>
+</center>
+
+<!-- APP -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2>⚡ Admin</h2>
+
+    <button onclick="loadUsers()">👤 Users</button>
+    <button onclick="loadStats()">📊 Stats</button>
+    <button onclick="detectFakeLikes()">💀 Anti-cheat</button>
+
+    <hr>
+
+    <button onclick="logout()">🚪 Logout</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="card">
+        <h3>Users</h3>
+        <span id="usersCount">0</span>
+      </div>
+
+      <div class="card">
+        <h3>Likes</h3>
+        <span id="likesCount">0</span>
+      </div>
+
+      <div class="card">
+        <h3>Matches</h3>
+        <span id="matchesCount">0</span>
+      </div>
+
+      <div class="card online">
+        <h3>Online</h3>
+        <span id="onlineCount">0</span>
+      </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="panel">
+      <h3>📈 Growth</h3>
+      <canvas id="growthChart"></canvas>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="panel">
+      <h3>🔔 Alerts</h3>
+      <div id="adminAlerts"></div>
+    </div>
+
+    <!-- USERS -->
+    <div class="panel">
+      <h3>👤 Users</h3>
+      <input id="searchUser" placeholder="Search user..." oninput="searchUsers(this.value)">
+      <div id="usersList"></div>
+    </div>
+
+    <!-- ANTI CHEAT -->
+    <div class="panel danger">
+      <h3>💀 Anti-Cheat</h3>
+      <div id="cheatList"></div>
+    </div>
+
+  </main>
+
 </div>
 
-<!-- ADMIN DASHBOARD -->
-<div class="container">
+<!-- SCRIPTS (ORDRE IMPORTANT) -->
 
-  <h2>👥 Utilisateurs</h2>
-<button onclick="loadUsers()">Charger users</button>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core/config.js"></script>
+<script src="js/auth.js"></script>
+<script type="module" src="js/ui/search-ui.js"></script>
 
-<div id="usersList"></div>
+<!-- GUARD (DOIT PASSER AVANT INIT) -->
+<script type="module">
+  import { requireAdmin } from "./js/admin/guard.js";
 
-  <h2>🚨 Signalements</h2>
-  <div id="reportsList"></div>
-
-  <h2>📊 Stats</h2>
-  <div id="stats"></div>
-
-</div>
-
-<!-- SCRIPT -->
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-
-  // sécurité admin
-  await requireAdmin();
-
-  // charger données
-  if (typeof loadUsers === "function") {
-    loadUsers();
-  }
-
-  if (typeof loadReports === "function") {
-    loadReports();
-  }
-
-  if (typeof loadStats === "function") {
-    loadStats();
-  }
-
-  // afficher page
-  document.body.style.visibility = "visible";
-});
+  window.addEventListener("DOMContentLoaded", async () => {
+    await requireAdmin();
+  });
 </script>
 
+<!-- ADMIN LOGIC -->
+<script type="module" src="js/admin/init.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const { data, error } = await supabaseClient.auth.getUser();
+
+    if (error || !data?.user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const user = data.user;
+
+    // 🔒 EMAIL ADMIN (à modifier)
+    const ADMIN_EMAIL = "tonemail@gmail.com";
+
+    if (user.email !== ADMIN_EMAIL) {
+      alert("⛔ Accès refusé");
+      window.location.href = "index.html";
+      return;
+    }
+
+    // OK accès autorisé
+    document.body.style.visibility = "visible";
+
+  } catch (e) {
+    console.error(e);
+    window.location.href = "login.html";
+  }
+});
+</script>
 </body>
 </html>

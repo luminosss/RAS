@@ -1,63 +1,129 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Page</title>
+  <title>Signaler un problème</title>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
-<style>
-</style>
-  <!-- JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/auth.js" defer></script>
-<script src="js/app.js" defer></script>
-<script src="js/profile-clean.js" defer></script>
+
+  <!-- SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js" defer></script>
+  <script type="module" src="js/ui/search-ui.js"></script>
+
+  <style>
+    body { visibility: hidden; }
+  </style>
 </head>
 
 <body>
-<nav class="header">
-  <a href="index.html">🏠 Accueil</a>
-  <a href="profile.html">👤 Profil</a>
-  <a href="pageDesProfils.html">🔍 Recherche</a>
-  <a href="premiumPage.html">💎 Premium</a>
-  <a href="signup.html">👤 Inscription</a>
 
-  <span id="userInfo"></span>
-</nav>
-<center>
+<!-- NAV -->
+<nav class="header">
+
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+    <a href="premiumPage.html">💎 Premium</a>
+    <a href="signup.html">👤 Inscription</a>
+  </div>
+
+  <div class="nav-right">
+    <span id="userInfo"></span>
+
+    <!-- online dot -->
+    <span class="online-dot"></span>
+
     <button id="authBtn">Connexion</button>
-  <a href= "adminPage.html">Admin</a>
-</center>
-<div id="header"></div>
+
+    <!-- ADMIN caché -->
+    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
+  </div>
+
+</nav>
+
 <hr>
-<!-- home -->
-<div id="homePage" class="page active">
- <div style="text-align:center;padding:40px">
-  <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
-  <hr>
-   <br>
-<h2>🔥 Signaler un problème</h2  >
-<p>Si tu rencontres un problème sur l'application, n'hésite pas à nous le signaler en remplissant le formulaire ci-dessous. Nous sommes là pour t'aider et améliorer ton expérience !</p>
-<form id="reportForm">  
-    <br>
-  <label for="issue">Décris le problème que tu as rencontré :</label><br>
-  <textarea id="issue" name="issue" rows="4" cols="50" placeholder="Exemple : Je n'arrive pas à me connecter..."></textarea><br><br>
-  <button type="submit">Envoyer le signalement</button> 
-</form> 
-<div id="reportMessage"></div>  
-</div>
+
+<!-- MAIN -->
+<main style="text-align:center;padding:40px">
+
+  <h1 style="font-size:40px">💘 Rencontre Amoureuse</h1>
+  <hr><br>
+
+  <h2>🔥 Signaler un problème</h2>
+
+  <p>
+    Si tu rencontres un problème, explique-le ici 👇
+  </p>
+
+  <form id="reportForm">
+
+    <textarea id="issue"
+      placeholder="Ex : Je n'arrive pas à me connecter..."
+      style="width:300px;height:100px;border-radius:10px;padding:10px;">
+    </textarea>
+
+    <br><br>
+
+    <button type="submit">Envoyer</button>
+
+  </form>
+
+  <div id="reportMessage" style="margin-top:15px;"></div>
+
+</main>
+
+<!-- SCRIPT -->
 <script>
-document.getElementById('reportForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const issue = document.getElementById('issue').value;
-  // Here you would typically send the report to your backend
-  document.getElementById('reportMessage').innerHTML = '<p>Signalement envoyé ! Merci pour votre retour.</p>';
-  this.reset();
+document.addEventListener("DOMContentLoaded", async () => {
+
+  /* ✅ AUTH UI */
+  if (typeof initAuthUI === "function") {
+    initAuthUI();
+  }
+
+  /* 🔒 ADMIN CHECK */
+  try {
+    const { data } = await supabaseClient.auth.getUser();
+
+    if (data?.user) {
+      const ADMIN_EMAIL = "tonemail@gmail.com";
+
+      if (data.user.email === ADMIN_EMAIL) {
+        document.getElementById("adminLink").style.display = "inline-block";
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  /* ✅ FORM */
+  const form = document.getElementById("reportForm");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const issue = document.getElementById("issue").value.trim();
+
+    if (!issue) {
+      alert("❌ Écris un message");
+      return;
+    }
+
+    document.getElementById("reportMessage").innerHTML =
+      "<p>✔ Signalement envoyé ! Merci 🙏</p>";
+
+    form.reset();
+  });
+
+  /* SHOW PAGE */
+  document.body.style.visibility = "visible";
+
 });
-document.addEventListener("DOMContentLoaded", () => {
- initAuthUI()
-});
-</script>   
+</script>
+
+</body>
+</html>

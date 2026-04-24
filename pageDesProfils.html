@@ -7,118 +7,91 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
 
-  <!-- JS -->
-  <script src="js/auth.js" defer></script>
-  <script src="js/app.js" defer></script>
-  <script src="js/auth.js" defer></script>
-  <script src="js/profile-clean.js" defer></script>
+  <script type="module" src="js/ui/search-ui.js"></script>
+  <script src="js/auth.js"></script>
 
+  <style>
+    body { visibility: hidden; }
+  </style>
 </head>
-<nav class="header">
-  <a href="index.html">🏠 Accueil</a>
-  <a href="profile.html">👤 Profil</a>
-  <a href="pageDesProfils.html">🔍 Recherche</a>
-  <a href="premiumPage.html">💎 Premium</a>
-  <a href="signup.html">👤 Inscription</a>
-
-  <span id="userInfo"></span>
-</nav>
- <button id="authBtn">Connexion</button>
- <center>
-    <a href= "adminPage.html">👤 Admin</a>
-    </center>
 
 <body>
 
-  <!-- HEADER -->
-  <div id="header"></div>
+<!-- NAVBAR -->
+<nav class="header">
 
-  <hr>
-
-  <!-- TITLE -->
-  <div style="text-align:center;padding:40px">
-
-    <h1 style="font-size:40px">💘 Rencontre Amoureuse</h1>
-
-    <hr><br>
-
-    <h3>🔥 Découvre plusieurs profils :</h3>
-
-    <!-- FILTERS -->
-    <div class="filters">
-
-      <select id="searchAge">
-        <option value="">Âge</option>
-        <option value="20-25">20-25</option>
-        <option value="25-35">25-35</option>
-        <option value="35-50">35-50</option>
-      </select>
-
-      <button id="searchBtn">🔍 Rechercher</button>
-
-    </div>
-
-    <!-- PROFILES GRID -->
-    <div id="profilesGrid"></div>
-
-    <!-- PROFILE VIEW -->
-    <div class="box">
-
-      <div id="profileView" style="display:none">
-
-        <img id="viewPhoto" width="200" alt="photo profil">
-
-        <h2 id="viewName"></h2>
-        <p id="viewAgeVille"></p>
-        <p id="viewBio"></p>
-        <p id="viewLooking"></p>
-
-        <button onclick="closeProfile()">❌ Fermer</button>
-
-      </div>
-
-    </div>
-
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+      <a href="matches.html">💘 Matchs</a>
+        <a href="likes.html">💘Qui ta Likes?</a>
+    <a href="premiumPage.html">💎 Premium</a>
+    <a href="signup.html">👤 Inscription</a>
   </div>
 
-  <!-- INIT SCRIPT -->
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
+  <div class="nav-right">
+  <span class="online-dot"></span>
+    <button id="authBtn">Connexion</button>
+  </div>
 
-      // 🔐 sécurité simple (optionnel mais recommandé)
-      const { data } = await supabaseClient.auth.getUser();
+</nav>
 
-      if (!data?.user) {
-        window.location.href = "index.html";
-        return;
-      }
+<!-- ADMIN -->
+<div class="admin-link">
+  <!-- ADMIN (caché par défaut) -->
+    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
+</div>
 
-      // 🔥 afficher page
-      document.body.style.visibility = "visible";
+<!-- MAIN -->
+<main class="container">
 
-      // 🔍 search button
-      const btn = document.getElementById("searchBtn");
+  <h1>💘 Recherche de profils</h1>
 
-      if (btn && typeof loadProfiles === "function") {
-        btn.addEventListener("click", loadProfiles);
-      }
+  <h3>🔥 Trouve ton match parfait</h3>
 
-      // 🚀 initial load
-      if (typeof loadProfiles === "function") {
-        loadProfiles();
-      } else {
-        console.error("loadProfiles non trouvé");
-      }
+  <!-- FILTERS -->
+  <div class="filters">
+    <select id="searchAge">
+      <option value="">Âge</option>
+      <option value="20-25">20-25</option>
+      <option value="25-35">25-35</option>
+      <option value="35-50">35-50</option>
+    </select>
 
-    });
-       document.addEventListener("DOMContentLoaded", () => {
-      document.body.style.visibility = "visible";
-    });
-  </script>
+    <button id="searchBtn">🔍 Rechercher</button>
+  </div>
+
+  <!-- GRID PROFILES -->
+  <div id="profilesGrid"></div>
+
+</main>
+
+<!-- PROFILE MODAL -->
+<div id="profileView" class="modal" style="display:none;">
+  <div class="modal-content">
+
+    <img id="viewPhoto" width="200">
+
+    <h2 id="viewName"></h2>
+    <p id="viewAgeVille"></p>
+    <p id="viewBio"></p>
+    <p id="viewLooking"></p>
+
+    <button onclick="closeProfile()">❌ Fermer</button>
+
+  </div>
+</div>
+
+<!-- INIT -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.body.style.visibility = "visible";
+});
+</script>
 
 </body>
 </html>

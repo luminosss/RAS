@@ -7,126 +7,332 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/core/config.js"></script>
 
-  <!-- JS -->
-<script type="module" src="js/profile/init.js"></script>
+  <script src="js/core/session.js" defer></script>
+  <script src="js/auth.js"></script>
+  <script type="module" src="js/ui/search-ui.js"></script>
 
-<nav class="header">
-  <a href="index.html">🏠 Accueil</a>
-  <a href="profile.html">👤 Profil</a>
-  <a href="pageDesProfils.html">🔍 Recherche</a>
-  <a href="premiumPage.html">💎 Premium</a>
-  <a href="signup.html">👤 Inscription</a>
 
-  <span id="userInfo"></span>
-</nav>
- <button id="authBtn">Connexion</button>
- <center>
-    <a href= "adminPage.html">👤 Admin</a>
-    </center>
 <body>
 
-  <!-- HEADER -->
-  <div id="header"></div>
+<!-- NAV (IDENTIQUE, NON MODIFIÉE) -->
+<nav class="header">
 
-  <hr>
-
-  <!-- PAGE PROFIL -->
-  <div id="profilePage" class="page">
-
-    <div class="box">
-
-      <h1 style="font-size:40px">💘 Rencontre Amoureuse</h1>
-      <hr><br>
-
-      <h3>👤 Mon profil</h3>
-
-      <p>
-        👉 Crée ton profil pour commencer<br>
-        👉 Plus ton profil est complet, meilleurs sont les matchs 💘<br>
-        👉 Tu peux modifier ton profil à tout moment<br>
-      </p>
-
-      <hr><br>
-
-      <!-- CREATE PROFILE -->
-      <div id="profileCreate">
-
-        <img id="createPhoto"
-             src="https://picsum.photos/120"
-             style="width:120px;height:120px;border-radius:50%;margin-bottom:15px;">
-
-        <br>
-
-        <input id="prenom" placeholder="Prénom"><br>
-        <input id="nom" placeholder="Nom"><br>
-        <input id="age" type="number" placeholder="Âge"><br>
-        <input id="ville" placeholder="Ville"><br>
-
-        <textarea id="bio" placeholder="Bio"></textarea><br>
-
-        <select id="lookingFor">
-          <option value="">Je cherche...</option>
-          <option value="amour">❤️ Amour</option>
-          <option value="amitié">😊 Amitié</option>
-          <option value="fun">🔥 Fun</option>
-        </select>
-
-        <br><br>
-
-        <input type="file" id="photoInput"><br><br>
-
-        <button onclick="saveProfile()">💾 Enregistrer mon profil</button>
-
-      </div>
-
-      <!-- VIEW PROFILE -->
-      <div id="profileView" style="display:none">
-
-        <img id="viewPhoto"
-             style="width:120px;height:120px;border-radius:50%;margin-bottom:20px;">
-
-        <h2 id="viewName"></h2>
-        <p id="viewAgeVille"></p>
-        <p id="viewBio"></p>
-        <p id="viewLooking"></p>
-
-      </div>
-
-    </div>
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+    <a href="premiumPage.html">💎 Premium</a>
+    <a href="signup.html">👤 Inscription</a>
   </div>
 
-  <!-- INIT -->
-  <script>
-    window.addEventListener("DOMContentLoaded", async () => {
+<div class="nav-right">
+<button id="authBtn">Connexion</button>
+    <span class="online-dot"></span>
+  </div>
+  <!-- ADMIN (caché par défaut) -->
+    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
+</div>
+</nav>
 
-      try {
-        const { data, error } = await supabaseClient.auth.getUser();
+  <style>
+    body {
+      visibility: hidden;
+      margin: 0;
+    }
 
-        if (error || !data?.user) {
-          window.location.href = "login.html";
-          return;
-        }
+    .profile-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 90vh;
+      padding: 20px;
+    }
 
-        // load functions if exist
-        if (typeof loadProfile === "function") await loadProfile();
-        if (typeof loadMyProfiles === "function") await loadMyProfiles();
-        if (typeof initAuthUI === "function") initAuthUI();
+    .profile-card {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(12px);
+      padding: 30px;
+      border-radius: 20px;
+      width: 95%;
+      max-width: 520px;
+      text-align: center;
+    }
 
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
 
+    input, textarea, select {
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+    }
+
+    .progress {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff4d6d, #ffb703);
+    }
+
+    .hidden { display: none; }
+  </style>
+</head>
+
+<body>
+
+<div class="profile-wrapper">
+  <div class="profile-card">
+
+    <h1>💘 Mon profil</h1>
+
+    <div class="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <img id="createPhoto" src="https://picsum.photos/120" class="avatar">
+
+    <input type="file" onchange="previewPhoto(event)">
+
+   <input id="prenom"placeholder="prenom" oninput="triggerAutoSave(); updateProgress(); updatePreview()">
+   <input id="nom" placeholder="nom"oninput="triggerAutoSave(); updateProgress(); updatePreview()">
+<input id="age" placeholder="age"oninput="triggerAutoSave(); updateProgress(); updatePreview()">
+  <input id="ville" placeholder="ville"oninput="triggerAutoSave(); updateProgress(); updatePreview()">
+
+    <textarea id="bio" placeholder="Bio" oninput="triggerAutoSave();updatePreview(); updateProgress()"></textarea>
+
+    <select id="lookingFor" onchange="triggerAutoSave();updatePreview(); updateProgress()">
+      <option value="">Je cherche...</option>
+      <option value="amour">❤️ Amour</option>
+      <option value="amitié">😊 Amitié</option>
+      <option value="fun">🔥 Fun</option>
+    </select>
+    </div>
+<div style="margin-top:15px;">
+  <button onclick="manualSaveProfile()">💾 Sauvegarder</button>
+</div>
+  </div>
+</div>
+<hr style="margin:15px 0;opacity:0.2;">
+
+<h3>👀 Aperçu</h3>
+
+<div id="previewCard" style="
+  background:rgba(255,255,255,0.08);
+  padding:15px;
+  border-radius:15px;
+  text-align:center;
+">
+
+  <img id="previewPhoto" src="https://picsum.photos/120" style="
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    object-fit:cover;
+    margin-bottom:10px;
+  ">
+
+  <h3 id="previewName">Prénom Nom</h3>
+  <p id="previewInfo">Âge • Ville</p>
+  <p id="previewBio">Bio...</p>
+  <p id="previewLooking">💘 Recherche...</p>
+
+</div>
+
+<script>
+let saveTimeout = null;
+let isSaving = false;
+/* ================= MANUEL SAVE ================= */
+async function manualSaveProfile() {
+  try {
+    const { data } = await supabaseClient.auth.getUser();
+    if (!data?.user) return;
+
+    const user = data.user;
+
+    const profile = {
+      user_id: user.id,
+      prenom: document.getElementById("prenom").value || "",
+      nom: document.getElementById("nom").value || "",
+      age: parseInt(document.getElementById("age").value) || null,
+      ville: document.getElementById("ville").value || "",
+      bio: document.getElementById("bio").value || "",
+      looking_for: document.getElementById("lookingFor").value || "",
+      photo: document.getElementById("createPhoto").src || ""
+    };
+
+    const { error } = await supabaseClient
+      .from("profiles")
+      .upsert(profile, { onConflict: "user_id" });
+
+    if (error) {
+      alert("❌ Erreur sauvegarde");
+      console.error(error);
+      return;
+    }
+
+    alert("✔ Profil sauvegardé !");
+  } catch (err) {
+    console.error(err);
+    alert("❌ Erreur système");
+  }
+}
+/* ================= AUTO SAVE ================= */
+function triggerAutoSave() {
+  clearTimeout(saveTimeout);
+
+  saveTimeout = setTimeout(() => {
+    autoSaveProfile();
+  }, 800);
+}
+
+async function autoSaveProfile() {
+  if (isSaving) return;
+
+  try {
+    isSaving = true;
+
+    const { data } = await supabaseClient.auth.getUser();
+    if (!data?.user) return;
+
+    const user = data.user;
+
+    const profile = {
+      user_id: user.id,
+      prenom: document.getElementById("prenom").value || "",
+      nom: document.getElementById("nom").value || "",
+      age: parseInt(document.getElementById("age").value) || null,
+      ville: document.getElementById("ville").value || "",
+      bio: document.getElementById("bio").value || "",
+      looking_for: document.getElementById("lookingFor").value || "",
+      photo: document.getElementById("createPhoto").src || ""
+    };
+
+    await supabaseClient
+      .from("profiles")
+      .upsert(profile, { onConflict: "user_id" });
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    isSaving = false;
+  }
+}
+
+/* ================= PHOTO ================= */
+function previewPhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById("createPhoto").src = e.target.result;
+    triggerAutoSave();
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ================= PROGRESS ================= */
+function updateProgress() {
+  const fields = ["prenom","nom","age","ville","bio","lookingFor"];
+  let filled = 0;
+
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value.trim() !== "") filled++;
+  });
+
+  const percent = Math.round((filled / fields.length) * 100);
+  document.getElementById("progressBar").style.width = percent + "%";
+}
+
+function updatePreview() {
+  const prenom = document.getElementById("prenom").value;
+  const nom = document.getElementById("nom").value;
+  const age = document.getElementById("age").value;
+  const ville = document.getElementById("ville").value;
+  const bio = document.getElementById("bio").value;
+  const looking = document.getElementById("lookingFor").value;
+  const photo = document.getElementById("createPhoto").src;
+
+  document.getElementById("previewName").textContent =
+    (prenom || "Prénom") + " " + (nom || "Nom");
+
+  document.getElementById("previewInfo").textContent =
+    (age || "?") + " ans • " + (ville || "Ville");
+
+  document.getElementById("previewBio").textContent =
+    bio || "Bio...";
+
+  document.getElementById("previewLooking").textContent =
+    looking ? "💘 " + looking : "💘 Recherche...";
+
+  document.getElementById("previewPhoto").src = photo;
+}
+
+/* ================= LOAD USER + PROFILE ================= */
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
+
+    if (!window.supabaseClient) {
+      console.error("Supabase non chargé");
       document.body.style.visibility = "visible";
+      return;
+    }
 
-      } catch (e) {
-        console.error("INIT ERROR:", e);
-        window.location.href = "login.html";
-      }
+    const { data } = await supabaseClient.auth.getUser();
 
-    });
-    
-  </script>
+    if (!data?.user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const user = data.user;
+
+    const { data: profile } = await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (profile) {
+      document.getElementById("prenom").value = profile.prenom || "";
+      document.getElementById("nom").value = profile.nom || "";
+      document.getElementById("age").value = profile.age || "";
+      document.getElementById("ville").value = profile.ville || "";
+      document.getElementById("bio").value = profile.bio || "";
+      document.getElementById("lookingFor").value = profile.looking_for || "";
+      document.getElementById("createPhoto").src = profile.photo || "https://picsum.photos/120";
+    }
+
+    document.body.style.visibility = "visible";
+
+  } catch (err) {
+    console.error(err);
+    document.body.style.visibility = "visible";
+  }
+  window.addEventListener("DOMContentLoaded", () => {
+  updatePreview();
+});
+});
+
+</script>
 
 </body>
 </html>

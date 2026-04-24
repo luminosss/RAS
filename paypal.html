@@ -7,100 +7,140 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
 
-  <!-- JS -->
   <script src="js/auth.js" defer></script>
-  <script src="js/app.js" defer></script>
 
   <style>
     body {
       visibility: hidden;
+      margin: 0;
+    }
+
+    .premium-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      min-height: 80vh;
       text-align: center;
-      padding: 40px;
+      gap: 15px;
+      padding: 20px;
+    }
+
+    .premium-card {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px);
+      padding: 30px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 500px;
     }
 
     #paypal-button-container {
-      margin-top: 30px;
+      margin-top: 20px;
     }
   </style>
 </head>
-<nav class="header">
-  <a href="index.html">🏠 Accueil</a>
-  <a href="profile.html">👤 Profil</a>
-  <a href="pageDesProfils.html">🔍 Recherche</a>
-  <a href="premiumPage.html">💎 Premium</a>
-  <a href="signup.html">👤 Inscription</a>
 
-  <span id="userInfo"></span>
-</nav>
- <button id="authBtn">Connexion</button>
- <center>
-    <a href= "adminPage.html">👤 Admin</a>
-    </center>
 <body>
 
-  <!-- HEADER -->
-  <div id="header"></div>
+<!-- NAVBAR -->
+<nav class="header">
 
-  <!-- TITLE -->
-  <h1 style="font-size:40px">💘 Rencontre Amoureuse</h1>
-  <hr>
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+    <a href="premiumPage.html">💎 Premium</a>
+    <a href="signup.html">👤 Inscription</a>
+  </div>
 
-  <h2>💎 Passe Premium</h2>
-  <p>Abonne-toi pour débloquer toutes les fonctionnalités</p>
+  <div class="nav-right">
+      <span class="online-dot"></span>
+    <button id="authBtn">Connexion</button>
+  </div>
 
-  <!-- PAYPAL -->
-  <div id="paypal-button-container"></div>
+</nav>
 
-  <!-- PAYPAL SDK (ONLY ONCE) -->
-  <script src="https://www.paypal.com/sdk/js?client-id=BAAcwRkEgBGh_RD4Xm5UkO7ZzRHO-nd-3uOJM_2lDV3EbNzCUaO9iFSNQ6NNAtZkZEJ5l7NEiPILhwYJFE&components=hosted-buttons&disable-funding=venmo&currency=EUR"></script>
+<!-- ADMIN -->
+<div style="text-align:center; margin-top:10px;">
+    <!-- ADMIN (caché par défaut) -->
+    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
+</div>
 
-  <script>
-    paypal.Buttons({
-      style: {
-        shape: 'pill',
-        color: 'gold',
-        layout: 'horizontal',
-        label: 'subscribe'
-      },
+<!-- MAIN -->
+<main class="premium-container">
 
-      createSubscription: function (data, actions) {
-        return actions.subscription.create({
-          plan_id: 'P-35P930338C9428627NHQYFBI'
-        });
-      },
+  <h1>💘 Rencontre Amoureuse</h1>
 
-      onApprove: async function (data) {
-        alert("Abonnement activé ✔️ ID: " + data.subscriptionID);
+  <div class="premium-card">
 
-        // (optionnel) ici tu peux update Supabase
-        // ex: set premium = true
-      }
-    }).render('#paypal-button-container');
-  </script>
+    <h2>💎 Passe Premium</h2>
 
-  <!-- AUTH CHECK -->
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        const { data, error } = await supabaseClient.auth.getUser();
+    <p>
+      Débloque toutes les fonctionnalités :
+      <br><br>
+      💬 Chat illimité<br>
+      ❤️ Voir qui t'a liké<br>
+      ⚡ Boost visibilité<br>
+      🔥 Matchs illimités
+    </p>
 
-        if (error || !data?.user) {
-          window.location.href = "login.html";
-          return;
-        }
+    <!-- PAYPAL -->
+    <div id="paypal-button-container"></div>
 
-        document.body.style.visibility = "visible";
+  </div>
 
-      } catch (e) {
-        console.error(e);
-        window.location.href = "login.html";
-      }
+</main>
+
+<!-- PAYPAL -->
+<script src="https://www.paypal.com/sdk/js?client-id=BAAcwRkEgBGh_RD4Xm5UkO7ZzRHO-nd-3uOJM_2lDV3EbNzCUaO9iFSNQ6NNAtZkZEJ5l7NEiPILhwYJFE&components=hosted-buttons&disable-funding=venmo&currency=EUR"></script>
+
+<script>
+paypal.Buttons({
+  style: {
+    shape: 'pill',
+    color: 'gold',
+    layout: 'vertical',
+    label: 'subscribe'
+  },
+
+  createSubscription: function (data, actions) {
+    return actions.subscription.create({
+      plan_id: 'P-35P930338C9428627NHQYFBI'
     });
-  </script>
+  },
+
+  onApprove: async function (data) {
+    alert("💎 Premium activé !");
+
+    console.log("Subscription:", data.subscriptionID);
+  }
+}).render('#paypal-button-container');
+</script>
+
+<!-- AUTH SAFE -->
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const { data, error } = await supabaseClient.auth.getUser();
+
+    if (error || !data?.user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    document.body.style.visibility = "visible";
+
+  } catch (e) {
+    console.error(e);
+    window.location.href = "login.html";
+  }
+});
+</script>
 
 </body>
 </html>

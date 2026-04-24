@@ -10,88 +10,60 @@
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
 
-  <!-- JS -->
-  <script src="js/app.js" defer></script>
-  <script src="js/profile-clean.js" defer></script>
+  <script type="module" src="js/ui/search-ui.js"></script>
 
-<nav class="header">
-  <a href="index.html">🏠 Accueil</a>
-  <a href="profile.html">👤 Profil</a>
-  <a href="pageDesProfils.html">🔍 Recherche</a>
-  <a href="premiumPage.html">💎 Premium</a>
-  <a href="signup.html">👤 Inscription</a>
+  <style>
+    body { visibility: hidden; }
+  </style>
+</head>
 
-  <span id="userInfo"></span>
-</nav>
- <button id="authBtn">Connexion</button>
- <center>
-    <a href= "adminPage.html">👤 Admin</a>
-    </center>
 <body>
 
-  <!-- HEADER -->
-  <div id="header"></div>
+<nav class="header">
 
-  <!-- PROFILES -->
-  <div id="profiles"></div>
-  <div id="profilesGrid"></div>
-
-  <hr>
-
-  <!-- TITLE -->
-  <div style="text-align:center;padding:40px">
-    <h1 style="font-size:40px">💘 Rencontre Amoureuse</h1>
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+    <a href="premiumPage.html">💎 Premium</a>
+    <a href="signup.html">👤 Inscription</a>
   </div>
 
-  <hr>
+  <div class="nav-right">
+    <span id="userInfo"></span>
+    <button id="authBtn">Connexion</button>
+  </div>
 
-  <!-- CHAT -->
-  <h2 style="text-align:center">💬 Chat</h2>
+</nav>
 
+<!-- ADMIN -->
+<div style="text-align:center; margin-top:10px;">
+  <a href="adminPage.html">👤 Admin</a>
+</div>
+
+<!-- CONTENU CENTRÉ PROPRE -->
+<main style="width:100%; text-align:center;">
+
+  <h1>💘 Rencontre Amoureuse</h1>
+
+  <div style="margin:20px auto; max-width:600px;">
+    Bienvenue sur l'app 💘
+  </div>
+
+  <!-- GRID RESTE GRID CSS -->
+  <div id="profilesGrid"></div>
+
+  <h2>💬 Chat</h2>
   <div id="chatBox"></div>
 
-  <!-- PREMIUM BANNER -->
   <div id="premiumBanner">
     💎 Passe Premium pour débloquer toutes les fonctionnalités
     <button onclick="buyPremium()">Devenir Premium</button>
   </div>
 
-  <!-- CHAT INTERFACE -->
-  <div id="chatInterface" style="display:none">
-    <div id="typingIndicator"></div>
-
-    <div class="inputBox">
-      <input id="msgInput" placeholder="Message...">
-      <button onclick="sendMessage()">Envoyer</button>
-    </div>
-  </div>
-
-  <!-- NON PREMIUM VIEW -->
-  <div id="notPremium" style="display:none">
-    <h3>💎 Passe Premium pour discuter</h3>
-    <button onclick="buyPremium()">Devenir Premium</button>
-  </div>
-
-  <!-- AUTH CHECK -->
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        const { data, error } = await supabaseClient.auth.getUser();
-
-        if (error || !data?.user) {
-          window.location.href = "index.html";
-          return;
-        }
-
-        document.body.style.visibility = "visible";
-
-      } catch (e) {
-        console.error(e);
-        window.location.href = "index.html";
-      }
-    });
-  </script>
+</main>
 
 </body>
 </html>

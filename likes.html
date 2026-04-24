@@ -1,21 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Likes - Rencontre Amoureuse</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="favicon.ico">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui;
+    }
+
+    main {
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin-top: 30px;
+    }
+
+    #likesMeGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    /* CARD */
+    .profile-card {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 15px;
+      color: white;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transition: 0.2s;
+    }
+
+    .profile-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .avatar {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 15px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: linear-gradient(135deg,#ff4d6d,#ffb703);
+      color: white;
+      font-weight: bold;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+  </style>
+</head>
+
+<body>
+
+<!-- NAV -->
 <nav class="header">
-  <a href="index.html">🏠 Accueil</a>
-  <a href="profile.html">👤 Profil</a>
-  <a href="pageDesProfils.html">🔍 Recherche</a>
-  <a href="premiumPage.html">💎 Premium</a>
-  <a href="signup.html">👤 Inscription</a>
 
-  <span id="userInfo"></span>
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+    <a href="premiumPage.html">💎 Premium</a>
+    <a href="signup.html">👤 Inscription</a>
+  </div>
+
+  <div class="nav-right">
+    <span class="online-dot"></span>
+    <button id="authBtn">Connexion</button>
+  <!-- ADMIN (caché par défaut) -->
+    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
+  </div>
+
 </nav>
- <button id="authBtn">Connexion</button>
- <center>
-    <a href= "adminPage.html">👤 Admin</a>
-    </center>
 
- <div style="text-align:center;padding:40px">
-  <h1 style="font-size:40px">💘 Rencontre Amoureuse !</h1>
-  <hr>  
-    <br>
+<!-- PAGE -->
+<main>
 
-<h2>❤️ Ils t'ont liké</h2>
-<div id="likesMeGrid"></div>
+  <h1>💘 Rencontre Amoureuse</h1>
+  <hr>
+
+  <h2>❤️ Ils t'ont liké</h2>
+
+  <div id="likesMeGrid"></div>
+
+</main>
+
+<!-- SCRIPT -->
+<script type="module">
+  import { loadLikesMe } from "./js/search/likes.js";
+
+  window.addEventListener("DOMContentLoaded", () => {
+    loadLikesMe();
+  });
+</script>
+
+</body>
+</html>

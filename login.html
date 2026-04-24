@@ -7,78 +7,214 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="favicon.ico">
 
-  <!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/core/config.js"></script>
 
-  <script src="js/core/config.js" defer></script>
+  <!-- AUTH -->
+  <script src="js/core/session.js" defer></script>
+  <script src="js/auth.js"></script>
 
-<script type="module" src="js/ui/auth-ui.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui;
+      background: linear-gradient(-45deg,#ff4d6d,#7b2ff7,#00c6ff);
+      background-size: 400% 400%;
+      animation: bg 12s ease infinite;
+      min-height: 100vh;
+    }
 
+    @keyframes bg {
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
 
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 80vh;
+    }
+
+    .login-card {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(15px);
+      padding: 30px;
+      border-radius: 20px;
+      width: 340px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+
+    .login-card h2 {
+      margin-bottom: 5px;
+    }
+
+    .login-card p {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+    }
+
+    .password-field {
+      position: relative;
+    }
+
+    .password-field button {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      border: none;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+    }
+
+    .primary-btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg,#ff4d6d,#ffb703);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.2s;
+    }
+
+    .primary-btn:hover {
+      transform: scale(1.03);
+    }
+
+    .secondary-btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      cursor: pointer;
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.2);
+      margin: 15px 0;
+    }
+
+    #errorMsg {
+      color: #ffcccc;
+      font-size: 14px;
+    }
+
+    .signup-text {
+      margin-top: 15px;
+      font-size: 13px;
+    }
+
+    .signup-text a {
+      color: white;
+      font-weight: bold;
+    }
+
+    /* JUST CENTER CONTENT */
+    main {
+      width: 100%;
+    }
+
+  </style>
 </head>
 
 <body>
 
+<!-- NAV (IDENTIQUE, NON MODIFIÉE) -->
 <nav class="header">
-  <a href="index.html">🏠 Accueil</a>
-  <a href="profile.html">👤 Profil</a>
-  <a href="pageDesProfils.html">🔍 Recherche</a>
-  <a href="premiumPage.html">💎 Premium</a>
-  <a href="signup.html">👤 Inscription</a>
 
-  <span id="userInfo"></span>
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+    <a href="premiumPage.html">💎 Premium</a>
+    <a href="signup.html">👤 Inscription</a>
+  </div>
+<div class="nav-right">
+  <button id="authBtn">Connexion</button>
+    <span class="online-dot"></span>
+    <!-- ADMIN (caché par défaut) -->
+    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
+  </div>
+
+</div>
 </nav>
- <center>
-    <a href= "adminPage.html">👤 Admin</a>
-    </center>
 
-  <main>
-    <div class="card">
-      <h2>Connexion</h2>
 
-      <input type="email" id="email" placeholder="Email">
+<!-- LOGIN -->
+<main class="login-container">
 
-      <div class="password-field">
-        <input type="password" id="password" placeholder="Mot de passe">
-        <button type="button" id="toggleBtn" onclick="togglePassword()">Afficher</button>
-      </div>
+  <div class="login-card">
 
-      <button onclick="login()">Se connecter</button>
+    <h2>💘 Connexion</h2>
+    <p>Retrouve ton compte et tes matchs</p>
 
-      <p style="margin-top:15px;">
-        Mot de passe oublié ?
-      </p>
+    <input type="email" id="email" placeholder="📧 Email">
 
-      <input id="resetPassword" type="email" placeholder="Ton email">
-      <button onclick="resetPassword()">Envoyer lien</button>
-
-      <p id="errorMsg"></p>
-
-      <p style="margin-top:20px;">
-        Pas de compte ?
-        <a href="signup.html">Inscription</a>
-      </p>
+    <div class="password-field">
+      <input type="password" id="password" placeholder="🔒 Mot de passe">
+      <button type="button" id="toggleBtn">Afficher</button>
     </div>
-  </main>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      document.body.style.visibility = "visible";
-    });
+    <button class="primary-btn" onclick="login()">Se connecter</button>
 
-    function togglePassword() {
-      const input = document.getElementById("password");
-      const btn = document.getElementById("toggleBtn");
+    <div class="divider"></div>
 
-      if (input.type === "password") {
-        input.type = "text";
-        btn.textContent = "Cacher";
-      } else {
-        input.type = "password";
-        btn.textContent = "Afficher";
-      }
+    <input id="resetEmail" type="email" placeholder="📨 Email de récupération">
+    <button class="secondary-btn" onclick="resetPassword()">Mot de passe oublié</button>
+
+    <p id="errorMsg"></p>
+
+    <p class="signup-text">
+      Pas de compte ?
+      <a href="signup.html">Créer un compte</a>
+    </p>
+
+  </div>
+
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+
+  const avatar = document.getElementById("miniAvatar");
+
+  try {
+    const { data } = await supabaseClient.auth.getUser();
+
+    if (data?.user) {
+      // si tu as une image dans ton profil plus tard
+      const email = data.user.email;
+
+      avatar.src = `https://api.dicebear.com/7.x/initials/svg?seed=${email}`;
     }
-  </script>
+
+  } catch (e) {
+    console.log("avatar error", e);
+  }
+
+});
+</script>
 
 </body>
 </html>

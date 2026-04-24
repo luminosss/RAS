@@ -3,6 +3,8 @@ import { loadProfile } from "./view.js";
 import { loadLikeCount } from "./likes.js";
 import { loadForm } from "./edit.js";
 
+
+
 window.addEventListener("DOMContentLoaded", async () => {
   const user = await initUser();
 
