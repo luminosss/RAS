@@ -21,6 +21,7 @@
 
 <body>
 
+<!-- NAV (IDENTIQUE, NON MODIFIÉE) -->
 <nav class="header">
 
   <div class="nav-left">
@@ -30,18 +31,15 @@
     <a href="premiumPage.html">💎 Premium</a>
     <a href="signup.html">👤 Inscription</a>
   </div>
-
-  <div class="nav-right">
-    <span id="userInfo"></span>
-    <button id="authBtn">Connexion</button>
+ <div class="box">
+<div class="nav-right">
+<button id="authBtn">Connexion</button>
+    <span class="online-dot"></span>
   </div>
-
-</nav>
-
-<!-- ADMIN -->
-<div style="text-align:center; margin-top:10px;">
-  <a href="adminPage.html">👤 Admin</a>
+  <!-- ADMIN (caché par défaut) -->
+    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
 </div>
+</nav>
 
 <!-- CONTENU CENTRÉ PROPRE -->
 <main style="width:100%; text-align:center;">

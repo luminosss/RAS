@@ -107,26 +107,25 @@ button{
 
 <body>
 
-<!-- NAV (CORRECTEMENT DANS BODY) -->
-<div class="header">
+<!-- NAV (IDENTIQUE, NON MODIFIÉE) -->
+<nav class="header">
 
-  <div class="nav-inner">
-
-    <div class="nav-left">
-      <a href="index.html">🏠 Accueil</a>
-      <a href="profile.html">👤 Profil</a>
-      <a href="pageDesProfils.html">🔍 Recherche</a>
-      <a href="signup.html">🧾 Inscription</a>
-    </div>
-
-    <div class="nav-right">
-      <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
-      <a href="premiumPage.html">💎 Premium</a>
-    </div>
-
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+    <a href="premiumPage.html">💎 Premium</a>
+    <a href="signup.html">👤 Inscription</a>
   </div>
-
+ <div class="box">
+<div class="nav-right">
+<button id="authBtn">Connexion</button>
+    <span class="online-dot"></span>
+  </div>
+  <!-- ADMIN (caché par défaut) -->
+    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
 </div>
+</nav>
 
 <!-- CENTRAGE -->
 <div class="container">

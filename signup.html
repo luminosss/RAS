@@ -96,18 +96,27 @@
   </style>
 </head>
 
-<body>
-
-<!-- NAVBAR (inchangée) -->
+<body><!-- NAV (IDENTIQUE, NON MODIFIÉE) -->
 <nav class="header">
-  <a href="index.html">🏠 Accueil</a>
-  <a href="profile.html">👤 Profil</a>
-  <a href="pageDesProfils.html">🔍 Recherche</a>
-  <a href="premiumPage.html">💎 Premium</a>
-  <a href="signup.html">👤 Inscription</a>
-    <!-- ADMIN (caché par défaut) -->
+
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+    <a href="premiumPage.html">💎 Premium</a>
+    <a href="signup.html">👤 Inscription</a>
+  </div>
+ <div class="box">
+<div class="nav-right">
+<button id="authBtn">Connexion</button>
+    <span class="online-dot"></span>
+  </div>
+  <!-- ADMIN (caché par défaut) -->
     <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
+</div>
 </nav>
+
+
 
 <!-- SIGNUP -->
 <main>
