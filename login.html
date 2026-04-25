@@ -168,53 +168,7 @@ const supabase = window.supabaseClient;
 let attempts = 0;
 let blockedUntil = 0;
 
-/* ================= GOOGLE LOGIN ================= */
-async function loginGoogle(){
 
-  if(!supabase){
-    console.error("Supabase non chargé");
-    return;
-  }
-
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: window.location.origin + "/index.html",
-  queryParams: {
-    access_type: "offline",
-    prompt: "consent"
-      
-    }
-  });
-
-  if(error){
-    alert("Erreur Google login : " + error.message);
-  }
-}
-
-/* ================= APPLE LOGIN ================= */
-async function loginApple(){
-
-  if(!supabase){
-    console.error("Supabase non chargé");
-    return;
-  }
-
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "apple",
-    options: {
-      redirectTo: window.location.origin + "/index.html",
-  queryParams: {
-    access_type: "offline",
-    prompt: "consent"
-    }
-     }
-  });
-
-  if(error){
-    alert("Erreur Apple login : " + error.message);
-  }
-   }
 async function oauthLogin(provider){
 
   const { error } = await supabase.auth.signInWithOAuth({
