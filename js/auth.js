@@ -31,31 +31,60 @@ async function login() {
 }
 
 // =============================
-// SIGNUP
+// SIGNUP (ROBUST VERSION)
 // =============================
 async function signup() {
   const email = document.getElementById("email")?.value?.trim();
   const password = document.getElementById("password")?.value;
+  const errorBox = document.getElementById("errorMsg");
 
+  if (errorBox) errorBox.textContent = "";
+
+  // Validation front simple
   if (!email || !password) {
-    alert("Email ou mot de passe manquant");
+    const msg = "Email ou mot de passe manquant";
+    if (errorBox) errorBox.textContent = msg;
+    else alert(msg);
     return;
   }
 
-  const { error } = await client().auth.signUp({
-    email,
-    password
-  });
+  try {
+    const { data, error } = await client().auth.signUp({
+      email,
+      password
+    });
 
-  if (error) {
-    alert(error.message);
-    return;
+    // 🔥 IMPORTANT : Supabase peut renvoyer error = null mais user = null
+    if (error) {
+      console.error("Signup error:", error);
+      if (errorBox) errorBox.textContent = error.message;
+      else alert(error.message);
+      return;
+    }
+
+    if (!data?.user) {
+      const msg = "Erreur: utilisateur non créé (vérifie Supabase Auth settings)";
+      console.error(msg, data);
+      if (errorBox) errorBox.textContent = msg;
+      else alert(msg);
+      return;
+    }
+
+    // Succès
+    alert("Compte créé ✔");
+
+    // petit délai pour éviter race condition UI
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 500);
+
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    const msg = "Erreur serveur inattendue";
+    if (errorBox) errorBox.textContent = msg;
+    else alert(msg);
   }
-
-  alert("Compte créé ✔ Vérifie ton email 📩");
-  window.location.href = "login.html";
 }
-
 // =============================
 // LOGOUT
 // =============================
