@@ -4,37 +4,41 @@
 <meta charset="UTF-8">
 <title>Premium</title>
 
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="favicon.ico">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/core/config.js"></script>
+
+<script src="js/auth.js" defer></script>
 
 <style>
 body{
   margin:0;
   font-family:Arial;
-  background:#0f0f1a;
+  background: radial-gradient(circle at top, #1a1a2e, #0f0f1a);
   color:white;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
+  visibility:hidden;
 }
 
-/* NAV PROPRE CENTRÉE */
+/* NAV */
 .header{
   position:fixed;
   top:0;
   left:0;
   right:0;
-  height:55px;
+  height:60px;
   display:flex;
   justify-content:center;
   align-items:center;
-  background:rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
+  background:rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px);
+  z-index:1000;
 }
 
 .nav-inner{
   width:100%;
-  max-width:900px;
+  max-width:1000px;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -47,69 +51,106 @@ body{
   text-decoration:none;
   margin-right:10px;
   font-size:14px;
+  opacity:0.9;
 }
 
-/* CENTRAGE */
+/* CENTER */
 .container{
-  flex:1;
+  min-height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
-  padding-top:60px;
+  padding-top:80px;
 }
 
 /* CARD */
 .card{
   width:90%;
-  max-width:360px;
+  max-width:400px;
   background:rgba(255,255,255,0.08);
-  border-radius:20px;
-  padding:22px;
+  border-radius:24px;
+  padding:30px;
   text-align:center;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  box-shadow:0 15px 40px rgba(0,0,0,0.4);
+  transition:0.3s;
+}
+
+.card:hover{
+  transform:translateY(-3px);
+}
+
+h1{
+  margin-bottom:5px;
 }
 
 .price{
-  font-size:28px;
+  font-size:34px;
   color:#ffb703;
-  margin:10px 0;
+  margin:10px 0 20px;
+  font-weight:bold;
 }
 
+.badge{
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:20px;
+  background:#22c55e;
+  font-size:12px;
+  margin-bottom:10px;
+}
+
+/* FEATURES */
 ul{
   list-style:none;
   padding:0;
   text-align:left;
+  margin:20px 0;
 }
 
 li{
-  padding:6px 0;
+  padding:8px 0;
   font-size:14px;
+  opacity:0.9;
 }
 
+/* BUTTON */
 button{
   width:100%;
-  padding:14px;
+  padding:15px;
   border:none;
-  border-radius:12px;
+  border-radius:14px;
   background:linear-gradient(90deg,#ff4d6d,#ffb703);
   color:white;
   font-size:16px;
-  margin-top:10px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+button:hover{
+  transform:scale(1.03);
+}
+
+button:disabled{
+  background:gray;
+  cursor:not-allowed;
+  transform:none;
 }
 
 .status{
   font-size:13px;
-  margin-top:10px;
+  margin-top:12px;
   opacity:0.8;
+  min-height:18px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- NAV (IDENTIQUE, NON MODIFIÉE) -->
+<!-- NAV -->
 <nav class="header">
-
   <div class="nav-left">
     <a href="index.html">🏠 Accueil</a>
     <a href="profile.html">👤 Profil</a>
@@ -117,17 +158,16 @@ button{
     <a href="premiumPage.html">💎 Premium</a>
     <a href="signup.html">👤 Inscription</a>
   </div>
- <div class="box">
-<div class="nav-right">
-<button id="authBtn">Connexion</button>
-    <span class="online-dot"></span>
-  </div>
-  <!-- ADMIN (caché par défaut) -->
-    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
-</div>
-</nav>
 
-<!-- CENTRAGE -->
+  <div class="box">
+    <div class="nav-right">
+      <button id="authBtn">Connexion</button>
+      <span class="online-dot"></span>
+    </div>
+    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
+  </div>
+</nav>
+<!-- CENTER -->
 <div class="container">
 
   <div class="card">
@@ -136,12 +176,19 @@ button{
 
     <div class="price">10€ / mois</div>
 
+    <div id="premiumBadge" class="badge" style="display:none;">
+      ✔ Déjà Premium
+    </div>
+
     <ul>
-      <li>🔥 Profil boosté</li>
+      <li>🔥 Boost de visibilité</li>
       <li>💬 Messages illimités</li>
+      <li>❤️ Voir qui t’a liké</li>
+      <li>🚀 Priorité dans les suggestions</li>
+      <li>✨ Badge Premium</li>
     </ul>
 
-    <button onclick="buyPremium()">Activer</button>
+    <button id="buyBtn" onclick="buyPremium()">Activer Premium</button>
 
     <div class="status" id="status"></div>
 
@@ -150,27 +197,84 @@ button{
 </div>
 
 <script>
-async function buyPremium(){
-  const status = document.getElementById("status");
+let user = null;
+
+/* INIT */
+window.addEventListener("DOMContentLoaded", async () => {
 
   const { data } = await supabaseClient.auth.getUser();
 
-  if(!data?.user){
-    status.textContent = "❌ Non connecté";
+  if (!data?.user) {
+    window.location.href = "login.html";
     return;
   }
 
-  const { error } = await supabaseClient
+  user = data.user;
+
+  const { data: profile } = await supabaseClient
     .from("profiles")
-    .update({ premium:true })
-    .eq("user_id", data.user.id);
+    .select("premium")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
-  if(error){
-    status.textContent = "❌ Erreur";
-    return;
+  if (profile?.premium) {
+    setPremiumUI(true);
   }
 
-  status.textContent = "✔ Premium activé 💎";
+  document.body.style.visibility = "visible";
+});
+
+/* UI PREMIUM */
+function setPremiumUI(state){
+  const badge = document.getElementById("premiumBadge");
+  const btn = document.getElementById("buyBtn");
+
+  if(state){
+    badge.style.display = "inline-block";
+    btn.textContent = "Déjà Premium 💎";
+    btn.disabled = true;
+  }
+}
+
+/* BUY PREMIUM */
+async function buyPremium(){
+
+  const btn = document.getElementById("buyBtn");
+  const status = document.getElementById("status");
+
+  btn.disabled = true;
+  status.textContent = "⏳ Activation en cours...";
+
+  try {
+
+    const { error } = await supabaseClient
+      .from("profiles")
+      .update({ premium: true })
+      .eq("user_id", user.id);
+
+    if (error) {
+      status.textContent = "❌ Erreur activation";
+      btn.disabled = false;
+      return;
+    }
+
+    status.textContent = "✔ Premium activé 💎";
+    setPremiumUI(true);
+
+  } catch (err) {
+    console.error(err);
+    status.textContent = "❌ Erreur système";
+    btn.disabled = false;
+  }
+}
+async function checkPremium(userId) {
+  const { data } = await supabaseClient
+    .from("profiles")
+    .select("premium")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  return data?.premium === true;
 }
 </script>
 

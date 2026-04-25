@@ -14,29 +14,6 @@
   <script src="js/auth.js"></script>
   <script type="module" src="js/ui/search-ui.js"></script>
 
-
-<body>
-
-<!-- NAV (IDENTIQUE, NON MODIFIÉE) -->
-<nav class="header">
-
-  <div class="nav-left">
-    <a href="index.html">🏠 Accueil</a>
-    <a href="profile.html">👤 Profil</a>
-    <a href="pageDesProfils.html">🔍 Recherche</a>
-    <a href="premiumPage.html">💎 Premium</a>
-    <a href="signup.html">👤 Inscription</a>
-  </div>
- <div class="box">
-<div class="nav-right">
-<button id="authBtn">Connexion</button>
-    <span class="online-dot"></span>
-  </div>
-  <!-- ADMIN (caché par défaut) -->
-    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
-</div>
-</nav>
-
   <style>
     body {
       visibility: hidden;
@@ -90,12 +67,29 @@
       width: 0%;
       background: linear-gradient(90deg, #ff4d6d, #ffb703);
     }
-
-    .hidden { display: none; }
   </style>
 </head>
 
 <body>
+
+<!-- NAV -->
+<nav class="header">
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+    <a href="premiumPage.html">💎 Premium</a>
+    <a href="signup.html">👤 Inscription</a>
+  </div>
+
+  <div class="box">
+    <div class="nav-right">
+      <button id="authBtn">Connexion</button>
+      <span class="online-dot"></span>
+    </div>
+    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
+  </div>
+</nav>
 
 <div class="profile-wrapper">
   <div class="profile-card">
@@ -107,99 +101,82 @@
     </div>
 
     <img id="createPhoto" src="https://picsum.photos/120" class="avatar">
-
     <input type="file" onchange="previewPhoto(event)">
 
-   <input id="prenom"placeholder="prenom" oninput="triggerAutoSave(); updateProgress(); updatePreview()">
-   <input id="nom" placeholder="nom"oninput="triggerAutoSave(); updateProgress(); updatePreview()">
-<input id="age" placeholder="age"oninput="triggerAutoSave(); updateProgress(); updatePreview()">
-  <input id="ville" placeholder="ville"oninput="triggerAutoSave(); updateProgress(); updatePreview()">
+    <input id="prenom" placeholder="Prénom" oninput="handleInput()">
+    <input id="nom" placeholder="Nom" oninput="handleInput()">
+    <input id="age" type="number" placeholder="Âge" oninput="handleInput()">
+    <input id="ville" placeholder="Ville" oninput="handleInput()">
 
-    <textarea id="bio" placeholder="Bio" oninput="triggerAutoSave();updatePreview(); updateProgress()"></textarea>
+    <textarea id="bio" placeholder="Bio" oninput="handleInput()"></textarea>
 
-    <select id="lookingFor" onchange="triggerAutoSave();updatePreview(); updateProgress()">
+    <select id="lookingFor" onchange="handleInput()">
       <option value="">Je cherche...</option>
       <option value="amour">❤️ Amour</option>
       <option value="amitié">😊 Amitié</option>
       <option value="fun">🔥 Fun</option>
     </select>
-    </div>
-<div style="margin-top:15px;">
-  <button onclick="manualSaveProfile()">💾 Sauvegarder</button>
-</div>
+
+    <button onclick="manualSaveProfile()">💾 Sauvegarder</button>
+
   </div>
 </div>
-<hr style="margin:15px 0;opacity:0.2;">
+
+<hr>
 
 <h3>👀 Aperçu</h3>
 
-<div id="previewCard" style="
-  background:rgba(255,255,255,0.08);
-  padding:15px;
-  border-radius:15px;
-  text-align:center;
-">
-
-  <img id="previewPhoto" src="https://picsum.photos/120" style="
-    width:90px;
-    height:90px;
-    border-radius:50%;
-    object-fit:cover;
-    margin-bottom:10px;
-  ">
-
+<div id="previewCard">
+  <img id="previewPhoto" src="https://picsum.photos/120">
   <h3 id="previewName">Prénom Nom</h3>
   <p id="previewInfo">Âge • Ville</p>
   <p id="previewBio">Bio...</p>
   <p id="previewLooking">💘 Recherche...</p>
-
 </div>
 
 <script>
 let saveTimeout = null;
 let isSaving = false;
-/* ================= MANUEL SAVE ================= */
-async function manualSaveProfile() {
-  try {
-    const { data } = await supabaseClient.auth.getUser();
-    if (!data?.user) return;
+let lastProfile = "";
 
-    const user = data.user;
-
-    const profile = {
-      user_id: user.id,
-      prenom: document.getElementById("prenom").value || "",
-      nom: document.getElementById("nom").value || "",
-      age: parseInt(document.getElementById("age").value) || null,
-      ville: document.getElementById("ville").value || "",
-      bio: document.getElementById("bio").value || "",
-      looking_for: document.getElementById("lookingFor").value || "",
-      photo: document.getElementById("createPhoto").src || ""
-    };
-
-    const { error } = await supabaseClient
-      .from("profiles")
-      .upsert(profile, { onConflict: "user_id" });
-
-    if (error) {
-      alert("❌ Erreur sauvegarde");
-      console.error(error);
-      return;
-    }
-
-    alert("✔ Profil sauvegardé !");
-  } catch (err) {
-    console.error(err);
-    alert("❌ Erreur système");
-  }
+/* INPUT GLOBAL */
+function handleInput() {
+  updatePreview();
+  updateProgress();
+  triggerAutoSave();
 }
-/* ================= AUTO SAVE ================= */
+
+/* SAVE MANUEL */
+async function manualSaveProfile() {
+  const { data } = await supabaseClient.auth.getUser();
+  if (!data?.user) return;
+
+  const user = data.user;
+  const ageValue = parseInt(document.getElementById("age").value);
+
+  const profile = {
+    user_id: user.id,
+    prenom: prenom.value || "",
+    nom: nom.value || "",
+    age: isNaN(ageValue) ? null : Math.min(Math.max(ageValue, 18), 100),
+    ville: ville.value || "",
+    bio: bio.value || "",
+    looking_for: lookingFor.value || "",
+    photo: createPhoto.src
+  };
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .upsert(profile, { onConflict: "user_id" });
+
+  if (error) return alert("❌ Erreur");
+  alert("✔ Sauvegardé");
+}
+
+/* AUTO SAVE */
 function triggerAutoSave() {
   clearTimeout(saveTimeout);
-
-  saveTimeout = setTimeout(() => {
-    autoSaveProfile();
-  }, 800);
+  saveTimeout = setTimeout(autoSaveProfile, 800);
 }
 
 async function autoSaveProfile() {
@@ -212,126 +189,89 @@ async function autoSaveProfile() {
     if (!data?.user) return;
 
     const user = data.user;
+    const ageValue = parseInt(age.value);
 
     const profile = {
       user_id: user.id,
-      prenom: document.getElementById("prenom").value || "",
-      nom: document.getElementById("nom").value || "",
-      age: parseInt(document.getElementById("age").value) || null,
-      ville: document.getElementById("ville").value || "",
-      bio: document.getElementById("bio").value || "",
-      looking_for: document.getElementById("lookingFor").value || "",
-      photo: document.getElementById("createPhoto").src || ""
+      prenom: prenom.value || "",
+      nom: nom.value || "",
+      age: isNaN(ageValue) ? null : ageValue,
+      ville: ville.value || "",
+      bio: bio.value || "",
+      looking_for: lookingFor.value || "",
+      photo: createPhoto.src
     };
+
+    const current = JSON.stringify(profile);
+    if (current === lastProfile) return;
+    lastProfile = current;
 
     await supabaseClient
       .from("profiles")
       .upsert(profile, { onConflict: "user_id" });
 
-  } catch (err) {
-    console.error(err);
   } finally {
     isSaving = false;
   }
 }
 
-/* ================= PHOTO ================= */
+/* PHOTO */
 function previewPhoto(event) {
   const file = event.target.files[0];
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById("createPhoto").src = e.target.result;
-    triggerAutoSave();
+  reader.onload = e => {
+    createPhoto.src = e.target.result;
+    handleInput();
   };
   reader.readAsDataURL(file);
 }
 
-/* ================= PROGRESS ================= */
+/* PROGRESS */
 function updateProgress() {
-  const fields = ["prenom","nom","age","ville","bio","lookingFor"];
-  let filled = 0;
-
-  fields.forEach(id => {
-    const el = document.getElementById(id);
-    if (el && el.value.trim() !== "") filled++;
-  });
-
-  const percent = Math.round((filled / fields.length) * 100);
-  document.getElementById("progressBar").style.width = percent + "%";
+  const fields = [prenom, nom, age, ville, bio, lookingFor];
+  const filled = fields.filter(f => f.value.trim() !== "").length;
+  progressBar.style.width = (filled / fields.length * 100) + "%";
 }
 
+/* PREVIEW */
 function updatePreview() {
-  const prenom = document.getElementById("prenom").value;
-  const nom = document.getElementById("nom").value;
-  const age = document.getElementById("age").value;
-  const ville = document.getElementById("ville").value;
-  const bio = document.getElementById("bio").value;
-  const looking = document.getElementById("lookingFor").value;
-  const photo = document.getElementById("createPhoto").src;
-
-  document.getElementById("previewName").textContent =
-    (prenom || "Prénom") + " " + (nom || "Nom");
-
-  document.getElementById("previewInfo").textContent =
-    (age || "?") + " ans • " + (ville || "Ville");
-
-  document.getElementById("previewBio").textContent =
-    bio || "Bio...";
-
-  document.getElementById("previewLooking").textContent =
-    looking ? "💘 " + looking : "💘 Recherche...";
-
-  document.getElementById("previewPhoto").src = photo;
+  previewName.textContent = `${prenom.value || "Prénom"} ${nom.value || "Nom"}`;
+  previewInfo.textContent = `${age.value || "?"} ans • ${ville.value || "Ville"}`;
+  previewBio.textContent = bio.value || "Bio...";
+  previewLooking.textContent = lookingFor.value ? "💘 " + lookingFor.value : "💘 Recherche...";
+  previewPhoto.src = createPhoto.src;
 }
 
-/* ================= LOAD USER + PROFILE ================= */
+/* LOAD */
 window.addEventListener("DOMContentLoaded", async () => {
-  try {
 
-    if (!window.supabaseClient) {
-      console.error("Supabase non chargé");
-      document.body.style.visibility = "visible";
-      return;
-    }
+  const { data } = await supabaseClient.auth.getUser();
+  if (!data?.user) return location.href = "login.html";
 
-    const { data } = await supabaseClient.auth.getUser();
+  const user = data.user;
 
-    if (!data?.user) {
-      window.location.href = "login.html";
-      return;
-    }
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
-    const user = data.user;
-
-    const { data: profile } = await supabaseClient
-      .from("profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (profile) {
-      document.getElementById("prenom").value = profile.prenom || "";
-      document.getElementById("nom").value = profile.nom || "";
-      document.getElementById("age").value = profile.age || "";
-      document.getElementById("ville").value = profile.ville || "";
-      document.getElementById("bio").value = profile.bio || "";
-      document.getElementById("lookingFor").value = profile.looking_for || "";
-      document.getElementById("createPhoto").src = profile.photo || "https://picsum.photos/120";
-    }
-
-    document.body.style.visibility = "visible";
-
-  } catch (err) {
-    console.error(err);
-    document.body.style.visibility = "visible";
+  if (profile) {
+    prenom.value = profile.prenom || "";
+    nom.value = profile.nom || "";
+    age.value = profile.age || "";
+    ville.value = profile.ville || "";
+    bio.value = profile.bio || "";
+    lookingFor.value = profile.looking_for || "";
+    createPhoto.src = profile.photo || createPhoto.src;
   }
-  window.addEventListener("DOMContentLoaded", () => {
-  updatePreview();
-});
-});
 
+  updatePreview();
+  updateProgress();
+  document.body.style.visibility = "visible";
+});
 </script>
 
 </body>

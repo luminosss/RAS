@@ -27,7 +27,7 @@ async function login() {
     return;
   }
 
-  window.location.href = "index.html";
+  window.location.href = "profile.html";
 }
 
 // =============================

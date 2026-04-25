@@ -8,21 +8,67 @@
   <link rel="icon" href="favicon.ico">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
+  <script src="js/core/config.js"></script>
 
+  <script src="js/auth.js" defer></script>
   <script type="module" src="js/ui/search-ui.js"></script>
-  <script src="js/auth.js"></script>
 
   <style>
-    body { visibility: hidden; }
+    body {
+      visibility: hidden;
+      margin: 0;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    #profilesGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.08);
+      padding: 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
   </style>
 </head>
 
 <body>
 
-<!-- NAV (IDENTIQUE, NON MODIFIÉE) -->
+<!-- NAV -->
 <nav class="header">
-
   <div class="nav-left">
     <a href="index.html">🏠 Accueil</a>
     <a href="profile.html">👤 Profil</a>
@@ -30,30 +76,22 @@
     <a href="premiumPage.html">💎 Premium</a>
     <a href="signup.html">👤 Inscription</a>
   </div>
- <div class="box">
-<div class="nav-right">
-<button id="authBtn">Connexion</button>
-    <span class="online-dot"></span>
-  </div>
-  <!-- ADMIN (caché par défaut) -->
-    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
-</div>
-</nav>
 
-<!-- ADMIN -->
-<div class="admin-link">
-  <!-- ADMIN (caché par défaut) -->
+  <div class="box">
+    <div class="nav-right">
+      <button id="authBtn">Connexion</button>
+      <span class="online-dot"></span>
+    </div>
     <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
-</div>
+  </div>
+</nav>
 
 <!-- MAIN -->
 <main class="container">
 
   <h1>💘 Recherche de profils</h1>
-
   <h3>🔥 Trouve ton match parfait</h3>
 
-  <!-- FILTERS -->
   <div class="filters">
     <select id="searchAge">
       <option value="">Âge</option>
@@ -65,32 +103,324 @@
     <button id="searchBtn">🔍 Rechercher</button>
   </div>
 
-  <!-- GRID PROFILES -->
   <div id="profilesGrid"></div>
 
 </main>
 
-<!-- PROFILE MODAL -->
+<!-- MODAL -->
 <div id="profileView" class="modal" style="display:none;">
   <div class="modal-content">
 
-    <img id="viewPhoto" width="200">
+    <img id="viewPhoto" width="180" style="border-radius:12px;">
 
     <h2 id="viewName"></h2>
     <p id="viewAgeVille"></p>
     <p id="viewBio"></p>
     <p id="viewLooking"></p>
 
-    <button onclick="closeProfile()">❌ Fermer</button>
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
+
+      <button onclick="startChat()" style="padding:10px; border-radius:10px; background:#4f46e5; color:white;">
+        💬 Discussion
+      </button>
+
+      <button id="likeBtn" onclick="toggleLike()" style="padding:10px; border-radius:10px; background:#ff4d6d; color:white;">
+        ❤️ Like
+      </button>
+
+      <button onclick="closeProfile()" style="padding:10px; border-radius:10px;">
+        ❌ Fermer
+      </button>
+<div id="matchModal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  color:white;
+  z-index:9999;
+  text-align:center;
+">
+  <h1 style="font-size:50px;">💥 MATCH !</h1>
+  <p>Vous avez un nouveau match ❤️</p>
+</div>
+    </div>
 
   </div>
 </div>
 
-<!-- INIT -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+  let selectedProfile = null;
+let liked = false;
+
+/* ================= AUTH CHECK ================= */
+window.addEventListener("DOMContentLoaded", async () => {
+  const { data } = await supabaseClient.auth.getUser();
+
+  if (!data?.user) {
+    window.location.href = "login.html";
+    return;
+  }
+
   document.body.style.visibility = "visible";
 });
+
+/* ================= FILTER ================= */
+function getAgeFilter() {
+  const value = document.getElementById("searchAge").value;
+
+  if (value === "20-25") return [20, 25];
+  if (value === "25-35") return [25, 35];
+  if (value === "35-50") return [35, 50];
+
+  return null;
+}
+
+/* ================= LOAD PROFILES ================= */
+async function loadProfiles() {
+  try {
+    let query = supabaseClient
+      .from("profiles")
+      .select("user_id, prenom, age, ville, bio, photo");
+
+    const ageFilter = getAgeFilter();
+
+    if (ageFilter) {
+      query = query
+        .gte("age", ageFilter[0])
+        .lte("age", ageFilter[1]);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    renderProfiles(data || []);
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+/* ================= RENDER ================= */
+function renderProfiles(profiles) {
+  const grid = document.getElementById("profilesGrid");
+  grid.innerHTML = "";
+
+  profiles.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <img src="${p.photo || 'https://picsum.photos/200'}">
+      <h3>${p.prenom || ""}</h3>
+      <p>${p.age || "?"} ans • ${p.ville || ""}</p>
+    `;
+
+    card.onclick = () => openProfile(p);
+
+    grid.appendChild(card);
+  });
+}
+
+/* ================= SEARCH BUTTON ================= */
+document.getElementById("searchBtn").addEventListener("click", loadProfiles);
+
+/* ================= MODAL ================= */
+function openProfile(p) {
+  selectedProfile = p;
+
+  document.getElementById("profileView").style.display = "flex";
+
+  document.getElementById("viewPhoto").src = p.photo;
+  document.getElementById("viewName").textContent = p.prenom;
+  document.getElementById("viewAgeVille").textContent = `${p.age} ans • ${p.ville}`;
+  document.getElementById("viewBio").textContent = p.bio;
+  document.getElementById("viewLooking").textContent = p.looking_for || "";
+
+  checkLikeStatus();
+}
+
+function closeProfile() {
+  document.getElementById("profileView").style.display = "none";
+}
+//---------------------------------------
+function showMatchAnimation(){
+
+  const modal = document.getElementById("matchModal");
+  modal.style.display = "flex";
+
+  // confettis simples sans lib externe
+  for(let i=0;i<40;i++){
+    const conf = document.createElement("div");
+
+    conf.style.position = "absolute";
+    conf.style.left = Math.random()*100 + "%";
+    conf.style.top = "-10px";
+    conf.style.width = "6px";
+    conf.style.height = "6px";
+    conf.style.background = ["#ff4d6d","#ffb703","#fff"][Math.floor(Math.random()*3)];
+    conf.style.borderRadius = "50%";
+
+    document.body.appendChild(conf);
+
+    let fall = setInterval(() => {
+      let top = parseFloat(conf.style.top);
+      conf.style.top = (top + 2) + "px";
+
+      if(top > window.innerHeight){
+        clearInterval(fall);
+        conf.remove();
+      }
+    }, 10);
+  }
+
+  setTimeout(() => {
+    modal.style.display = "none";
+  }, 2500);
+}
+// like et match
+async function toggleLike() {
+  const { data } = await supabaseClient.auth.getUser();
+  const user = data?.user;
+  if (!user || !selectedProfile) return;
+
+  const liker = user.id;
+  const liked = selectedProfile.user_id;
+
+  // 1. insert like
+  await supabaseClient.from("likes").insert({
+    liker_id: liker,
+    liked_id: liked
+  });
+
+  // 2. check si match retour existe
+  const { data: reverse } = await supabaseClient
+    .from("likes")
+    .select("*")
+    .eq("liker_id", liked)
+    .eq("liked_id", liker)
+    .maybeSingle();
+
+  // 3. si match → create match
+  if (reverse) {
+    const user1 = liker < liked ? liker : liked;
+    const user2 = liker < liked ? liked : liker;
+
+    await supabaseClient.from("matches").insert({
+      user1,
+      user2
+    });
+
+    alert("💥 MATCH !");
+    showNotification("💘 Nouveau match !");
+     showMatchAnimation();
+  }
+}
+
+//show notif
+function showNotification(text){
+
+  const div = document.createElement("div");
+
+  div.textContent = text;
+
+  div.style.position = "fixed";
+  div.style.bottom = "20px";
+  div.style.right = "20px";
+  div.style.background = "#ff4d6d";
+  div.style.color = "white";
+  div.style.padding = "12px 16px";
+  div.style.borderRadius = "12px";
+  div.style.zIndex = "9999";
+
+  document.body.appendChild(div);
+
+  setTimeout(() => div.remove(), 3000);
+}
+
+async function checkLikeStatus() {
+  const { data } = await supabaseClient.auth.getUser();
+  const user = data?.user;
+  if (!user || !selectedProfile) return;
+
+  const { data: like } = await supabaseClient
+    .from("likes")
+    .select("*")
+    .eq("liker_id", user.id)
+    .eq("liked_id", selectedProfile.user_id)
+    .maybeSingle();
+
+  liked = !!like;
+
+  document.getElementById("likeBtn").textContent =
+    liked ? "💔 Unlike" : "❤️ Like";
+}
+async function isMatched(userA, userB) {
+
+  const { data } = await supabaseClient
+    .from("matches")
+    .select("*")
+    .or(
+      `and(user1.eq.${userA},user2.eq.${userB}),and(user1.eq.${userB},user2.eq.${userA})`
+    )
+    .maybeSingle();
+
+  return !!data;
+}
+//chat
+function startChat() {
+  if (!isPremium) {
+  button.disabled = true;
+  button.textContent = "💎 Premium requis";
+}
+  if (!selectedProfile) return;
+
+  window.location.href =
+    "chat.html?user=" + selectedProfile.user_id;
+    
+}
+
+//ALGORITHME DE SUGGESTION PROFILS
+async function loadSuggestions() {
+  const { data: userData } = await supabaseClient.auth.getUser();
+  const user = userData?.user;
+
+  if (!user) return;
+
+  // 1. récupérer likes déjà faits
+  const { data: likes } = await supabaseClient
+    .from("likes")
+    .select("liked_id")
+    .eq("liker_id", user.id);
+
+  const likedIds = likes.map(l => l.liked_id);
+
+  // 2. requête profils
+  let query = supabaseClient
+    .from("profiles")
+    .select("user_id, prenom, age, ville, bio, photo")
+    .neq("user_id", user.id);
+
+  // 3. exclure déjà likés
+  if (likedIds.length > 0) {
+    query = query.not("user_id", "in", `(${likedIds.join(",")})`);
+  }
+
+  const { data } = await query;
+
+  renderProfiles(data || []);
+  
+}
+
+/* expose functions */
+window.closeProfile = closeProfile;
+
 </script>
 
 </body>

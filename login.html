@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Connexion</title>
+<meta charset="UTF-8">
+<title>Connexion</title>
 
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="favicon.ico">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="favicon.ico">
 
   <!-- SUPABASE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,135 +14,110 @@
   <!-- AUTH -->
   <script src="js/core/session.js" defer></script>
   <script src="js/auth.js"></script>
+<script src="js/ui/search_ui.js"></script>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui;
-      background: linear-gradient(-45deg,#ff4d6d,#7b2ff7,#00c6ff);
-      background-size: 400% 400%;
-      animation: bg 12s ease infinite;
-      min-height: 100vh;
-    }
 
-    @keyframes bg {
-      0%{background-position:0% 50%}
-      50%{background-position:100% 50%}
-      100%{background-position:0% 50%}
-    }
+<style>
+body{
+  margin:0;
+  font-family:system-ui;
+  background:linear-gradient(-45deg,#ff4d6d,#7b2ff7,#00c6ff);
+  background-size:400% 400%;
+  animation:bg 12s ease infinite;
+  min-height:100vh;
+}
 
-    .login-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 80vh;
-    }
+@keyframes bg{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
 
-    .login-card {
-      background: rgba(255,255,255,0.12);
-      backdrop-filter: blur(15px);
-      padding: 30px;
-      border-radius: 20px;
-      width: 340px;
-      text-align: center;
-      color: white;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-    }
+.login-container{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:80vh;
+}
 
-    .login-card h2 {
-      margin-bottom: 5px;
-    }
+.login-card{
+  background:rgba(255,255,255,0.12);
+  backdrop-filter:blur(15px);
+  padding:30px;
+  border-radius:20px;
+  width:340px;
+  text-align:center;
+  color:white;
+}
 
-    .login-card p {
-      font-size: 14px;
-      opacity: 0.8;
-      margin-bottom: 15px;
-    }
+input{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:12px;
+  border:none;
+  outline:none;
+}
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 12px;
-      border: none;
-      outline: none;
-    }
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  margin-top:8px;
+  cursor:pointer;
+}
 
-    .password-field {
-      position: relative;
-    }
+.primary{
+  background:linear-gradient(135deg,#ff4d6d,#ffb703);
+  color:white;
+  font-weight:bold;
+}
 
-    .password-field button {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      border: none;
-      background: transparent;
-      color: white;
-      cursor: pointer;
-    }
+.social{
+  background:rgba(255,255,255,0.2);
+  color:white;
+}
 
-    .primary-btn {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(135deg,#ff4d6d,#ffb703);
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: 0.2s;
-    }
+.small{
+  font-size:12px;
+  opacity:0.8;
+  margin-top:10px;
+  cursor:pointer;
+}
 
-    .primary-btn:hover {
-      transform: scale(1.03);
-    }
+#error{
+  color:#ffcccc;
+  font-size:13px;
+}
 
-    .secondary-btn {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.2);
-      color: white;
-      cursor: pointer;
-    }
+/* NAV FIX MINIMAL */
+.header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:55px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,0.15);
+  backdrop-filter: blur(10px);
+}
 
-    .divider {
-      height: 1px;
-      background: rgba(255,255,255,0.2);
-      margin: 15px 0;
-    }
-
-    #errorMsg {
-      color: #ffcccc;
-      font-size: 14px;
-    }
-
-    .signup-text {
-      margin-top: 15px;
-      font-size: 13px;
-    }
-
-    .signup-text a {
-      color: white;
-      font-weight: bold;
-    }
-
-    /* JUST CENTER CONTENT */
-    main {
-      width: 100%;
-    }
-
-  </style>
+.nav-left a{
+  color:white;
+  text-decoration:none;
+  margin-right:10px;
+  font-size:14px;
+}
+</style>
 </head>
 
 <body>
 
-<!-- NAV (IDENTIQUE, NON MODIFIÉE) -->
+<!-- NAV -->
 <nav class="header">
-
   <div class="nav-left">
     <a href="index.html">🏠 Accueil</a>
     <a href="profile.html">👤 Profil</a>
@@ -150,71 +125,143 @@
     <a href="premiumPage.html">💎 Premium</a>
     <a href="signup.html">👤 Inscription</a>
   </div>
- <div class="box">
-<div class="nav-right">
-<button id="authBtn">Connexion</button>
-    <span class="online-dot"></span>
-  </div>
-  <!-- ADMIN (caché par défaut) -->
-    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
-</div>
 </nav>
 
-
 <!-- LOGIN -->
-<main class="login-container">
-
+<div class="login-container">
   <div class="login-card">
 
     <h2>💘 Connexion</h2>
-    <p>Retrouve ton compte et tes matchs</p>
 
-    <input type="email" id="email" placeholder="📧 Email">
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Mot de passe">
 
-    <div class="password-field">
-      <input type="password" id="password" placeholder="🔒 Mot de passe">
-      <button type="button" id="toggleBtn">Afficher</button>
-    </div>
+      <button class="primary-btn" onclick="login()">Se connecter</button>
 
-    <button class="primary-btn" onclick="login()">Se connecter</button>
+  <!-- google  <button class="social" onclick="loginGoogle()">🔐 Google</button>--> 
+<!-- apple   <button class="social" onclick="loginApple()">🍏 Apple</button> --> 
+<input id="resetEmail" type="email" placeholder="Ton email">
+<button onclick="resetPassword()">Envoyer le lien</button>
 
-    <div class="divider"></div>
+<br><br>
+    <p id="error"></p>
 
-    <input id="resetEmail" type="email" placeholder="📨 Email de récupération">
-    <button class="secondary-btn" onclick="resetPassword()">Mot de passe oublié</button>
-
-    <p id="errorMsg"></p>
-
-    <p class="signup-text">
+      <p class="signup-text">
       Pas de compte ?
       <a href="signup.html">Créer un compte</a>
     </p>
-
   </div>
-
-</main>
+</div>
 
 <script>
-document.addEventListener("DOMContentLoaded", async () => {
+const supabase = window.supabaseClient;
 
-  const avatar = document.getElementById("miniAvatar");
+/* ================= AUTO LOGIN ================= */
+(async () => {
+  const { data } = await supabase.auth.getSession();
+  if (data.session) {
+    window.location.href = "index.html";
+  }
+})();
 
-  try {
-    const { data } = await supabaseClient.auth.getUser();
+/* ================= ANTI BRUTE FORCE ================= */
+let attempts = 0;
+let blockedUntil = 0;
 
-    if (data?.user) {
-      // si tu as une image dans ton profil plus tard
-      const email = data.user.email;
+/* ================= GOOGLE LOGIN ================= */
+async function loginGoogle(){
 
-      avatar.src = `https://api.dicebear.com/7.x/initials/svg?seed=${email}`;
-    }
-
-  } catch (e) {
-    console.log("avatar error", e);
+  if(!supabase){
+    console.error("Supabase non chargé");
+    return;
   }
 
-});
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: window.location.origin + "/index.html",
+  queryParams: {
+    access_type: "offline",
+    prompt: "consent"
+      
+    }
+  });
+
+  if(error){
+    alert("Erreur Google login : " + error.message);
+  }
+}
+
+/* ================= APPLE LOGIN ================= */
+async function loginApple(){
+
+  if(!supabase){
+    console.error("Supabase non chargé");
+    return;
+  }
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "apple",
+    options: {
+      redirectTo: window.location.origin + "/index.html",
+  queryParams: {
+    access_type: "offline",
+    prompt: "consent"
+    }
+     }
+  });
+
+  if(error){
+    alert("Erreur Apple login : " + error.message);
+  }
+   }
+async function oauthLogin(provider){
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: window.location.origin + "/index.html"
+    }
+  });
+
+  if(error){
+    alert(error.message);
+  }
+}
+
+function loginGoogle(){
+  oauthLogin("google");
+}
+
+function loginApple(){
+  oauthLogin("apple");
+}
+/* ================= RESET ================= */
+async function resetPassword() {
+
+  const email =
+    document.getElementById("email")?.value?.trim();
+
+  if (!email) {
+    alert("Email requis");
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + "/reset-password.html"
+  });
+
+  if (error) {
+    console.error(error);
+    alert("❌ " + error.message);
+    return;
+  }
+
+  alert("📩 Email envoyé !");
+}
+
 </script>
+
 
 </body>
 </html>

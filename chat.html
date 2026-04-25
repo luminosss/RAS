@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Rencontre Amoureuse</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="favicon.ico">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core/config.js"></script>
+<script src="js/auth.js" defer></script>
+
+<style>
+body{
+  visibility:hidden;
+  margin:0;
+  font-family:sans-serif;
+}
+
+/* GRID */
+#profilesGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:15px;
+  padding:20px;
+}
+
+/* CARD */
+.card{
+  background:rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:10px;
+  cursor:pointer;
+}
+
+/* CHAT */
+#chatBox{
+  max-width:700px;
+  margin:20px auto;
+  padding:15px;
+  background:rgba(0,0,0,0.05);
+  border-radius:12px;
+  min-height:350px;
+  height:60vh;
+  overflow-y:auto;
+}
+
+/* INPUT */
+#chatInputBar{
+  max-width:700px;
+  margin:auto;
+  display:flex;
+  gap:5px;
+}
+
+/* STATUS */
+.statusBar{
+  font-size:12px;
+  opacity:0.7;
+}
+
+/* TYPING */
+#typing{
+  font-size:12px;
+  opacity:0.6;
+  height:18px;
+}
+
+/* HEADER CHAT */
+#chatWith{
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAV -->
+<nav class="header">
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+    <a href="premiumPage.html">💎 Premium</a>
+    <a href="signup.html">👤 Inscription</a>
+  </div>
+
+  <div class="box">
+    <div class="nav-right">
+      <button id="authBtn">Connexion</button>
+      <span class="online-dot"></span>
+    </div>
+    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main style="text-align:center;padding:20px;">
+
+<h1>💘 Rencontre Amoureuse</h1>
+
+<!-- PROFILS -->
+<div id="profilesGrid"></div>
+
+<!-- CHAT HEADER -->
+<h3 id="chatWith">💬 Sélectionne un profil</h3>
+
+<!-- CHAT -->
+<div id="chatBox">
+
+  <div class="statusBar" id="onlineStatus">⚪ offline</div>
+  <div id="typing"></div>
+
+</div>
+
+<!-- INPUT -->
+<div id="chatInputBar">
+  <input id="msgInput" placeholder="Message..." style="flex:1;padding:10px;">
+  <button onclick="sendText()">➤ envoyer</button>
+  <button onclick="startRecording()">🎤 enregistrer</button>
+  <button onclick="stopRecording()">⏹ stop</button>
+</div>
+
+<!-- PREMIUM -->
+<div id="premiumBanner">
+  💎 Chat Premium requis
+  <br>
+  <button onclick="buyPremium()">Devenir Premium</button>
+</div>
+
+</main>
+
+<script>
+
+let currentUser;
+let currentChatUser = null;
+let currentChatName = "";
+let mediaRecorder;
+let audioChunks = [];
+
+/* ================= INIT ================= */
+window.addEventListener("DOMContentLoaded", async () => {
+
+  const { data } = await supabaseClient.auth.getUser();
+  currentUser = data?.user;
+
+  if(!currentUser){
+    location.href="login.html";
+    return;
+  }
+
+  document.body.style.visibility="visible";
+
+  setOnline(true);
+  initRealtime();
+  listenTyping();
+  loadProfiles();
+});
+
+/* ================= LOAD PROFILES ================= */
+async function loadProfiles(){
+
+  const { data } = await supabaseClient
+    .from("profiles")
+    .select("user_id, prenom, photo");
+
+  const grid = document.getElementById("profilesGrid");
+  grid.innerHTML = "";
+
+  data.forEach(p => {
+
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <img src="${p.photo || 'https://picsum.photos/200'}" style="width:100%;border-radius:10px;">
+      <p>${p.prenom || "Utilisateur"}</p>
+    `;
+
+    div.onclick = () => openChat(p.user_id, p.prenom);
+
+    grid.appendChild(div);
+  });
+}
+
+/* ================= OPEN CHAT ================= */
+function openChat(userId, name){
+
+  currentChatUser = userId;
+  currentChatName = name;
+
+  document.getElementById("chatWith").innerText =
+    "💬 Discussion avec " + name;
+
+  document.getElementById("chatBox").innerHTML = `
+    <div class="statusBar" id="onlineStatus">⚪ offline</div>
+    <div id="typing"></div>
+  `;
+}
+
+/* ================= ONLINE ================= */
+async function setOnline(status){
+
+  await supabaseClient
+    .from("profiles")
+    .update({ online:status })
+    .eq("user_id", currentUser.id);
+}
+
+/* ================= SEND MESSAGE ================= */
+async function sendText(){
+
+  if(!currentChatUser) return;
+
+  const text = msgInput.value;
+  if(!text) return;
+
+  await supabaseClient.from("messages").insert({
+    sender_id: currentUser.id,
+    receiver_id: currentChatUser,
+    content: text
+  });
+
+  msgInput.value="";
+}
+
+/* ================= REALTIME ================= */
+function initRealtime(){
+
+  supabaseClient
+    .channel("messages")
+    .on("postgres_changes",{
+      event:"INSERT",
+      schema:"public",
+      table:"messages"
+    },payload=>{
+
+      const m = payload.new;
+
+      if(
+        (m.sender_id === currentUser.id && m.receiver_id === currentChatUser) ||
+        (m.sender_id === currentChatUser && m.receiver_id === currentUser.id)
+      ){
+        renderMsg(m);
+      }
+    })
+    .subscribe();
+}
+
+/* ================= RENDER ================= */
+function renderMsg(m){
+
+  const div = document.createElement("div");
+
+  div.style.margin="5px";
+  div.style.padding="8px";
+  div.style.borderRadius="10px";
+  div.style.maxWidth="70%";
+
+  div.style.background =
+    m.sender_id === currentUser.id ? "#ff4d6d" : "#333";
+
+  div.style.marginLeft =
+    m.sender_id === currentUser.id ? "auto" : "0";
+
+  div.style.color="white";
+
+  div.innerText = m.content;
+
+  document.getElementById("chatBox").appendChild(div);
+}
+
+/* ================= VOICE ================= */
+async function startRecording(){
+
+  const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+
+  mediaRecorder = new MediaRecorder(stream);
+  audioChunks = [];
+
+  mediaRecorder.ondataavailable = e => {
+    audioChunks.push(e.data);
+  };
+
+  mediaRecorder.start();
+}
+
+async function stopRecording(){
+
+  mediaRecorder.stop();
+
+  mediaRecorder.onstop = async () => {
+
+    const blob = new Blob(audioChunks,{type:"audio/webm"});
+    const file = Date.now()+".webm";
+
+    await supabaseClient.storage
+      .from("voice-messages")
+      .upload(file,blob);
+
+    const { data } = supabaseClient.storage
+      .from("voice-messages")
+      .getPublicUrl(file);
+
+    await supabaseClient.from("messages").insert({
+      sender_id: currentUser.id,
+      receiver_id: currentChatUser,
+      audio_url: data.publicUrl
+    });
+  };
+}
+
+/* ================= PREMIUM ================= */
+function buyPremium(){
+  location.href="premiumPage.html";
+}
+
+/* ================= CLEAN EXIT ================= */
+window.addEventListener("beforeunload",()=>{
+  setOnline(false);
+});
+
+</script>
+
+</body>
+</html>

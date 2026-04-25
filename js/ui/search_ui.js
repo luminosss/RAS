@@ -50,9 +50,11 @@ document.addEventListener("DOMContentLoaded", () => {
 const supabase = window.supabaseClient;
 
 export async function loadProfiles() {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*");
+const { data, error } = await supabaseClient
+  .from("profiles")
+  .select("user_id, prenom, age, ville, bio, photo")
+  .gte("age", 20)
+  .lte("age", 35);
 
   const grid = document.getElementById("profilesGrid");
   if (!grid) return;
