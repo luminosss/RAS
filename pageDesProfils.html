@@ -1,3 +1,6 @@
+
+   
+    
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -53,9 +56,8 @@
       justify-content: center;
       align-items: center;
     }
-
     .modal-content {
-      background: white;
+      background: rgb(231, 102, 102);
       padding: 20px;
       border-radius: 15px;
       text-align: center;
@@ -105,59 +107,50 @@
 
   <div id="profilesGrid"></div>
 
-</main>
-
-<!-- MODAL -->
-<div id="profileView" class="modal" style="display:none;">
+<!-- PROFILE MODAL -->
+<div id="profileModal" class="modal">
   <div class="modal-content">
 
-    <img id="viewPhoto" width="180" style="border-radius:12px;">
-
+    <img id="viewPhoto" width="150" style="border-radius:10px;">
     <h2 id="viewName"></h2>
-    <p id="viewAgeVille"></p>
+    <p id="viewInfo"></p>
     <p id="viewBio"></p>
-    <p id="viewLooking"></p>
-
-    <div style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
-
-      <button onclick="startChat()" style="padding:10px; border-radius:10px; background:#4f46e5; color:white;">
-        💬 Discussion
-      </button>
-
-      <button id="likeBtn" onclick="toggleLike()" style="padding:10px; border-radius:10px; background:#ff4d6d; color:white;">
-        ❤️ Like
-      </button>
-
-      <button onclick="closeProfile()" style="padding:10px; border-radius:10px;">
-        ❌ Fermer
-      </button>
-<div id="matchModal" style="
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.9);
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  color:white;
-  z-index:9999;
-  text-align:center;
-">
-  <h1 style="font-size:50px;">💥 MATCH !</h1>
-  <p>Vous avez un nouveau match ❤️</p>
-</div>
-    </div>
+<span class="online-dot"></span>
+    <button class="btn-chat" onclick="startChat()">💬 Chat</button>
+    <button id="likeBtn" class="btn-like" onclick="toggleLike()">❤️ Like</button>
+    <button onclick="closeModal()">❌ Close</button>
 
   </div>
 </div>
 
-<script>
-let selectedProfile = null;
-let liked = false;
-let isPremium = false;
+<!-- MATCH MODAL -->
+<div id="matchModal" class="modal">
+  <div class="modal-content">
+    <h1>💥 MATCH !</h1>
+    <p>Vous vous êtes likés ❤️</p>
+     <button onclick="closeMatch()" style="
+      margin-top:15px;
+      padding:10px;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+    ">
+      Fermer
+    </button>
+  </div>
+</div>
 
-/* ================= AUTH CHECK ================= */
-window.addEventListener("DOMContentLoaded", async () => {
+<script>
+/* ================= STATE ================= */
+const state = {
+  user: null,
+  isPremium: false,
+  selected: null,
+  likes: new Set()
+};
+
+/* ================= INIT ================= */
+document.addEventListener("DOMContentLoaded", async () => {
   const { data } = await supabaseClient.auth.getUser();
 
   if (!data?.user) {
@@ -165,209 +158,235 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  await loadUserPlan(); // 👈 PREMIUM CHECK
+  state.user = data.user;
+
+  await loadPremium();
+  await loadLikes();
+
+  initMatchRealtime(); // 👈 APRÈS user OK
+
   document.body.style.visibility = "visible";
 });
 
+let matchShown = false;
+let matchChannel = null;
+
+
+function initMatchRealtime() {
+
+  if (matchChannel) return; // 🔥 empêche double init
+
+  matchChannel = supabaseClient
+    .channel("matches")
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "matches"
+      },
+      (payload) => {
+        const match = payload.new;
+
+        if (!state.user) return;
+
+        if (
+          match.user1 === state.user.id ||
+          match.user2 === state.user.id
+        ) {
+          showMatchModal();
+        }
+      }
+    )
+    .subscribe();
+}
+
 /* ================= PREMIUM ================= */
-async function loadUserPlan() {
-  const { data } = await supabaseClient.auth.getUser();
-  const user = data?.user;
-
-  if (!user) return;
-
-  const { data: profile } = await supabaseClient
+async function loadPremium() {
+  const { data } = await supabaseClient
     .from("profiles")
     .select("is_premium")
-    .eq("user_id", user.id)
+    .eq("user_id", state.user.id)
     .maybeSingle();
 
-  isPremium = profile?.is_premium === true;
+  state.isPremium = data?.is_premium || false;
 }
 
-/* ================= FILTER ================= */
-function getAgeFilter() {
-  const value = document.getElementById("searchAge").value;
+/* ================= LIKES ================= */
+async function loadLikes() {
+  const { data } = await supabaseClient
+    .from("likes")
+    .select("liked_id")
+    .eq("liker_id", state.user.id);
 
-  if (value === "20-25") return [20, 25];
-  if (value === "25-35") return [25, 35];
-  if (value === "35-50") return [35, 50];
-
-  return null;
+  state.likes = new Set(data?.map(l => l.liked_id) || []);
 }
 
-/* ================= LOAD PROFILES ================= */
+/* ================= SEARCH ================= */
+document.getElementById("searchBtn").onclick = loadProfiles;
+
 async function loadProfiles() {
-  let query = supabaseClient
+  const { data } = await supabaseClient
     .from("profiles")
-    .select("user_id, prenom, age, ville, bio, photo");
+    .select("*")
+    .neq("user_id", state.user.id);
 
-  const ageFilter = getAgeFilter();
-
-  if (ageFilter) {
-    query = query.gte("age", ageFilter[0]).lte("age", ageFilter[1]);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  renderProfiles(data || []);
+  render(data || []);
 }
 
 /* ================= RENDER ================= */
-function renderProfiles(profiles) {
+function render(list) {
   const grid = document.getElementById("profilesGrid");
   grid.innerHTML = "";
 
-  profiles.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "card";
+  list.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "card";
 
-    card.innerHTML = `
+    div.innerHTML = `
       <img src="${p.photo || 'https://picsum.photos/200'}">
-      <h3>${p.prenom || ""}</h3>
-      <p>${p.age || "?"} ans • ${p.ville || ""}</p>
+      <h3>${p.prenom}</h3>
+      <p>${p.age} ans • ${p.ville}</p>
     `;
 
-    card.onclick = () => openProfile(p);
-    grid.appendChild(card);
+    div.onclick = () => openProfile(p);
+    grid.appendChild(div);
   });
 }
 
-/* ================= MODAL ================= */
+/* ================= PROFILE ================= */
 function openProfile(p) {
-  selectedProfile = p;
+  state.selected = p;
 
-  document.getElementById("profileView").style.display = "flex";
+  document.getElementById("profileModal").style.display = "flex";
 
   document.getElementById("viewPhoto").src = p.photo;
   document.getElementById("viewName").textContent = p.prenom;
-  document.getElementById("viewAgeVille").textContent = `${p.age} ans • ${p.ville}`;
+  document.getElementById("viewInfo").textContent = `${p.age} ans • ${p.ville}`;
   document.getElementById("viewBio").textContent = p.bio;
-  document.getElementById("viewLooking").textContent = p.looking_for || "";
 
-  checkLikeStatus();
+  updateLikeBtn();
 }
 
-function closeProfile() {
-  document.getElementById("profileView").style.display = "none";
+function closeModal() {
+  document.getElementById("profileModal").style.display = "none";
 }
 
 /* ================= LIKE ================= */
 async function toggleLike() {
-  const { data } = await supabaseClient.auth.getUser();
-  const user = data?.user;
-  if (!user || !selectedProfile) return;
+  const user = state.user.id;
+  const target = state.selected.user_id;
 
-  const liker_id = user.id;
-  const liked_id = selectedProfile.user_id;
+  if (state.likes.has(target)) {
+    await supabaseClient
+      .from("likes")
+      .delete()
+      .eq("liker_id", user)
+      .eq("liked_id", target);
 
-  // insert like
-  await supabaseClient.from("likes").insert({
-    liker_id,
-    liked_id
-  });
-
-  // check reverse like
-  const { data: reverse } = await supabaseClient
-    .from("likes")
-    .select("*")
-    .eq("liker_id", liked_id)
-    .eq("liked_id", liker_id)
-    .maybeSingle();
-
-  if (reverse) {
-    const user1 = liker_id < liked_id ? liker_id : liked_id;
-    const user2 = liker_id < liked_id ? liked_id : liker_id;
-
-    await supabaseClient.from("matches").insert({
-      user1,
-      user2
-    });
-
-    alert("💥 MATCH !");
-    showNotification("💘 Nouveau match !");
-    showMatchAnimation();
-  }
-
-  liked = !liked;
-  document.getElementById("likeBtn").textContent =
-    liked ? "💔 Unlike" : "❤️ Like";
-}
-
-/* ================= CHECK LIKE ================= */
-async function checkLikeStatus() {
-  const { data } = await supabaseClient.auth.getUser();
-  const user = data?.user;
-  if (!user || !selectedProfile) return;
-
-  const { data: like } = await supabaseClient
-    .from("likes")
-    .select("*")
-    .eq("liker_id", user.id)
-    .eq("liked_id", selectedProfile.user_id)
-    .maybeSingle();
-
-  liked = !!like;
-
-  document.getElementById("likeBtn").textContent =
-    liked ? "💔 Unlike" : "❤️ Like";
-}
-
-/* ================= CHAT ================= */
-function startChat() {
-  if (!selectedProfile) return;
-
-  if (!isPremium) {
-    alert("💎 Premium requis pour accéder au chat");
+    state.likes.delete(target);
+    updateLikeBtn();
     return;
   }
 
-  window.location.href =
-    "chat.html?user=" + selectedProfile.user_id;
+  await supabaseClient.from("likes").insert({
+    liker_id: user,
+    liked_id: target
+  });
+
+  state.likes.add(target);
+
+  await checkMatch(user, target);
+  updateLikeBtn();
 }
 
-/* ================= MATCH UI ================= */
-function showMatchAnimation() {
+/* ================= MATCH ================= */
+async function checkMatch(a, b) {
+
+  const { data } = await supabaseClient
+    .from("likes")
+    .select("*")
+    .eq("liker_id", b)
+    .eq("liked_id", a)
+    .maybeSingle();
+
+  if (!data) return;
+
+  const user1 = a < b ? a : b;
+  const user2 = a < b ? b : a;
+
+  // 🔥 check si match existe déjà
+  const { data: existing } = await supabaseClient
+    .from("matches")
+    .select("*")
+    .eq("user1", user1)
+    .eq("user2", user2)
+    .maybeSingle();
+
+  if (existing) return;
+
+  await supabaseClient.from("matches").insert({
+    user1,
+    user2
+  });
+
+  // 🔥 important : éviter re-display au refresh
+  if (matchShown) return;
+
+  matchShown = true;
+  showMatchModal();
+}
+
+function closeMatch() {
+  document.getElementById("matchModal").style.display = "none";
+}
+
+function showMatch() {
   const modal = document.getElementById("matchModal");
   modal.style.display = "flex";
 
   setTimeout(() => {
+    modal.style.opacity = "0";
+    setTimeout(() => {
+      modal.style.display = "none";
+      modal.style.opacity = "1";
+    }, 300);
+  }, 2000);
+}
+function showMatchModal() {
+  const modal = document.getElementById("matchModal");
+
+  modal.style.display = "flex";
+
+  setTimeout(() => {
     modal.style.display = "none";
-  }, 2500);
+  }, 2000);
+}
+function closeModal() {
+  document.getElementById("profileModal").style.display = "none";
+  matchShown = false; // 🔥 reset important
+}
+/* ================= CHAT ================= */
+function startChat() {
+  if (!state.selected) return;
+
+  if (!state.isPremium) {
+    alert("💎 Premium requis");
+    return;
+  }
+
+  window.location.href =
+    "chat.html?user=" + state.selected.user_id;
 }
 
-/* ================= NOTIF ================= */
-function showNotification(text) {
-  const div = document.createElement("div");
+/* ================= UI ================= */
+function updateLikeBtn() {
+  const btn = document.getElementById("likeBtn");
 
-  div.textContent = text;
-  div.style.position = "fixed";
-  div.style.bottom = "20px";
-  div.style.right = "20px";
-  div.style.background = "#ff4d6d";
-  div.style.color = "white";
-  div.style.padding = "12px 16px";
-  div.style.borderRadius = "12px";
-  div.style.zIndex = "9999";
+  const liked = state.likes.has(state.selected.user_id);
 
-  document.body.appendChild(div);
-
-  setTimeout(() => div.remove(), 3000);
+  btn.textContent = liked ? "💔 Unlike" : "❤️ Like";
 }
-
-/* ================= EVENTS ================= */
-document.getElementById("searchBtn")
-  .addEventListener("click", loadProfiles);
-
-/* ================= EXPORT ================= */
-window.closeProfile = closeProfile;
-window.startChat = startChat;
-window.toggleLike = toggleLike;
 </script>
 
 </body>
