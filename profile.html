@@ -12,7 +12,6 @@
 
   <script src="js/core/session.js" defer></script>
   <script src="js/auth.js"></script>
-  <script type="module" src="js/ui/search-ui.js"></script>
 
   <style>
     body {
@@ -66,28 +65,25 @@
       height: 100%;
       width: 0%;
       background: linear-gradient(90deg, #ff4d6d, #ffb703);
+      transition: 0.3s;
+    }
+
+    .save-status {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 5px;
     }
   </style>
 </head>
 
 <body>
 
-<!-- NAV -->
 <nav class="header">
   <div class="nav-left">
     <a href="index.html">🏠 Accueil</a>
     <a href="profile.html">👤 Profil</a>
     <a href="pageDesProfils.html">🔍 Recherche</a>
-    <a href="premiumPage.html">💎 Premium</a>
     <a href="signup.html">👤 Inscription</a>
-  </div>
-
-  <div class="box">
-    <div class="nav-right">
-      <button id="authBtn">Connexion</button>
-      <span class="online-dot"></span>
-    </div>
-    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
   </div>
 </nav>
 
@@ -101,23 +97,24 @@
     </div>
 
     <img id="createPhoto" src="https://picsum.photos/120" class="avatar">
-    <input type="file" onchange="previewPhoto(event)">
+    <input type="file" id="photoInput">
 
-    <input id="prenom" placeholder="Prénom" oninput="handleInput()">
-    <input id="nom" placeholder="Nom" oninput="handleInput()">
-    <input id="age" type="number" placeholder="Âge" oninput="handleInput()">
-    <input id="ville" placeholder="Ville" oninput="handleInput()">
+    <input id="prenom" placeholder="Prénom">
+    <input id="nom" placeholder="Nom">
+    <input id="age" type="number" placeholder="Âge">
+    <input id="ville" placeholder="Ville">
 
-    <textarea id="bio" placeholder="Bio" oninput="handleInput()"></textarea>
+    <textarea id="bio" placeholder="Bio"></textarea>
 
-    <select id="lookingFor" onchange="handleInput()">
+    <select id="lookingFor">
       <option value="">Je cherche...</option>
       <option value="amour">❤️ Amour</option>
       <option value="amitié">😊 Amitié</option>
       <option value="fun">🔥 Fun</option>
     </select>
 
-    <button onclick="manualSaveProfile()">💾 Sauvegarder</button>
+    <button id="saveBtn">💾 Sauvegarder</button>
+    <div class="save-status" id="saveStatus"></div>
 
   </div>
 </div>
@@ -135,11 +132,21 @@
 </div>
 
 <script>
+const el = id => document.getElementById(id);
+
 let saveTimeout = null;
 let isSaving = false;
 let lastProfile = "";
 
-/* INPUT GLOBAL */
+/* EVENTS */
+["prenom","nom","age","ville","bio","lookingFor"].forEach(id => {
+  el(id).addEventListener("input", handleInput);
+});
+
+el("photoInput").addEventListener("change", previewPhoto);
+el("saveBtn").addEventListener("click", manualSaveProfile);
+
+/* INPUT */
 function handleInput() {
   updatePreview();
   updateProgress();
@@ -148,81 +155,68 @@ function handleInput() {
 
 /* SAVE MANUEL */
 async function manualSaveProfile() {
-  const { data } = await supabaseClient.auth.getUser();
-  if (!data?.user) return;
-
-  const user = data.user;
-  const ageValue = parseInt(document.getElementById("age").value);
-
-  const profile = {
-    user_id: user.id,
-    prenom: prenom.value || "",
-    nom: nom.value || "",
-    age: isNaN(ageValue) ? null : Math.min(Math.max(ageValue, 18), 100),
-    ville: ville.value || "",
-    bio: bio.value || "",
-    looking_for: lookingFor.value || "",
-    photo: createPhoto.src
-  };
-
-  const { error } = await supabaseClient
-    .from("profiles")
-    .upsert(profile, { onConflict: "user_id" });
-
-  if (error) return alert("❌ Erreur");
-  alert("✔ Sauvegardé");
+  await saveProfile(true);
 }
 
 /* AUTO SAVE */
 function triggerAutoSave() {
   clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(autoSaveProfile, 800);
+  saveTimeout = setTimeout(() => saveProfile(false), 800);
 }
 
-async function autoSaveProfile() {
+async function saveProfile(showAlert = false) {
   if (isSaving) return;
 
   try {
     isSaving = true;
+    el("saveStatus").textContent = "⏳ Sauvegarde...";
 
     const { data } = await supabaseClient.auth.getUser();
     if (!data?.user) return;
 
-    const user = data.user;
-    const ageValue = parseInt(age.value);
+    const ageValue = parseInt(el("age").value);
 
     const profile = {
-      user_id: user.id,
-      prenom: prenom.value || "",
-      nom: nom.value || "",
-      age: isNaN(ageValue) ? null : ageValue,
-      ville: ville.value || "",
-      bio: bio.value || "",
-      looking_for: lookingFor.value || "",
-      photo: createPhoto.src
+      user_id: data.user.id,
+      prenom: el("prenom").value || "",
+      nom: el("nom").value || "",
+      age: isNaN(ageValue) ? null : Math.min(Math.max(ageValue, 18), 100),
+      ville: el("ville").value || "",
+      bio: el("bio").value || "",
+      looking_for: el("lookingFor").value || "",
+      photo: el("createPhoto").src
     };
 
     const current = JSON.stringify(profile);
     if (current === lastProfile) return;
     lastProfile = current;
 
-    await supabaseClient
+    const { error } = await supabaseClient
       .from("profiles")
       .upsert(profile, { onConflict: "user_id" });
 
+    if (error) throw error;
+
+    el("saveStatus").textContent = "✔ Sauvegardé";
+
+    if (showAlert) alert("✔ Profil sauvegardé");
+
+  } catch (err) {
+    console.error(err);
+    el("saveStatus").textContent = "❌ Erreur sauvegarde";
   } finally {
     isSaving = false;
   }
 }
 
 /* PHOTO */
-function previewPhoto(event) {
-  const file = event.target.files[0];
+function previewPhoto(e) {
+  const file = e.target.files[0];
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = e => {
-    createPhoto.src = e.target.result;
+  reader.onload = ev => {
+    el("createPhoto").src = ev.target.result;
     handleInput();
   };
   reader.readAsDataURL(file);
@@ -230,42 +224,49 @@ function previewPhoto(event) {
 
 /* PROGRESS */
 function updateProgress() {
-  const fields = [prenom, nom, age, ville, bio, lookingFor];
-  const filled = fields.filter(f => f.value.trim() !== "").length;
-  progressBar.style.width = (filled / fields.length * 100) + "%";
+  const fields = ["prenom","nom","age","ville","bio","lookingFor"];
+  const filled = fields.filter(id => el(id).value.trim() !== "").length;
+  el("progressBar").style.width = (filled / fields.length * 100) + "%";
 }
 
 /* PREVIEW */
 function updatePreview() {
-  previewName.textContent = `${prenom.value || "Prénom"} ${nom.value || "Nom"}`;
-  previewInfo.textContent = `${age.value || "?"} ans • ${ville.value || "Ville"}`;
-  previewBio.textContent = bio.value || "Bio...";
-  previewLooking.textContent = lookingFor.value ? "💘 " + lookingFor.value : "💘 Recherche...";
-  previewPhoto.src = createPhoto.src;
+  el("previewName").textContent =
+    `${el("prenom").value || "Prénom"} ${el("nom").value || "Nom"}`;
+
+  el("previewInfo").textContent =
+    `${el("age").value || "?"} ans • ${el("ville").value || "Ville"}`;
+
+  el("previewBio").textContent =
+    el("bio").value || "Bio...";
+
+  el("previewLooking").textContent =
+    el("lookingFor").value
+      ? "💘 " + el("lookingFor").value
+      : "💘 Recherche...";
+
+  el("previewPhoto").src = el("createPhoto").src;
 }
 
 /* LOAD */
 window.addEventListener("DOMContentLoaded", async () => {
-
   const { data } = await supabaseClient.auth.getUser();
   if (!data?.user) return location.href = "login.html";
-
-  const user = data.user;
 
   const { data: profile } = await supabaseClient
     .from("profiles")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", data.user.id)
     .maybeSingle();
 
   if (profile) {
-    prenom.value = profile.prenom || "";
-    nom.value = profile.nom || "";
-    age.value = profile.age || "";
-    ville.value = profile.ville || "";
-    bio.value = profile.bio || "";
-    lookingFor.value = profile.looking_for || "";
-    createPhoto.src = profile.photo || createPhoto.src;
+    el("prenom").value = profile.prenom || "";
+    el("nom").value = profile.nom || "";
+    el("age").value = profile.age || "";
+    el("ville").value = profile.ville || "";
+    el("bio").value = profile.bio || "";
+    el("lookingFor").value = profile.looking_for || "";
+    el("createPhoto").src = profile.photo || el("createPhoto").src;
   }
 
   updatePreview();

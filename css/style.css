@@ -102,7 +102,10 @@ h1, h2 {
    GRID PROFILES
 ========================= */
 
-#profilesGrid,
+#profilesGrid{
+  width: 30%;
+  display: grid;
+}
 #matchesGrid {
   width: 100%;
 
