@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Premium</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background: linear-gradient(-45deg,#ff4d6d,#7b2ff7,#00c6ff);
+  background-size:400% 400%;
+  animation:bg 10s ease infinite;
+  color:white;
+}
+
+@keyframes bg {
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+.container{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.card{
+  background:rgba(0,0,0,0.4);
+  padding:30px;
+  border-radius:20px;
+  text-align:center;
+  width:320px;
+  backdrop-filter: blur(10px);
+}
+
+h1{margin-bottom:10px}
+
+.price{
+  font-size:30px;
+  margin:20px 0;
+}
+
+.btn{
+  background:#ff4d6d;
+  border:none;
+  padding:12px;
+  width:100%;
+  border-radius:10px;
+  color:white;
+  cursor:pointer;
+  font-size:16px;
+}
+
+.btn:hover{
+  opacity:0.8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="card">
+
+    <h1>💎 Premium</h1>
+    <p>Débloque le chat complet + fonctionnalités avancées</p>
+
+    <div class="price">10€ / mois</div>
+
+    <button class="btn" onclick="activatePremium()">
+      🔓 Activer Premium
+    </button>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core/config.js"></script>
+
+<script>
+async function activatePremium() {
+
+  const { data } = await supabaseClient.auth.getUser();
+  if (!data?.user) return;
+
+  // ⚠️ simulation (tu peux remplacer par Stripe plus tard)
+  const { error } = await supabaseClient
+    .from("profiles")
+    .update({ premium: true })
+    .eq("user_id", data.user.id);
+
+  if (error) {
+    alert("Erreur");
+    return;
+  }
+
+  alert("💎 Premium activé !");
+  location.href = "pageDesProfils.html";
+}
+</script>
+
+</body>
+</html>

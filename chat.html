@@ -2,309 +2,742 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Rencontre Amoureuse</title>
-
-<link rel="stylesheet" href="css/style.css">
-<link rel="icon" href="favicon.ico">
+<title>Chat & Profils</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/core/config.js"></script>
-<script src="js/auth.js" defer></script>
 
 <style>
-body{
-  visibility:hidden;
+body {
   margin:0;
-  font-family:sans-serif;
-}
-
-#profilesGrid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:15px;
-  padding:20px;
-}
-
-.card{
-  background:rgba(255,255,255,0.08);
-  border-radius:12px;
-  padding:10px;
-  cursor:pointer;
-}
-
-#chatBox{
-  max-width:700px;
-  margin:20px auto;
-  padding:15px;
-  background:rgba(0,0,0,0.05);
-  border-radius:12px;
-  min-height:350px;
-  height:60vh;
-  overflow-y:auto;
-}
-
-#chatInputBar{
-  max-width:700px;
-  margin:auto;
-  display:flex;
-  gap:5px;
-}
-
-.msg{
-  margin:5px;
-  padding:8px;
-  border-radius:10px;
-  max-width:70%;
+  font-family:Arial;
+  background: linear-gradient(-45deg, #ff4d6d, #7b2ff7, #00c6ff);
+  background-size: 400% 400%;
+  animation: bg 12s ease infinite;
   color:white;
 }
 
-.me{
+@keyframes bg {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* NAV */
+nav {
+  display:flex;
+  justify-content:space-between;
+  padding:15px;
+  background:rgba(0,0,0,0.25);
+  backdrop-filter: blur(10px);
+}
+
+nav a {
+  color:white;
+  margin-right:10px;
+  text-decoration:none;
+  opacity:0.8;
+}
+nav a:hover { opacity:1; }
+
+/* LAYOUT */
+.layout {
+  display:flex;
+  height:calc(100vh - 60px);
+}
+
+/* LEFT USERS (WHATSAPP STYLE) */
+.users {
+  width:320px;
+  border-right:1px solid rgba(255,255,255,0.1);
+  overflow-y:auto;
+  background:rgba(0,0,0,0.2);
+}
+
+.user {
+  padding:12px;
+  cursor:pointer;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+.user:hover {
+  background:rgba(255,255,255,0.08);
+}
+
+.user.active {
+  background:rgba(255,77,109,0.2);
+  border-left:3px solid #ff4d6d;
+}
+
+.user img {
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.user small {
+  opacity:0.7;
+  font-size:12px;
+}
+
+.badge {
+  background:red;
+  color:white;
+  font-size:11px;
+  padding:3px 7px;
+  border-radius:20px;
+  margin-left:auto;
+}
+
+/* CHAT */
+.chat {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+
+.chat-header {
+  padding:10px;
+  background:rgba(0,0,0,0.25);
+  font-weight:bold;
+}
+
+.messages {
+  flex:1;
+  overflow-y:auto;
+  padding:10px;
+}
+
+.msg {
+  padding:8px;
+  margin:5px;
+  border-radius:10px;
+  max-width:60%;
+}
+
+.me {
   background:#ff4d6d;
   margin-left:auto;
 }
 
-.other{
+.them {
   background:#333;
+}
+
+/* INPUT */
+.input {
+  display:flex;
+  padding:10px;
+  border-top:1px solid rgba(255,255,255,0.1);
+  background:rgba(0,0,0,0.2);
+}
+
+.input input {
+  flex:1;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+}
+
+.input button {
+  padding:10px;
+  margin-left:5px;
+}
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 12px;
+  padding: 15px;
+
+  background: rgba(0,0,0,0.2);
+  backdrop-filter: blur(12px);
+}
+
+.header a {
+  color: white;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+
+.header a:hover {
+  background: rgba(255,255,255,0.2);
 }
 </style>
 </head>
 
 <body>
 
+<!-- NAV -->
 <nav class="header">
-  <a href="index.html">🏠 Accueil</a>
-  <a href="profile.html">👤 Profil</a>
-  <a href="pageDesProfils.html">🔍 Recherche</a>
-  <a href="premiumPage.html">💎 Premium</a>
+  <div class="nav-left">
+    <a href="index.html">🏠 Accueil</a>
+    <a href="profile.html">👤 Profil</a>
+    <a href="pageDesProfils.html">🔍 Recherche</a>
+    <a href="signup.html">👤 Inscription</a>
+  </div>
 </nav>
 
-<main style="text-align:center;padding:20px;">
+<div class="layout">
 
-<h1>💘 Rencontre</h1>
+  <!-- USERS LIST -->
+  <div class="users" id="users"></div>
 
-<div id="profilesGrid"></div>
+  <!-- CHAT -->
+  <div class="chat">
 
-<h3 id="chatWith">💬 Sélectionne un profil</h3>
+    <div class="chat-header" id="chatHeader">
+      💬 Sélectionne une conversation
+    </div>
 
-<div id="chatBox"></div>
+    <div class="messages" id="messages"></div>
 
-<div id="chatInputBar">
-  <input id="msgInput" placeholder="Message..." style="flex:1;padding:10px;">
-  <button onclick="sendText()">➤</button>
+    <div id="typing" style="padding:5px;font-size:12px;opacity:0.6;"></div>
+<div class="input">
+  <input id="input" placeholder="Message...">
+  <button onclick="toggleEmoji()">😄</button>
   <button onclick="startRecording()">🎤</button>
-  <button onclick="stopRecording()">⏹</button>
+  <button onclick="send()">➤</button>
+  <div id="emojiPanel" style="
+  display:none;
+  position:fixed;
+  bottom:80px;
+  left:20px;
+  background:#1a1a1a;
+  padding:10px;
+  border-radius:12px;
+  box-shadow:0 0 20px rgba(0,0,0,0.4);
+  font-size:22px;
+">
+  <span onclick="addEmoji('😀')">😀</span>
+  <span onclick="addEmoji('😂')">😂</span>
+  <span onclick="addEmoji('😍')">😍</span>
+  <span onclick="addEmoji('🔥')">🔥</span>
+  <span onclick="addEmoji('❤️')">❤️</span>
+  <span onclick="addEmoji('👍')">👍</span>
+  <span onclick="addEmoji('😎')">😎</span>
+</div>
 </div>
 
-</main>
+  </div>
+
+</div>
 
 <script>
-let currentUser;
-let currentChatUser = null;
-let isPremium = false;
+
+const state = {
+  user: null,
+  current: null
+};
 let mediaRecorder;
 let audioChunks = [];
 
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = (e) => {
+      audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+
+      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+
+      const reader = new FileReader();
+
+      reader.onloadend = async () => {
+
+        const base64 = reader.result;
+
+        const { error } = await supabaseClient.from("messages").insert({
+          sender_id: state.user.id,
+          receiver_id: state.current.user_id,
+          audio: base64,
+          content: null,
+          is_read: false
+        });
+
+        if (error) console.error(error);
+
+        loadMessages();
+      };
+
+      reader.readAsDataURL(audioBlob);
+    };
+
+    mediaRecorder.start();
+
+    // STOP après 5 sec
+    setTimeout(() => {
+      mediaRecorder.stop();
+      stream.getTracks().forEach(t => t.stop());
+    }, 5000);
+
+  } catch (err) {
+    console.error("Micro error:", err);
+    alert("Micro refusé ou non disponible");
+  }
+}
+
 /* INIT */
-window.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
   const { data } = await supabaseClient.auth.getUser();
-  currentUser = data?.user;
+  if (!data?.user) return location.href = "login.html";
 
-  if(!currentUser){
-    location.href="login.html";
+  state.user = data.user;
+
+  const ok = await checkPremium();
+  if (!ok) return;
+
+  loadUsers();
+  listenMessages();
+  listenTyping();
+});
+
+/* NOTIFICATIONS */
+window.addEventListener("load", async () => {
+
+  async function enableNotifications() {
+
+  if (!("Notification" in window)) {
+    console.log("Notifications non supportées");
     return;
   }
 
-  await loadPremium();
-  await loadProfiles();
+  if (Notification.permission === "default") {
+    await Notification.requestPermission();
+  }
+} 
+  enableNotifications();
 
-  initRealtime();
+const saved = localStorage.getItem("lastChat");
 
-  document.body.style.visibility="visible";
+if (saved) {
+  state.current = JSON.parse(saved);
+  document.getElementById("chatHeader").textContent =
+    "💬 " + state.current.prenom;
+
+  loadMessages();
+}
 });
 
-/* PREMIUM */
-async function loadPremium(){
-  const { data } = await supabaseClient
-    .from("profiles")
-    .select("is_premium")
-    .eq("user_id", currentUser.id)
-    .maybeSingle();
 
-  isPremium = data?.is_premium || false;
-}
-
-/* LOAD PROFILES */
-async function loadProfiles(){
+/* LOAD USERS + LAST MSG + BADGE */
+async function loadUsers() {
 
   const { data } = await supabaseClient
     .from("profiles")
-    .select("user_id, prenom, photo")
-    .neq("user_id", currentUser.id);
+    .select("*")
+    .neq("user_id", state.user.id);
 
-  const grid = document.getElementById("profilesGrid");
-  grid.innerHTML = "";
+  const box = document.getElementById("users");
+  box.innerHTML = "";
 
-  data.forEach(p => {
+  for (const u of data) {
+
+    const last = await getLastMessage(u.user_id);
+    const unread = await getUnreadCount(u.user_id);
 
     const div = document.createElement("div");
-    div.className = "card";
+    div.className = "user";
 
     div.innerHTML = `
-      <img src="${p.photo || 'https://picsum.photos/200'}" style="width:100%;border-radius:10px;">
-      <p>${p.prenom}</p>
+      <img src="${u.photo || "https://picsum.photos/50"}">
+      <div style="flex:1">
+        <div><b>${u.prenom}</b></div>
+        <small>${last || "Aucun message"}</small>
+      </div>
+      ${unread > 0 ? `<div class="badge">${unread}</div>` : ""}
     `;
 
-    div.onclick = () => openChat(p);
+    div.onclick = () => openChat(u, div);
 
-    grid.appendChild(div);
-  });
+    box.appendChild(div);
+  }
 }
 
-/* OPEN CHAT */
-async function openChat(p){
-
-  currentChatUser = p.user_id;
-
-  document.getElementById("chatWith").innerText =
-    "💬 Discussion avec " + p.prenom;
-
-  document.getElementById("chatBox").innerHTML = "";
-
-  await loadMessages();
-}
-
-/* LOAD MESSAGES */
-async function loadMessages(){
+/* LAST MESSAGE */
+async function getLastMessage(id) {
 
   const { data } = await supabaseClient
     .from("messages")
-    .select("*")
+    .select("content")
     .or(`
-      and(sender_id.eq.${currentUser.id},receiver_id.eq.${currentChatUser}),
-      and(sender_id.eq.${currentChatUser},receiver_id.eq.${currentUser.id})
+      and(sender_id.eq.${state.user.id},receiver_id.eq.${id}),
+      and(sender_id.eq.${id},receiver_id.eq.${state.user.id})
     `)
-    .order("created_at",{ascending:true});
+    .order("created_at", { ascending:false })
+    .limit(1)
+    .maybeSingle();
 
-  data.forEach(renderMsg);
-  scrollBottom();
+  return data?.content || "";
 }
 
-/* SEND TEXT */
-async function sendText(){
+/* UNREAD */
+async function getUnreadCount(id) {
 
-  if(!currentChatUser) return;
+  const { count } = await supabaseClient
+    .from("messages")
+    .select("*", { count:"exact", head:true })
+    .eq("sender_id", id)
+    .eq("receiver_id", state.user.id)
+    .eq("is_read", false);
 
-  if(!isPremium){
-    alert("💎 Premium requis");
+  return count || 0;
+}
+
+/* OPEN CHAT */
+function openChat(u, el) {
+
+  state.current = u;
+
+  localStorage.setItem("lastChat", JSON.stringify(u)); // 🔥 PERSIST
+
+  document.getElementById("chatHeader").textContent =
+    "💬 " + u.prenom;
+
+  document.querySelectorAll(".user")
+    .forEach(e => e.classList.remove("active"));
+
+  el.classList.add("active");
+
+  loadMessages();
+  markAsRead(u.user_id);
+}
+
+/* LOAD MESSAGES */
+async function loadMessages() {
+
+  if (!state.current) return;
+
+  const { data, error } = await supabaseClient
+    .from("messages")
+    .select("*")
+    .or(
+      `and(sender_id.eq.${state.user.id},receiver_id.eq.${state.current.user_id}),and(sender_id.eq.${state.current.user_id},receiver_id.eq.${state.user.id})`
+    )
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error(error);
     return;
   }
 
-  const text = msgInput.value.trim();
-  if(!text) return;
+  const box = document.getElementById("messages");
+  box.innerHTML = "";
+
+  data.forEach(m => render(m));
+
+  // scroll toujours en bas
+  box.scrollTop = box.scrollHeight;
+}
+
+/* RENDER MSG */
+function render(m) {
+
+  const box = document.getElementById("messages");
+
+ const div = document.createElement("div");
+div.className = "msg " + (m.sender_id === state.user.id ? "me" : "them");
+
+// IMPORTANT
+div.setAttribute("data-msg-id", m.id);
+
+  if (m.content) {
+    const text = document.createElement("div");
+    text.textContent = m.content;
+    div.appendChild(text);
+  }
+
+  if (m.audio) {
+    const audio = document.createElement("audio");
+    audio.controls = true;
+    audio.src = m.audio;
+    div.appendChild(audio);
+  }
+
+  if (m.reaction) {
+    const r = document.createElement("div");
+    r.textContent = m.reaction;
+    r.style.fontSize = "18px";
+    div.appendChild(r);
+  }
+
+  if (m.sender_id === state.user.id) {
+    const tick = document.createElement("div");
+    tick.style.fontSize = "11px";
+    tick.textContent = m.is_read ? "✔✔ vu" : "✔ envoyé";
+    tick.style.color = m.is_read ? "#4fc3f7" : "#ccc";
+    div.appendChild(tick);
+  }
+
+if (m.sender_id === state.user.id) {
+  const del = document.createElement("div");
+  del.textContent = "🗑️ supprimer";
+  del.style.cursor = "pointer";
+  del.style.fontSize = "11px";
+  del.style.opacity = "0.7";
+
+  del.onclick = () => deleteMessage(m.id);
+
+  div.appendChild(del);
+}
+
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+
+  // scroll auto
+  box.scrollTop = box.scrollHeight;
+}
+
+/* REACT */   
+async function react(messageId, emoji) {
+
+  await supabaseClient
+    .from("messages")
+    .update({ reaction: emoji })
+    .eq("id", messageId);
+
+  loadMessages();
+}
+
+/* SEND */
+async function send() {
+
+  const input = document.getElementById("input");
+  const text = input.value.trim();
+
+  if (!text || !state.current) return;
 
   await supabaseClient.from("messages").insert({
-    sender_id: currentUser.id,
-    receiver_id: currentChatUser,
-    content: text
+    sender_id: state.user.id,
+    receiver_id: state.current.user_id,
+    content: text,
+    is_read: false
   });
+  const { data } = await supabaseClient
+  .from("profiles")
+  .select("premium")
+  .eq("user_id", state.user.id)
+  .single();
 
-  msgInput.value="";
+if (!data?.premium) {
+  alert("💎 Premium requis");
+  return;
+}
+
+  input.value = "";
+}
+
+/* MARK AS READ */
+async function markAsRead(userId) {
+
+  await supabaseClient
+    .from("messages")
+    .update({ is_read: true })
+    .eq("sender_id", userId)
+    .eq("receiver_id", state.user.id);
 }
 
 /* REALTIME */
-function initRealtime(){
+function listenMessages() {
 
   supabaseClient
-    .channel("messages")
-    .on("postgres_changes",{
-      event:"INSERT",
-      schema:"public",
-      table:"messages"
-    },payload=>{
+    .channel("msg")
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "messages"
+    }, payload => {
 
       const m = payload.new;
 
-      if(
-        (m.sender_id === currentUser.id && m.receiver_id === currentChatUser) ||
-        (m.sender_id === currentChatUser && m.receiver_id === currentUser.id)
-      ){
-        renderMsg(m);
-        scrollBottom();
+      // si message actuel ouvert
+      if (
+        state.current &&
+        (
+          (m.sender_id === state.current.user_id && m.receiver_id === state.user.id) ||
+          (m.sender_id === state.user.id && m.receiver_id === state.current.user_id)
+        )
+      ) {
+        render(m);
+      }
+
+      // 🔵 PUSH NOTIF SI PAS DANS CHAT
+      if (m.receiver_id === state.user.id) {
+
+        if (!state.current || state.current.user_id !== m.sender_id) {
+
+          showPushNotification(m);
+        }
+      }
+
+      loadUsers();
+    })
+    .subscribe();
+}
+// push notification
+function showPushNotification(m) {
+
+  if (Notification.permission !== "granted") return;
+
+  const notif = new Notification("💬 Nouveau message", {
+    body: m.content || "Message vocal 🎤",
+    icon: "https://cdn-icons-png.flaticon.com/512/2111/2111646.png"
+  });
+
+  notif.onclick = async () => {
+
+    window.focus();
+
+    const { data } = await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("user_id", m.sender_id)
+      .single();
+
+    if (data) {
+      openChat(data);
+    }
+  };
+}
+/* TYPING */
+let typingTimeout;
+
+document.getElementById("input").addEventListener("input", () => {
+
+  sendTyping(true);
+
+  clearTimeout(typingTimeout);
+
+  typingTimeout = setTimeout(() => {
+    sendTyping(false);
+  }, 1000);
+});
+
+async function sendTyping(status) {
+  if (!state.current) return;
+
+  await supabaseClient.from("typing").upsert({
+    user_id: state.user.id,
+    target_id: state.current.user_id,
+    is_typing: status,
+    updated_at: new Date().toISOString()
+  });
+}
+
+function listenTyping() {
+
+  supabaseClient
+    .channel("typing")
+    .on("postgres_changes", {
+      event: "*",
+      schema: "public",
+      table: "typing"
+    }, payload => {
+
+      const t = payload.new;
+
+      if (
+        state.current &&
+        t.user_id === state.current.user_id &&
+        t.target_id === state.user.id
+      ) {
+
+        const el = document.getElementById("typing");
+
+        el.textContent = t.is_typing ? "✍️ en train d’écrire..." : "";
       }
     })
     .subscribe();
 }
 
-/* RENDER MESSAGE */
-function renderMsg(m){
+setInterval(() => {
+  loadUsers();
+}, 8000);
 
-  const div = document.createElement("div");
 
-  div.className =
-    "msg " + (m.sender_id === currentUser.id ? "me" : "other");
+// emoji
+function toggleEmoji() {
+  const panel = document.getElementById("emojiPanel");
 
-  if(m.content){
-    div.innerText = m.content;
+  panel.style.display =
+    panel.style.display === "none" ? "block" : "none";
+}
+
+function addEmoji(emoji) {
+  const input = document.getElementById("input");
+  input.value += emoji;
+  input.focus();
+}
+document.addEventListener("click", (e) => {
+  const panel = document.getElementById("emojiPanel");
+
+  if (!e.target.closest("#emojiPanel") &&
+      !e.target.closest("button")) {
+    panel.style.display = "none";
+  }
+});
+// delete message
+async function deleteMessage(id) {
+  const { error } = await supabaseClient
+    .from("messages")
+    .delete()
+    .eq("id", id)
+    .eq("sender_id", state.user.id); // 🔒 sécurité
+
+  if (error) {
+    console.error(error);
+    return;
   }
 
-  if(m.audio_url){
-    const audio = document.createElement("audio");
-    audio.controls = true;
-    audio.src = m.audio_url;
-    div.appendChild(audio);
+  // supprime direct du DOM sans reload
+  const el = document.querySelector(`[data-msg-id="${id}"]`);
+  if (el) el.remove();
+}
+
+// premium
+async function checkPremium() {
+
+  const { data } = await supabaseClient
+    .from("profiles")
+    .select("premium")
+    .eq("user_id", state.user.id)
+    .single();
+
+  if (!data?.premium) {
+
+    document.querySelector(".input").innerHTML = `
+      <div style="padding:10px;color:white;text-align:center">
+        💎 Chat réservé aux membres Premium<br><br>
+        <button onclick="location.href='premium.html'" style="
+          padding:10px;
+          border:none;
+          border-radius:10px;
+          background:#ff4d6d;
+          color:white;
+        ">Devenir Premium</button>
+      </div>
+    `;
+
+    return false;
   }
 
-  document.getElementById("chatBox").appendChild(div);
-}
-
-/* SCROLL */
-function scrollBottom(){
-  const box = document.getElementById("chatBox");
-  box.scrollTop = box.scrollHeight;
-}
-
-/* VOICE */
-async function startRecording(){
-
-  const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-
-  mediaRecorder = new MediaRecorder(stream);
-  audioChunks = [];
-
-  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-
-  mediaRecorder.start();
-}
-
-function stopRecording(){
-
-  mediaRecorder.stop();
-
-  mediaRecorder.onstop = async () => {
-
-    if(!isPremium){
-      alert("💎 Premium requis");
-      return;
-    }
-
-    const blob = new Blob(audioChunks,{type:"audio/webm"});
-    const file = Date.now()+".webm";
-
-    await supabaseClient.storage
-      .from("voice-messages")
-      .upload(file,blob);
-
-    const { data } = supabaseClient.storage
-      .from("voice-messages")
-      .getPublicUrl(file);
-
-    await supabaseClient.from("messages").insert({
-      sender_id: currentUser.id,
-      receiver_id: currentChatUser,
-      audio_url: data.publicUrl
-    });
-  };
+  return true;
 }
 </script>
 

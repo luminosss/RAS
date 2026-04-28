@@ -1,83 +1,181 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Recherche profils</title>
+<meta charset="UTF-8">
+<title>App Profils</title>
 
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="favicon.ico">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core/config.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/core/config.js"></script>
+<style>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  color: white;
 
-  <script src="js/auth.js" defer></script>
-  <script type="module" src="js/ui/search-ui.js"></script>
+  min-height: 200vh;
 
-  <style>
-    body {
-      visibility: hidden;
-      margin: 0;
-    }
-.btn-chat {
-  margin-top:10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  background: linear-gradient(-45deg, #ff4d6d, #7b2ff7, #00c6ff);
+  background-size: 400% 400%;
+  animation: bg 12s ease infinite;
+}
+
+@keyframes bg {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 12px;
+  padding: 15px;
+
+  background: rgba(0,0,0,0.2);
+  backdrop-filter: blur(12px);
+}
+
+.header a {
+  color: white;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+
+.header a:hover {
+  background: rgba(255,255,255,0.2);
+}
+/* ================= PROFILES GRID ================= */
+.container{
+  padding:15px;
+}
+
+#profilesGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:15px;
+}
+
+.card{
+  background:#1a1a1a;
+  border-radius:15px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.card:hover{
+  transform:scale(1.03);
+}
+
+.card img{
+  width:100%;
+  height:180px;
+  object-fit:cover;
+}
+
+.card .info{
   padding:10px;
+}
+
+/* ================= MODAL CENTRÉ ================= */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+
+.modal-content{
+  width:90%;
+  max-width:420px;
+  background:#181818;
+  border-radius:20px;
+  overflow:hidden;
+  animation:zoom 0.25s ease;
+}
+
+@keyframes zoom{
+  from{transform:scale(0.8);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+
+/* ================= PROFILE HEADER ================= */
+.profile-header img{
+  width:100%;
+  height:220px;
+  object-fit:cover;
+}
+
+.profile-body{
+  padding:15px;
+}
+
+/* STORY STYLE IMAGES */
+.story-row{
+  display:flex;
+  gap:8px;
+  padding:10px;
+  overflow-x:auto;
+}
+
+.story-row img{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #ff4d6d;
+  cursor:pointer;
+}
+
+/* BUTTONS */
+.btn{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
   border:none;
   border-radius:10px;
   cursor:pointer;
-  background:#4caf50;
+}
+
+.chat-btn{
+  background:#ff4d6d;
   color:white;
-  width:100%;
 }
 
-.btn-chat.disabled {
-  background:gray;
-  cursor:not-allowed;
-  opacity:0.6;
+.close-btn{
+  background:#333;
+  color:white;
 }
-    .container {
-      padding: 20px;
-    }
 
-    #profilesGrid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
-    }
+/* IMAGE VIEW */
+.image-view{
+  position:fixed;
+  inset:0;
+  background:black;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+}
 
-    .card {
-      background: rgba(255,255,255,0.08);
-      padding: 10px;
-      border-radius: 12px;
-      cursor: pointer;
-      text-align: center;
-    }
-
-    .card img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-      border-radius: 10px;
-    }
-
-    .modal {
-      display: none; /* 🔥 FIX */
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      justify-content: center;
-      align-items: center;
-    }
-
-    .modal-content {
-      background: rgb(231, 102, 102);
-      padding: 20px;
-      border-radius: 15px;
-      text-align: center;
-      max-width: 400px;
-      width: 90%;
-    }
-  </style>
+.image-view img{
+  max-width:90%;
+  max-height:90%;
+}
+</style>
 </head>
 
 <body>
@@ -90,239 +188,154 @@
     <a href="pageDesProfils.html">🔍 Recherche</a>
     <a href="signup.html">👤 Inscription</a>
   </div>
-
-  <div class="box">
-    <div class="nav-right">
-      <button id="authBtn">Connexion</button>
-      <span class="online-dot"></span>
-    </div>
-    <a id="adminLink" href="adminPage.html" style="display:none;">👤 Admin</a>
-  </div>
 </nav>
 
-<!-- MAIN -->
-<main class="container">
+<div class="container">
 
-  <h1>💘 Recherche de profils</h1>
+<h2>🔥Ceci est la page des profils</h2>
+<hr>
+<br>
+<div id="profilesGrid"></div>
+</div>
 
-  <div class="filters">
-    <select id="searchAge">
-      <option value="">Âge</option>
-      <option value="20-25">20-25</option>
-      <option value="25-35">25-35</option>
-      <option value="35-50">35-50</option>
-    </select>
+<!-- ================= MODAL ================= -->
+<div class="modal" id="modal">
+  <div class="modal-content">
 
-    <button id="searchBtn">🔍 Rechercher</button>
-  </div>
-
-  <div id="profilesGrid"></div>
-
-  <!-- PROFILE MODAL -->
-  <div id="profileModal" class="modal">
-    <div class="modal-content">
-
-      <img id="viewPhoto" width="150" style="border-radius:10px;">
-      <h2 id="viewName"></h2>
-      <p id="viewInfo"></p>
-      <p id="viewBio"></p>
-
-      <button class="btn-chat" onclick="startChat()">💬 Chat</button>
-      <button onclick="closeModal()">❌ Close</button>
-
+    <div class="profile-header">
+      <img id="modalPhoto">
     </div>
-  </div>
 
+    <div class="story-row" id="storyRow"></div>
 
-  <!-- CHAT POPUP -->
-<div id="chatPopup" class="modal">
-  <div class="modal-content" style="max-width:500px;">
+    <div class="profile-body">
+      <h2 id="modalName"></h2>
+      <p id="modalInfo"></p>
+      <p id="modalBio"></p>
 
-    <h3 id="chatTitle">💬 Chat</h3>
-
-    <div id="chatMessages" style="
-      height:300px;
-      overflow-y:auto;
-      margin:10px 0;
-      text-align:left;
-    "></div>
-
-    <input id="chatInput" placeholder="Message..." style="width:100%;padding:10px;">
-
-    <button onclick="sendPopupMsg()">Envoyer</button>
-    <button onclick="closeChatPopup()">Fermer</button>
+      <button class="btn chat-btn" onclick="openChat()">💬 Chat</button>
+      <button class="btn close-btn" onclick="closeModal()">Fermer</button>
+    </div>
 
   </div>
 </div>
-</main>
+
+<!-- IMAGE ZOOM -->
+<div class="image-view" id="imageView" onclick="this.style.display='none'">
+  <img id="bigImg">
+</div>
 
 <script>
-const state = {
-  user: null,
-  selected: null
-};
 
-let chatTarget = null;
+let currentUser = null;
+let selected = null;
 
-/* ================= INIT ================= */
+/* LOAD */
 document.addEventListener("DOMContentLoaded", async () => {
+
   const { data } = await supabaseClient.auth.getUser();
+  if (!data?.user) return location.href = "login.html";
 
-  if (!data?.user) {
-    window.location.href = "login.html";
-    return;
-  }
+  currentUser = data.user;
 
-  state.user = data.user;
-
-  setOnline(true);
-  await loadProfiles();
-
-  document.body.style.visibility = "visible";
+  loadProfiles();
 });
 
-/* ================= ONLINE ================= */
-async function setOnline(status) {
-  if (!state.user) return;
+/* LOAD PROFILES */
+async function loadProfiles(){
 
-  await supabaseClient
-    .from("profiles")
-    .update({
-      online: status,
-      last_seen: new Date().toISOString()
-    })
-    .eq("user_id", state.user.id);
-}
-
-window.addEventListener("beforeunload", () => setOnline(false));
-
-/* ================= PROFILES ================= */
-async function loadProfiles() {
   const { data } = await supabaseClient
     .from("profiles")
     .select("*")
-    .neq("user_id", state.user.id);
+    .neq("user_id", currentUser.id);
 
-  const grid = document.getElementById("profilesGrid");
-  if (!grid) return;
+  const box = document.getElementById("profilesGrid");
+  box.innerHTML = "";
 
-  grid.innerHTML = "";
+  data.forEach(p => {
 
-  (data || []).forEach(p => {
     const div = document.createElement("div");
     div.className = "card";
 
     div.innerHTML = `
-      <img src="${p.photo || 'https://picsum.photos/200'}">
-      <h3>${p.prenom || ""}</h3>
-      <p>${p.age || "?"} ans • ${p.ville || ""}</p>
+      <img src="${p.photo || 'https://picsum.photos/300'}">
+      <div class="info">
+        <strong>${p.prenom}</strong>
+        <p>${p.age} ans</p>
+      </div>
     `;
 
     div.onclick = () => openProfile(p);
-    grid.appendChild(div);
+
+    box.appendChild(div);
   });
 }
 
-/* ================= PROFILE ================= */
-function openProfile(p) {
-  state.selected = p;
+/* OPEN PROFILE */
+function openProfile(p){
 
-  document.getElementById("profileModal").style.display = "flex";
+  selected = p;
 
-  document.getElementById("viewPhoto").src = p.photo || "https://picsum.photos/200";
-  document.getElementById("viewName").textContent = p.prenom || "";
-  document.getElementById("viewInfo").textContent = `${p.age || "?"} ans • ${p.ville || ""}`;
-  document.getElementById("viewBio").textContent = p.bio || "";
+  document.getElementById("modal").style.display = "flex";
+
+  document.getElementById("modalPhoto").src =
+    p.photo || "https://picsum.photos/400";
+
+  document.getElementById("modalName").textContent =
+    p.prenom;
+
+  document.getElementById("modalInfo").textContent =
+    `${p.age} ans • ${p.ville}`;
+
+  document.getElementById("modalBio").textContent =
+    p.bio || "";
+
+  loadStories(p);
 }
 
-function closeModal() {
-  document.getElementById("profileModal").style.display = "none";
-}
+/* STORIES MULTI IMAGES */
+function loadStories(p){
 
-/* ================= CHAT DIRECT ================= */
-function startChat() {
-  if (!state.selected) return;
+  const row = document.getElementById("storyRow");
+  row.innerHTML = "";
 
-  openChatPopup(state.selected);
-}
+  let images = [];
 
-/* ================= CHAT POPUP ================= */
-function openChatPopup(user) {
-  chatTarget = user;
+  try{
+    images = JSON.parse(p.photos || "[]");
+  }catch(e){}
 
-  document.getElementById("chatPopup").style.display = "flex";
-  document.getElementById("chatTitle").textContent = "💬 " + user.prenom;
+  if(!images.length){
+    images = [p.photo];
+  }
 
-  loadMessages();
-}
+  images.forEach(img => {
 
-/* ================= CLOSE ================= */
-function closeChatPopup() {
-  document.getElementById("chatPopup").style.display = "none";
-}
+    const el = document.createElement("img");
+    el.src = img;
 
-/* ================= LOAD MESSAGES ================= */
-async function loadMessages() {
-  const box = document.getElementById("chatMessages");
-  if (!box || !chatTarget) return;
+    el.onclick = () => openImage(img);
 
-  const { data } = await supabaseClient
-    .from("messages")
-    .select("*")
-    .or(`
-      and(sender_id.eq.${state.user.id},receiver_id.eq.${chatTarget.user_id}),
-      and(sender_id.eq.${chatTarget.user_id},receiver_id.eq.${state.user.id})
-    `)
-    .order("created_at");
-
-  box.innerHTML = "";
-
-  (data || []).forEach(renderMsg);
-}
-
-/* ================= RENDER ================= */
-function renderMsg(m) {
-  const box = document.getElementById("chatMessages");
-  if (!box) return;
-
-  const div = document.createElement("div");
-
-  div.style.padding = "8px";
-  div.style.margin = "5px";
-  div.style.borderRadius = "10px";
-  div.style.maxWidth = "70%";
-  div.style.color = "white";
-
-  div.style.background =
-    m.sender_id === state.user.id ? "#ff4d6d" : "#333";
-
-  div.style.marginLeft =
-    m.sender_id === state.user.id ? "auto" : "0";
-
-  div.textContent = m.content;
-
-  box.appendChild(div);
-}
-
-/* ================= SEND ================= */
-async function sendPopupMsg() {
-  const input = document.getElementById("chatInput");
-  if (!input || !chatTarget) return;
-
-  const text = input.value.trim();
-  if (!text) return;
-
-  await supabaseClient.from("messages").insert({
-    sender_id: state.user.id,
-    receiver_id: chatTarget.user_id,
-    content: text
+    row.appendChild(el);
   });
-
-  input.value = "";
 }
 
-/* ================= BUTTON ================= */
-document.getElementById("searchBtn")?.addEventListener("click", loadProfiles);
+/* IMAGE FULL SCREEN */
+function openImage(src){
+  document.getElementById("bigImg").src = src;
+  document.getElementById("imageView").style.display = "flex";
+}
+
+/* CLOSE MODAL */
+function closeModal(){
+  document.getElementById("modal").style.display = "none";
+}
+
+/* CHAT SIMPLE */
+function openChat(){
+  window.location.href = "chat.html";
+}
+
 </script>
 
 </body>

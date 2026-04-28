@@ -1,79 +1,98 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Création profil</title>
+<meta charset="UTF-8">
+<title>Création profil</title>
 
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="favicon.ico">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core/config.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/core/config.js"></script>
+<style>
+body { visibility:hidden; margin:0;  background: linear-gradient(-45deg, #ff4d6d, #7b2ff7, #00c6ff);; color:white; font-family:Arial; }
 
-  <script src="js/core/session.js" defer></script>
-  <script src="js/auth.js"></script>
+.profile-wrapper {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:90vh;
+  padding:20px;
+}
 
-  <style>
-    body {
-      visibility: hidden;
-      margin: 0;
-    }
+.profile-card {
+  background:rgba(255,255,255,0.12);
+  backdrop-filter:blur(12px);
+  padding:30px;
+  border-radius:20px;
+  width:95%;
+  max-width:520px;
+  text-align:center;
+}
 
-    .profile-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 90vh;
-      padding: 20px;
-    }
+.avatar {
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  object-fit:cover;
+  cursor:pointer;
+  border:2px solid #ff4d6d;
+}
 
-    .profile-card {
-      background: rgba(255,255,255,0.12);
-      backdrop-filter: blur(12px);
-      padding: 30px;
-      border-radius: 20px;
-      width: 95%;
-      max-width: 520px;
-      text-align: center;
-    }
+input, textarea, select {
+  width:100%;
+  margin:8px 0;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+}
 
-    .avatar {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
+/* GALLERY */
+.gallery {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top:10px;
+}
 
-    input, textarea, select {
-      width: 100%;
-      margin: 8px 0;
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      outline: none;
-    }
+.gallery img {
+  width:60px;
+  height:60px;
+  border-radius:10px;
+  object-fit:cover;
+  cursor:pointer;
+  border:2px solid transparent;
+}
 
-    .progress {
-      width: 100%;
-      height: 8px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 10px;
-      margin: 10px 0;
-    }
+.gallery img:hover {
+  border-color:#ff4d6d;
+}
 
-    .progress-bar {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #ff4d6d, #ffb703);
-      transition: 0.3s;
-    }
+/* MODAL IMAGE */
+.modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.85);
+  justify-content:center;
+  align-items:center;
+}
 
-    .save-status {
-      font-size: 12px;
-      opacity: 0.7;
-      margin-top: 5px;
-    }
-  </style>
+.modal img {
+  max-width:90%;
+  max-height:90%;
+  border-radius:12px;
+}
+
+.close {
+  position:absolute;
+  top:20px;
+  right:20px;
+  font-size:30px;
+  cursor:pointer;
+  color:white;
+}
+</style>
 </head>
 
 <body>
@@ -92,18 +111,18 @@
 
     <h1>💘 Mon profil</h1>
 
-    <div class="progress">
-      <div class="progress-bar" id="progressBar"></div>
-    </div>
+    <!-- PHOTO PRINCIPALE -->
+    <img id="mainPhoto" src="https://picsum.photos/120" class="avatar">
+    <input type="file" id="mainInput">
 
-    <img id="createPhoto" src="https://picsum.photos/120" class="avatar">
-    <input type="file" id="photoInput">
+    <!-- MULTI PHOTOS -->
+    <input type="file" id="multiInput" multiple>
+    <div class="gallery" id="gallery"></div>
 
     <input id="prenom" placeholder="Prénom">
     <input id="nom" placeholder="Nom">
     <input id="age" type="number" placeholder="Âge">
     <input id="ville" placeholder="Ville">
-
     <textarea id="bio" placeholder="Bio"></textarea>
 
     <select id="lookingFor">
@@ -113,143 +132,97 @@
       <option value="fun">🔥 Fun</option>
     </select>
 
-    <button id="saveBtn">💾 Sauvegarder</button>
-    <div class="save-status" id="saveStatus"></div>
+    <button onclick="saveProfile()">💾 Sauvegarder</button>
 
   </div>
 </div>
 
-<hr>
-
-<h3>👀 Aperçu</h3>
-
-<div id="previewCard">
-  <img id="previewPhoto" src="https://picsum.photos/120">
-  <h3 id="previewName">Prénom Nom</h3>
-  <p id="previewInfo">Âge • Ville</p>
-  <p id="previewBio">Bio...</p>
-  <p id="previewLooking">💘 Recherche...</p>
+<!-- IMAGE MODAL -->
+<div class="modal" id="imgModal" onclick="closeImg()">
+  <span class="close">✖</span>
+  <img id="modalImg">
 </div>
 
 <script>
+
 const el = id => document.getElementById(id);
 
-let saveTimeout = null;
-let isSaving = false;
-let lastProfile = "";
+let photos = [];
 
-/* EVENTS */
-["prenom","nom","age","ville","bio","lookingFor"].forEach(id => {
-  el(id).addEventListener("input", handleInput);
+/* MAIN PHOTO */
+el("mainInput").addEventListener("change", e => {
+  const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = ev => {
+    el("mainPhoto").src = ev.target.result;
+  };
+
+  reader.readAsDataURL(file);
 });
 
-el("photoInput").addEventListener("change", previewPhoto);
-el("saveBtn").addEventListener("click", manualSaveProfile);
+/* MULTI PHOTOS */
+el("multiInput").addEventListener("change", e => {
+  const files = Array.from(e.target.files);
 
-/* INPUT */
-function handleInput() {
-  updatePreview();
-  updateProgress();
-  triggerAutoSave();
-}
+  files.forEach(file => {
+    const reader = new FileReader();
 
-/* SAVE MANUEL */
-async function manualSaveProfile() {
-  await saveProfile(true);
-}
-
-/* AUTO SAVE */
-function triggerAutoSave() {
-  clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(() => saveProfile(false), 800);
-}
-
-async function saveProfile(showAlert = false) {
-  if (isSaving) return;
-
-  try {
-    isSaving = true;
-    el("saveStatus").textContent = "⏳ Sauvegarde...";
-
-    const { data } = await supabaseClient.auth.getUser();
-    if (!data?.user) return;
-
-    const ageValue = parseInt(el("age").value);
-
-    const profile = {
-      user_id: data.user.id,
-      prenom: el("prenom").value || "",
-      nom: el("nom").value || "",
-      age: isNaN(ageValue) ? null : Math.min(Math.max(ageValue, 18), 100),
-      ville: el("ville").value || "",
-      bio: el("bio").value || "",
-      looking_for: el("lookingFor").value || "",
-      photo: el("createPhoto").src
+    reader.onload = ev => {
+      photos.push(ev.target.result);
+      renderGallery();
     };
 
-    const current = JSON.stringify(profile);
-    if (current === lastProfile) return;
-    lastProfile = current;
+    reader.readAsDataURL(file);
+  });
+});
 
-    const { error } = await supabaseClient
-      .from("profiles")
-      .upsert(profile, { onConflict: "user_id" });
+/* GALLERY */
+function renderGallery() {
+  const box = el("gallery");
+  box.innerHTML = "";
 
-    if (error) throw error;
-
-    el("saveStatus").textContent = "✔ Sauvegardé";
-
-    if (showAlert) alert("✔ Profil sauvegardé");
-
-  } catch (err) {
-    console.error(err);
-    el("saveStatus").textContent = "❌ Erreur sauvegarde";
-  } finally {
-    isSaving = false;
-  }
+  photos.forEach(img => {
+    const image = document.createElement("img");
+    image.src = img;
+    image.onclick = () => openImg(img);
+    box.appendChild(image);
+  });
 }
 
-/* PHOTO */
-function previewPhoto(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = ev => {
-    el("createPhoto").src = ev.target.result;
-    handleInput();
-  };
-  reader.readAsDataURL(file);
+/* MODAL IMAGE */
+function openImg(src) {
+  el("imgModal").style.display = "flex";
+  el("modalImg").src = src;
 }
 
-/* PROGRESS */
-function updateProgress() {
-  const fields = ["prenom","nom","age","ville","bio","lookingFor"];
-  const filled = fields.filter(id => el(id).value.trim() !== "").length;
-  el("progressBar").style.width = (filled / fields.length * 100) + "%";
+function closeImg() {
+  el("imgModal").style.display = "none";
 }
 
-/* PREVIEW */
-function updatePreview() {
-  el("previewName").textContent =
-    `${el("prenom").value || "Prénom"} ${el("nom").value || "Nom"}`;
+/* SAVE */
+async function saveProfile() {
 
-  el("previewInfo").textContent =
-    `${el("age").value || "?"} ans • ${el("ville").value || "Ville"}`;
+  const { data } = await supabaseClient.auth.getUser();
 
-  el("previewBio").textContent =
-    el("bio").value || "Bio...";
+  await supabaseClient.from("profiles").upsert({
+    user_id: data.user.id,
+    prenom: el("prenom").value,
+    nom: el("nom").value,
+    age: el("age").value,
+    ville: el("ville").value,
+    bio: el("bio").value,
+    looking_for: el("lookingFor").value,
+    photo: el("mainPhoto").src,
+    photos: photos
+  });
 
-  el("previewLooking").textContent =
-    el("lookingFor").value
-      ? "💘 " + el("lookingFor").value
-      : "💘 Recherche...";
-
-  el("previewPhoto").src = el("createPhoto").src;
+  alert("✔ Profil sauvegardé");
 }
 
 /* LOAD */
 window.addEventListener("DOMContentLoaded", async () => {
+
   const { data } = await supabaseClient.auth.getUser();
   if (!data?.user) return location.href = "login.html";
 
@@ -266,13 +239,43 @@ window.addEventListener("DOMContentLoaded", async () => {
     el("ville").value = profile.ville || "";
     el("bio").value = profile.bio || "";
     el("lookingFor").value = profile.looking_for || "";
-    el("createPhoto").src = profile.photo || el("createPhoto").src;
+
+    el("mainPhoto").src = profile.photo || el("mainPhoto").src;
+    photos = profile.photos || [];
   }
 
-  updatePreview();
-  updateProgress();
+  renderGallery();
   document.body.style.visibility = "visible";
 });
+const params = new URLSearchParams(window.location.search);
+const userId = params.get("id");
+
+async function loadProfile() {
+
+  const { data } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+
+  if (!data) return;
+
+  document.getElementById("photo").src = data.photo;
+  document.getElementById("name").textContent = data.prenom;
+  document.getElementById("meta").textContent = `${data.age} ans • ${data.ville}`;
+  document.getElementById("bio").textContent = data.bio;
+
+  const box = document.getElementById("gallery");
+
+  (data.photos || []).forEach(img => {
+    const i = document.createElement("img");
+    i.src = img;
+    box.appendChild(i);
+  });
+}
+
+loadProfile();
+
 </script>
 
 </body>
